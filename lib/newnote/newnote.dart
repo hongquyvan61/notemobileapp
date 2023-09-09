@@ -341,7 +341,9 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                                           tooltip: 'Gắn thẻ',
                                           color: Colors.white,
                                           icon: const Icon(Icons.turned_in_not_outlined),
-                                          onPressed: () {},
+                                          onPressed: () {
+                                            Navigator.of(context).pushNamed(RoutePaths.test);
+                                          },
                                         ),
                                       ],
                                     ),

@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return  MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
       initialRoute: RoutePaths.start,
       onGenerateRoute: RouterCustom.generateRoute,
@@ -24,12 +24,8 @@ class MyApp extends StatelessWidget {
           //   Theme.of(context).textTheme
           // )
           textTheme: GoogleFonts.merriweatherSansTextTheme(
-            Theme.of(context).textTheme
-          )
-      ),
+              Theme.of(context).textTheme)),
       home: const HomeScreen(),
-      
     );
   }
-
 }
