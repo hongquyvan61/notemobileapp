@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:notemobileapp/home/home.dart';
-import 'package:notemobileapp/newnote/newnote.dart';
 import 'package:notemobileapp/router.dart';
+import 'package:notemobileapp/test/notifi_service.dart';
 
 void main() {
+  NotificationService().initNotification();
   runApp(const MyApp());
+
 }
 
 class MyApp extends StatelessWidget {
@@ -20,11 +21,7 @@ class MyApp extends StatelessWidget {
       onGenerateRoute: RouterCustom.generateRoute,
       theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
-          // textTheme: GoogleFonts(
-          //   Theme.of(context).textTheme
-          // )
-          textTheme: GoogleFonts.merriweatherSansTextTheme(
-              Theme.of(context).textTheme)),
+          fontFamily: 'Urbanist'),
       home: const HomeScreen(),
     );
   }
