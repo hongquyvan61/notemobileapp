@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:notemobileapp/home/home.dart';
 import 'package:notemobileapp/newnote/newnote.dart';
 import 'package:notemobileapp/temp.dart';
-import 'package:notemobileapp/test/speech_to_text.dart';
+import 'package:notemobileapp/test/test_page.dart';
 
 class RoutePaths {
   static const start = '/';

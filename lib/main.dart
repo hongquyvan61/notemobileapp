@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:notemobileapp/home/home.dart';
 import 'package:notemobileapp/router.dart';
 import 'package:notemobileapp/test/notifi_service.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
 void main() {
   NotificationService().initNotification();
+  tz.initializeTimeZones();
   runApp(const MyApp());
 
 }
