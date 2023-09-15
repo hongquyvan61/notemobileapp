@@ -7,9 +7,7 @@ import 'package:notemobileapp/test/ttspeech_config.dart';
 
 DateTime scheduleTime = DateTime.now();
 Duration durationTime = const Duration();
-
 FlutterTts flutterTts = FlutterTts();
-
 
 class DatePickerTxt extends StatefulWidget {
   const DatePickerTxt({super.key});
@@ -27,9 +25,7 @@ class _DatePickerTxtState extends State<DatePickerTxt> {
             context,
             showTitleActions: true,
             onChanged: (date) => {scheduleTime = date},
-            onConfirm: (date) {
-
-            },
+            onConfirm: (date) {},
           );
         },
         child: const Text(
@@ -38,14 +34,6 @@ class _DatePickerTxtState extends State<DatePickerTxt> {
         ));
   }
 }
-
-
-
-Duration time_schedule(){
-  return durationTime =  scheduleTime.difference(DateTime.now());
-}
-
-
 
 class ScheduleBtn extends StatelessWidget {
   const ScheduleBtn({super.key});
@@ -58,7 +46,8 @@ class ScheduleBtn extends StatelessWidget {
           String minute = time_schedule().inMinutes.toString();
           String second = time_schedule().inSeconds.toString();
           Fluttertoast.showToast(
-              msg: "Đã đặt thông báo nhắc nhở sau $hour giờ $minute phút $second giây",
+              msg:
+                  "Đã đặt thông báo nhắc nhở sau $hour giờ $minute phút $second giây",
               toastLength: Toast.LENGTH_SHORT,
               gravity: ToastGravity.CENTER,
               timeInSecForIosWeb: 1,
@@ -68,19 +57,21 @@ class ScheduleBtn extends StatelessWidget {
 
           NotificationService().scheduleNotification(
               title: 'Scheduled Notification',
-              body: '$scheduleTime',
+              body: 'Nội dung thông báo',
               scheduledNotificationDateTime: scheduleTime);
 
           Future.delayed(
-              scheduleTime.difference(DateTime.now().add(const Duration(seconds: -2))),
+              scheduleTime
+                  .difference(DateTime.now().add(const Duration(seconds: -2))),
               () async => {
                     configTextToSpeech(flutterTts),
-                    flutterTts.speak('Bing chilling'),
+                    flutterTts.speak('$scheduleTime'),
                   });
-          print(scheduleTime);
-          print(DateTime.now());
-          print(time_schedule());
         },
         child: const Text('Schedule notifications'));
   }
+}
+
+Duration time_schedule() {
+  return durationTime = scheduleTime.difference(DateTime.now());
 }
