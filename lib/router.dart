@@ -22,6 +22,7 @@ class RouterCustom {
         //final event = settings.arguments as Event;
         return MaterialPageRoute(
             builder: (_) => const NewNoteScreen());
+            
       case RoutePaths.test:
         // you can do things like pass arguments to screens
         //final event = settings.arguments as Event;

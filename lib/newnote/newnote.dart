@@ -37,8 +37,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
   SpeechToText speechToText = SpeechToText();
 
   static FocusNode fcnFirstTxtField = FocusNode();
-  static TextEditingController FirstTxtFieldController =
-      TextEditingController();
+  static TextEditingController FirstTxtFieldController = TextEditingController();
 
   List<Widget> NoteContentList = <Widget>[
     TextField(
@@ -55,9 +54,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
 
 
   List<FocusNode> lstFocusNode = <FocusNode>[fcnFirstTxtField];
-  List<TextEditingController> lstTxtController = <TextEditingController>[
-    FirstTxtFieldController
-  ];
+  List<TextEditingController> lstTxtController = <TextEditingController>[FirstTxtFieldController];
 
   List<dynamic> SaveNoteContentList = <dynamic>[FirstTxtFieldController];
 
@@ -142,12 +139,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
 
     setState(() {
       this._image = imageTemp;
-      Widget widgethinh = Image.file(
-        _image!,
-        width: 250,
-        height: 250,
-        fit: BoxFit.cover,
-      );
+      Widget widgethinh = Image.file(_image!, width: 250, height: 250, fit: BoxFit.cover,);
       NoteContentList.add(widgethinh);
       FocusNode fcnTxtField = FocusNode();
       TextEditingController txtfieldController = TextEditingController();
@@ -260,6 +252,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                   onPressed: (){
                     saveNoteToLocal();
                     Navigator.of(context).pop('RELOAD_LIST');
+                    //Navigator.push(context, MaterialPageRoute(builder: (context) => const ToDoPage()));
                   },
                 )
               ],
@@ -324,69 +317,123 @@ class NewNoteScreenState extends State<NewNoteScreen> {
               //     ),
               //   ],
               // ),
+              
           ),
-          centerTitle: true,
-          actions: [
-            IconButton(
-              icon: const Icon(
-                Icons.check,
-              ),
-              onPressed: () {
-                // TodoDB().create(title: 'Note1', text: "Hello xin chao");
-                // print(TodoDB().fetchAll().toString());
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const ToDoPage()));
-                // Navigator.of(context).pop();
-              },
-            )
-          ],
-        ),
-        body: Container(
-          padding: EdgeInsets.all(13),
-          child: Column(children: [
-            TextField(
-              style: const TextStyle(
-                  fontSize: 23, fontWeight: FontWeight.bold),
-              controller: _notetitlecontroller,
-              decoration: const InputDecoration(
-                hintText: 'Tiêu đề ghi chú',
-                hintStyle:
-                    TextStyle(fontStyle: FontStyle.italic, fontSize: 15),
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(
-                    width: 1,
-                  ),
+
+              floatingActionButton: _showFab
+                ? AvatarGlow(
+                  animate: MicroIsListening,
+                  duration: const Duration(milliseconds: 2000),
+                  glowColor: Colors.deepOrange,
+                  repeat: true,
+                  child: GestureDetector(
+                    onTapDown: (details) async{
+                      var available = await speechToText.initialize();
+                      var vitri;
+                      if(available){
+                        setState(() {
+                          MicroIsListening = true;
+                          speechToText.listen(onResult: (result){
+                              setState(() {
+                                for(var i = 0; i < lstFocusNode.length; i++){
+                                  if(lstFocusNode[i].hasFocus){
+                                    vitri = i;
+                                    break;
+                                  }
+                                }
+                                if(result.finalResult){
+                                  String doanvannoi = result.recognizedWords;
+                                  lstTxtController[vitri].text += doanvannoi;
+                                  MicroIsListening = false;
+                                }
+                              });
+                            });
+                          });
+                        }
+                      },
+
+                    onTapUp: (details) {
+                        setState(() {
+                          MicroIsListening = false;
+                        });
+                        speechToText.stop();
+                    },
+                      // child: FloatingActionButton(
+                      //   onPressed: (){},
+                      //   tooltip: 'Nhận diện giọng nói',
+                      //   elevation: _isVisible ? 0.0 : null,
+                      //   child: const Icon(Icons.mic),
+                      // ),
+                      child: const CircleAvatar(
+                        backgroundColor: Colors.brown,
+                        radius: 30,
+                        child: const Icon(Icons.mic, color: Colors.white),
+                      ),
+                    ),
+                  )
+                : null,
+            floatingActionButtonLocation: _fabLocation,
+            bottomNavigationBar: ClipRRect(
+              clipBehavior: Clip.hardEdge,
+              borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(25),
+                  topRight: Radius.circular(25),
+                  bottomLeft: Radius.circular(0),
+                  bottomRight: Radius.circular(0)),
+              child: BottomAppBar(
+                height: 70.0,
+                color: Color.fromARGB(255, 108, 127, 244),
+                shape: CircularNotchedRectangle(),
+                elevation: _isElevated ? null : 0.0,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: <Widget>[
+                    IconButton(
+                        tooltip: 'Chèn hình',
+                        icon: const Icon(Icons.image_outlined),
+                        color: Colors.white,
+                        onPressed: () {
+                          getImage();
+                        }
+                        // final SnackBar snackBar = SnackBar(
+                        //   content: const Text('Yay! A SnackBar!'),
+                        //   action: SnackBarAction(
+                        //     label: 'Undo',
+                        //     onPressed: () {},
+                        //   ),
+                        // );
+
+                        // Find the ScaffoldMessenger in the widget tree
+                        // and use it to show a SnackBar.
+                        //ScaffoldMessenger.of(context).showSnackBar(snackBar);
+
+                        ),
+                    IconButton(
+                      tooltip: 'Hẹn giờ thông báo',
+                      color: Colors.white,
+                      icon: const Icon(Icons.notifications_none_outlined),
+                      onPressed: () {},
+                    ),
+                    IconButton(
+                      tooltip: 'Định dạng chữ',
+                      color: Colors.white,
+                      icon: const Icon(Icons.abc),
+                      onPressed: () {},
+                    ),
+                    IconButton(
+                      tooltip: 'Gắn thẻ',
+                      color: Colors.white,
+                      icon: const Icon(Icons.turned_in_not_outlined),
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(RoutePaths.test);
+                      },
+                    ),
+                  ],
                 ),
               ),
-              onSubmitted: (String value) async {
-                NoteTitle = _notetitlecontroller.text;
-                await showDialog(
-                  context: context,
-                  builder: (context) {
-                    return AlertDialog(
-                      content: Text(NoteTitle),
-                    );
-                  },
-                );
-              },
-            ),
-            const SizedBox(height: 10),
-            Container(
-              alignment: Alignment.topLeft,
-              child: Text(
-                'Ngày giờ tạo: ' + CurrentDateTime,
-                style: TextStyle(fontSize: 15, color: Colors.grey),
-              ),
-            ),
-            Expanded(
-                child: ListView.separated(
-                    controller: _controller,
-                    itemCount: NoteContentList.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return NoteContentList[index];
-                    },
-                    separatorBuilder: (BuildContext context, int index) =>
-                        const Divider())),
-          ]),
+            )
+        )
+        
 
           //  child: Column(
           //   children: <Widget>[
@@ -399,119 +446,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
           //     ),
           //   ],
           // ),
-        ),
-        floatingActionButton: _showFab
-            ? AvatarGlow(
-              animate: MicroIsListening,
-              duration: const Duration(milliseconds: 2000),
-              glowColor: Colors.deepOrange,
-              repeat: true,
-              child: GestureDetector(
-                onTapDown: (details) async{
-                  var available = await speechToText.initialize();
-                  var vitri;
-                  if(available){
-                    setState(() {
-                      MicroIsListening = true;
-                      speechToText.listen(
-                        onResult: (result){
-                          setState(() {
-                            for(var i = 0; i < lstFocusNode.length; i++){
-                              if(lstFocusNode[i].hasFocus){
-                                vitri = i;
-                                break;
-                              }
-                            }
-                            if(result.finalResult){
-                              String doanvannoi = result.recognizedWords;
-                              lstTxtController[vitri].text += doanvannoi;
-                              MicroIsListening = false;
-                            }
-                          });
-                        });
-                      });
-                    }
-                  },
-
-                  onTapUp: (details) {
-                    setState(() {
-                      MicroIsListening = false;
-                    });
-                    speechToText.stop();
-                  },
-                  // child: FloatingActionButton(
-                  //   onPressed: (){},
-                  //   tooltip: 'Nhận diện giọng nói',
-                  //   elevation: _isVisible ? 0.0 : null,
-                  //   child: const Icon(Icons.mic),
-                  // ),
-                  child: const CircleAvatar(
-                    backgroundColor: Colors.brown,
-                    radius: 30,
-                    child: const Icon(Icons.mic, color: Colors.white),
-                  ),
-                ),
-              )
-            : null,
-        floatingActionButtonLocation: _fabLocation,
-        bottomNavigationBar: ClipRRect(
-          clipBehavior: Clip.hardEdge,
-          borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(25),
-              topRight: Radius.circular(25),
-              bottomLeft: Radius.circular(0),
-              bottomRight: Radius.circular(0)),
-          child: BottomAppBar(
-            height: 70.0,
-            color: Color.fromARGB(255, 108, 127, 244),
-            shape: CircularNotchedRectangle(),
-            elevation: _isElevated ? null : 0.0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: <Widget>[
-                IconButton(
-                    tooltip: 'Chèn hình',
-                    icon: const Icon(Icons.image_outlined),
-                    color: Colors.white,
-                    onPressed: () {
-                      getImage();
-                    }
-                    // final SnackBar snackBar = SnackBar(
-                    //   content: const Text('Yay! A SnackBar!'),
-                    //   action: SnackBarAction(
-                    //     label: 'Undo',
-                    //     onPressed: () {},
-                    //   ),
-                    // );
-
-                    // Find the ScaffoldMessenger in the widget tree
-                    // and use it to show a SnackBar.
-                    //ScaffoldMessenger.of(context).showSnackBar(snackBar);
-
-                    ),
-                IconButton(
-                  tooltip: 'Hẹn giờ thông báo',
-                  color: Colors.white,
-                  icon: const Icon(Icons.notifications_none_outlined),
-                  onPressed: () {},
-                ),
-                IconButton(
-                  tooltip: 'Định dạng chữ',
-                  color: Colors.white,
-                  icon: const Icon(Icons.abc),
-                  onPressed: () {},
-                ),
-                IconButton(
-                  tooltip: 'Gắn thẻ',
-                  color: Colors.white,
-                  icon: const Icon(Icons.turned_in_not_outlined),
-                  onPressed: () {
-                    Navigator.of(context).pushNamed(RoutePaths.test);
-                  },
-                ),
-              ],
-            ),
-          ),
-        ));
+      );
+        
   }
 }
