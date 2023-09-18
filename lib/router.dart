@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:notemobileapp/home/home.dart';
 import 'package:notemobileapp/newnote/newnote.dart';
-import 'package:notemobileapp/temp.dart';
 
 class RoutePaths {
   static const start = '/';
@@ -21,9 +20,7 @@ class RouterCustom {
         return MaterialPageRoute(
             builder: (_) => const NewNoteScreen());
 
-      case RoutePaths.temp:
-        return MaterialPageRoute(
-            builder: (_) => TempScreen());
+      
       default:
         return MaterialPageRoute(
             builder: (_) => Scaffold(

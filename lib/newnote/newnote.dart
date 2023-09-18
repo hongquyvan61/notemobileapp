@@ -6,8 +6,18 @@ import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:notemobileapp/model/NoteContentModel.dart';
 import 'package:speech_to_text/speech_to_text.dart';
+import 'package:notemobileapp/DAL/UserDAL.dart';
+import 'package:notemobileapp/model/NoteModel.dart';
+import 'package:notemobileapp/model/initializeDB.dart';
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:notemobileapp/DAL/NoteDAL.dart';
+import 'package:notemobileapp/DAL/NoteContentDAL.dart';
 
+
+import '../model/UserModel.dart';
 import '../router.dart';
 
 
@@ -42,8 +52,11 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                               ),
                             )];
 
+
   List<FocusNode> lstFocusNode = <FocusNode>[fcnFirstTxtField];
   List<TextEditingController> lstTxtController = <TextEditingController>[FirstTxtFieldController];
+
+  List<dynamic> SaveNoteContentList = <dynamic>[FirstTxtFieldController];
 
   late ScrollController _controller;
   late TextEditingController _notetitlecontroller;
@@ -53,8 +66,12 @@ class NewNoteScreenState extends State<NewNoteScreen> {
   bool _isVisible = true;
   bool MicroIsListening = false;
 
-  late String NoteTitle;
+  late String NoteTitle = '';
   late String CurrentDateTime;
+
+  UserDAL uDAL = UserDAL();
+  NoteDAL nDAL = NoteDAL();
+  NoteContentDAL ncontentDAL = NoteContentDAL();
 
   FloatingActionButtonLocation get _fabLocation => _isVisible
       ? FloatingActionButtonLocation.centerDocked
@@ -142,9 +159,83 @@ class NewNoteScreenState extends State<NewNoteScreen> {
       lstFocusNode.add(fcnTxtField);
       lstTxtController.add(txtfieldController);
       NoteContentList.add(TxtFieldtieptheo);
+
+      SaveNoteContentList.add(imageTemp);
+      SaveNoteContentList.add(txtfieldController);
     });
   }
 
+  Future<void> saveNoteToLocal() async {
+
+    //SUA LAI USER ID O DAY
+    //SUA LAI USER ID O DAY
+    //SUA LAI USER ID O DAY
+    //SUA LAI USER ID O DAY
+    //SUA LAI USER ID O DAY
+    NoteModel md = NoteModel(title: NoteTitle, date_created: CurrentDateTime, user_id: 1);
+    bool checkinsertnote = await nDAL.insertNote(md, 1, InitDataBase.db).catchError(
+                                                                          (Object e, StackTrace stackTrace) 
+                                                                          {
+                                                                            debugPrint(e.toString());
+                                                                          },);
+    if(checkinsertnote){
+      int latestid = await ncontentDAL.getLatestNoteID(InitDataBase.db).catchError(
+                                                                          (Object e, StackTrace stackTrace) 
+                                                                          {
+                                                                            debugPrint(e.toString());
+                                                                          },);
+      for(int i = 0; i < SaveNoteContentList.length; i++){
+        if(SaveNoteContentList[i] is File){
+            // getting a directory path for saving
+            final Directory directory = await getApplicationDocumentsDirectory();
+            String path = directory.path;
+            String imagename = basename(SaveNoteContentList[i].path);
+
+            // copy the file to a new path
+            final File newImage = await File(SaveNoteContentList[i].path).copy('$path/image/$imagename').catchError(
+                                                                          (Object e, StackTrace stackTrace) 
+                                                                          {
+                                                                            debugPrint(e.toString());
+                                                                          },);
+
+
+            NoteContentModel conmd = NoteContentModel(notecontent_id: null, textcontent: null, imagecontent: '$path/image/$imagename', note_id: latestid);
+            bool checkinsertnotecontent = await ncontentDAL.insertNoteContent(conmd, InitDataBase.db).catchError(
+                                                                          (Object e, StackTrace stackTrace) 
+                                                                          {
+                                                                            debugPrint(e.toString());
+                                                                          },);
+            if(checkinsertnotecontent){
+              debugPrint('insert noi dung ghi chu thanh cong');
+            }
+            else{
+              debugPrint('loi insert noi dung ghi chu');
+            }
+        }
+        else{
+          String noidungchu = SaveNoteContentList[i].text;
+          NoteContentModel conmd = NoteContentModel(notecontent_id: null, textcontent: noidungchu, imagecontent: null, note_id: latestid);
+          bool checkinsertnotecontent = await ncontentDAL.insertNoteContent(conmd, InitDataBase.db).catchError(
+                                                                          (Object e, StackTrace stackTrace) 
+                                                                          {
+                                                                            debugPrint(e.toString());
+                                                                          },);
+            if(checkinsertnotecontent){
+              debugPrint('insert noi dung ghi chu thanh cong');
+            }
+            else{
+              debugPrint('loi insert noi dung ghi chu');
+            }
+        }
+      }
+      
+    }
+    else{
+      debugPrint('loi insert note');
+    }
+    //List<NoteModel> lstnotemodel = await nDAL.getAllNotes(InitDataBase.db);
+    //List<NoteContentModel> lstnotecontent = await ncontentDAL.getAllNoteContentsById(InitDataBase.db, 1);
+  }
   
 
   @override
@@ -161,8 +252,9 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                   icon: const Icon(
                     Icons.check,
                   ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
+                  onPressed: (){
+                    saveNoteToLocal();
+                    Navigator.of(context).pop('RELOAD_LIST');
                   },
                 )
               ],
@@ -184,16 +276,9 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                         ), 
                       ),
                     ),
-                    onSubmitted: (String value) async {
+                    onSubmitted: (String value) {
                         NoteTitle = _notetitlecontroller.text;
-                        await showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              content: Text(NoteTitle),
-                            );
-                          },
-                        );
+                        
                     },
                   ),
 
@@ -246,6 +331,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
               child: GestureDetector(
                 onTapDown: (details) async{
                   var available = await speechToText.initialize();
+                  var vitri;
                   if(available){
                     setState(() {
                       MicroIsListening = true;
@@ -254,10 +340,14 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                           setState(() {
                             for(var i = 0; i < lstFocusNode.length; i++){
                               if(lstFocusNode[i].hasFocus){
-                                String doanvannoi = result.recognizedWords;
-                                lstTxtController[i].text = doanvannoi;
+                                vitri = i;
                                 break;
                               } 
+                            }
+                            if(result.finalResult){
+                              String doanvannoi = result.recognizedWords;
+                              lstTxtController[vitri].text += doanvannoi;
+                              MicroIsListening = false;
                             }
                           });
                         }

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:notemobileapp/home/home.dart';
+import 'package:notemobileapp/model/initializeDB.dart';
 import 'package:notemobileapp/newnote/newnote.dart';
 import 'package:notemobileapp/router.dart';
 
-void main() {
+void main() async {
+  InitDataBase.db = await InitDataBase().initDB();
   runApp(const MyApp());
 }
 
@@ -16,7 +19,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return  MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: RoutePaths.start,
+      initialRoute: RoutePaths.start  ,
       onGenerateRoute: RouterCustom.generateRoute,
       theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
@@ -27,6 +30,7 @@ class MyApp extends StatelessWidget {
             Theme.of(context).textTheme
           )
       ),
+      builder: EasyLoading.init(),
       home: const HomeScreen(),
       
     );
