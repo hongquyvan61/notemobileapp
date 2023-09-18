@@ -5,10 +5,15 @@ import 'package:notemobileapp/home/home.dart';
 import 'package:notemobileapp/model/initializeDB.dart';
 import 'package:notemobileapp/newnote/newnote.dart';
 import 'package:notemobileapp/router.dart';
+import 'package:notemobileapp/test/notifi_service.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
 void main() async {
   InitDataBase.db = await InitDataBase().initDB();
+  NotificationService().initNotification();
+  tz.initializeTimeZones();
   runApp(const MyApp());
+
 }
 
 class MyApp extends StatelessWidget {
@@ -17,7 +22,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return  MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
       initialRoute: RoutePaths.start  ,
       onGenerateRoute: RouterCustom.generateRoute,
@@ -32,8 +37,6 @@ class MyApp extends StatelessWidget {
       ),
       builder: EasyLoading.init(),
       home: const HomeScreen(),
-      
     );
   }
-
 }
