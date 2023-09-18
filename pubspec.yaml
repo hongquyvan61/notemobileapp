@@ -53,6 +53,8 @@ dependencies:
   flutter_local_notifications: ^15.1.1
   flutter_tts: ^3.8.3
   flutter_datetime_picker_plus: ^2.1.0
+  firebase_auth: ^4.9.0
+  firebase_core: ^2.15.1
 
 dev_dependencies:
   flutter_test:

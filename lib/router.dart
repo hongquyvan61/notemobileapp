@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:notemobileapp/home/home.dart';
 import 'package:notemobileapp/newnote/newnote.dart';
+import 'package:notemobileapp/test/page/auth_page.dart';
 import 'package:notemobileapp/test/test_page.dart';
 
 class RoutePaths {
@@ -8,7 +9,7 @@ class RoutePaths {
   static const newnote = 'newnotescreen';
   static const temp = 'tempscreen';
   static const test = 'testscreen';
-  
+  static const login = 'loginscreen';
 }
 
 class RouterCustom {
@@ -20,16 +21,15 @@ class RouterCustom {
       case RoutePaths.newnote:
         // you can do things like pass arguments to screens
         //final event = settings.arguments as Event;
-        return MaterialPageRoute(
-            builder: (_) => const NewNoteScreen());
-            
+        return MaterialPageRoute(builder: (_) => const NewNoteScreen());
+
       case RoutePaths.test:
         // you can do things like pass arguments to screens
         //final event = settings.arguments as Event;
-        return MaterialPageRoute(
-            builder: (_) => const TestPage());
+        return MaterialPageRoute(builder: (_) => const TestPage());
+      case RoutePaths.login:
+        return MaterialPageRoute(builder: (_) => const AuthPage());
 
-      
       default:
         return MaterialPageRoute(
             builder: (_) => Scaffold(

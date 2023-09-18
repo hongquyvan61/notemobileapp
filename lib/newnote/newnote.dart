@@ -18,7 +18,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:notemobileapp/DAL/NoteDAL.dart';
 import 'package:notemobileapp/DAL/NoteContentDAL.dart';
 
-
 import '../model/UserModel.dart';
 import '../router.dart';
 
@@ -37,7 +36,8 @@ class NewNoteScreenState extends State<NewNoteScreen> {
   SpeechToText speechToText = SpeechToText();
 
   static FocusNode fcnFirstTxtField = FocusNode();
-  static TextEditingController FirstTxtFieldController = TextEditingController();
+  static TextEditingController FirstTxtFieldController =
+      TextEditingController();
 
   List<Widget> NoteContentList = <Widget>[
     TextField(
@@ -52,9 +52,10 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     )
   ];
 
-
   List<FocusNode> lstFocusNode = <FocusNode>[fcnFirstTxtField];
-  List<TextEditingController> lstTxtController = <TextEditingController>[FirstTxtFieldController];
+  List<TextEditingController> lstTxtController = <TextEditingController>[
+    FirstTxtFieldController
+  ];
 
   List<dynamic> SaveNoteContentList = <dynamic>[FirstTxtFieldController];
 
@@ -139,7 +140,12 @@ class NewNoteScreenState extends State<NewNoteScreen> {
 
     setState(() {
       this._image = imageTemp;
-      Widget widgethinh = Image.file(_image!, width: 250, height: 250, fit: BoxFit.cover,);
+      Widget widgethinh = Image.file(
+        _image!,
+        width: 250,
+        height: 250,
+        fit: BoxFit.cover,
+      );
       NoteContentList.add(widgethinh);
       FocusNode fcnTxtField = FocusNode();
       TextEditingController txtfieldController = TextEditingController();
@@ -163,93 +169,104 @@ class NewNoteScreenState extends State<NewNoteScreen> {
   }
 
   Future<void> saveNoteToLocal() async {
+    //SUA LAI USER ID O DAY
+    //SUA LAI USER ID O DAY
+    //SUA LAI USER ID O DAY
+    //SUA LAI USER ID O DAY
+    //SUA LAI USER ID O DAY
+    NoteModel md =
+        NoteModel(title: NoteTitle, date_created: CurrentDateTime, user_id: 1);
+    bool checkinsertnote =
+        await nDAL.insertNote(md, 1, InitDataBase.db).catchError(
+      (Object e, StackTrace stackTrace) {
+        debugPrint(e.toString());
+      },
+    );
+    if (checkinsertnote) {
+      int latestid =
+          await ncontentDAL.getLatestNoteID(InitDataBase.db).catchError(
+        (Object e, StackTrace stackTrace) {
+          debugPrint(e.toString());
+        },
+      );
+      for (int i = 0; i < SaveNoteContentList.length; i++) {
+        if (SaveNoteContentList[i] is File) {
+          // getting a directory path for saving
+          final Directory directory = await getApplicationDocumentsDirectory();
+          String path = directory.path;
+          String imagename = basename(SaveNoteContentList[i].path);
 
-    //SUA LAI USER ID O DAY
-    //SUA LAI USER ID O DAY
-    //SUA LAI USER ID O DAY
-    //SUA LAI USER ID O DAY
-    //SUA LAI USER ID O DAY
-    NoteModel md = NoteModel(title: NoteTitle, date_created: CurrentDateTime, user_id: 1);
-    bool checkinsertnote = await nDAL.insertNote(md, 1, InitDataBase.db).catchError(
-                                                                          (Object e, StackTrace stackTrace) 
-                                                                          {
-                                                                            debugPrint(e.toString());
-                                                                          },);
-    if(checkinsertnote){
-      int latestid = await ncontentDAL.getLatestNoteID(InitDataBase.db).catchError(
-                                                                          (Object e, StackTrace stackTrace) 
-                                                                          {
-                                                                            debugPrint(e.toString());
-                                                                          },);
-      for(int i = 0; i < SaveNoteContentList.length; i++){
-        if(SaveNoteContentList[i] is File){
-            // getting a directory path for saving
-            final Directory directory = await getApplicationDocumentsDirectory();
-            String path = directory.path;
-            String imagename = basename(SaveNoteContentList[i].path);
+          // copy the file to a new path
+          final File newImage = await File(SaveNoteContentList[i].path)
+              .copy('$path/image/$imagename')
+              .catchError(
+            (Object e, StackTrace stackTrace) {
+              debugPrint(e.toString());
+            },
+          );
 
-            // copy the file to a new path
-            final File newImage = await File(SaveNoteContentList[i].path).copy('$path/image/$imagename').catchError(
-                                                                          (Object e, StackTrace stackTrace) 
-                                                                          {
-                                                                            debugPrint(e.toString());
-                                                                          },);
-
-
-            NoteContentModel conmd = NoteContentModel(notecontent_id: null, textcontent: null, imagecontent: '$path/image/$imagename', note_id: latestid);
-            bool checkinsertnotecontent = await ncontentDAL.insertNoteContent(conmd, InitDataBase.db).catchError(
-                                                                          (Object e, StackTrace stackTrace) 
-                                                                          {
-                                                                            debugPrint(e.toString());
-                                                                          },);
-            if(checkinsertnotecontent){
-              debugPrint('insert noi dung ghi chu thanh cong');
-            }
-            else{
-              debugPrint('loi insert noi dung ghi chu');
-            }
-        }
-        else{
+          NoteContentModel conmd = NoteContentModel(
+              notecontent_id: null,
+              textcontent: null,
+              imagecontent: '$path/image/$imagename',
+              note_id: latestid);
+          bool checkinsertnotecontent = await ncontentDAL
+              .insertNoteContent(conmd, InitDataBase.db)
+              .catchError(
+            (Object e, StackTrace stackTrace) {
+              debugPrint(e.toString());
+            },
+          );
+          if (checkinsertnotecontent) {
+            debugPrint('insert noi dung ghi chu thanh cong');
+          } else {
+            debugPrint('loi insert noi dung ghi chu');
+          }
+        } else {
           String noidungchu = SaveNoteContentList[i].text;
-          NoteContentModel conmd = NoteContentModel(notecontent_id: null, textcontent: noidungchu, imagecontent: null, note_id: latestid);
-          bool checkinsertnotecontent = await ncontentDAL.insertNoteContent(conmd, InitDataBase.db).catchError(
-                                                                          (Object e, StackTrace stackTrace) 
-                                                                          {
-                                                                            debugPrint(e.toString());
-                                                                          },);
-            if(checkinsertnotecontent){
-              debugPrint('insert noi dung ghi chu thanh cong');
-            }
-            else{
-              debugPrint('loi insert noi dung ghi chu');
-            }
+          NoteContentModel conmd = NoteContentModel(
+              notecontent_id: null,
+              textcontent: noidungchu,
+              imagecontent: null,
+              note_id: latestid);
+          bool checkinsertnotecontent = await ncontentDAL
+              .insertNoteContent(conmd, InitDataBase.db)
+              .catchError(
+            (Object e, StackTrace stackTrace) {
+              debugPrint(e.toString());
+            },
+          );
+          if (checkinsertnotecontent) {
+            debugPrint('insert noi dung ghi chu thanh cong');
+          } else {
+            debugPrint('loi insert noi dung ghi chu');
+          }
         }
       }
-      
-    }
-    else{
+    } else {
       debugPrint('loi insert note');
     }
     //List<NoteModel> lstnotemodel = await nDAL.getAllNotes(InitDataBase.db);
     //List<NoteContentModel> lstnotecontent = await ncontentDAL.getAllNoteContentsById(InitDataBase.db, 1);
   }
-  
 
   @override
   Widget build(BuildContext context) {
-      return SafeArea(
+    return SafeArea(
         child: Scaffold(
-          appBar: AppBar(
+            appBar: AppBar(
               backgroundColor: const Color.fromARGB(131, 0, 0, 0),
               elevation: 0.0,
-              title: const Text('Tạo ghi chú',),
+              title: const Text(
+                'Tạo ghi chú',
+              ),
               centerTitle: true,
               actions: [
                 IconButton(
                   icon: const Icon(
                     Icons.check,
                   ),
-                  onPressed: (){
+                  onPressed: () {
                     saveNoteToLocal();
                     Navigator.of(context).pop('RELOAD_LIST');
                     //Navigator.push(context, MaterialPageRoute(builder: (context) => const ToDoPage()));
@@ -257,58 +274,49 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                 )
               ],
             ),
-
-          body: Container(
+            body: Container(
               padding: EdgeInsets.all(13),
-              child: Column(
-                children: [
-                  TextField(
-                    style: const TextStyle(fontSize: 23, fontWeight: FontWeight.bold),
-                    controller: _notetitlecontroller,
-                    decoration: const InputDecoration(
-                      hintText: 'Tiêu đề ghi chú',
-                      hintStyle: TextStyle(fontStyle: FontStyle.italic, fontSize: 15),
-                      enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(
-                            width: 1,
-                        ), 
+              child: Column(children: [
+                TextField(
+                  style: const TextStyle(
+                      fontSize: 23, fontWeight: FontWeight.bold),
+                  controller: _notetitlecontroller,
+                  decoration: const InputDecoration(
+                    hintText: 'Tiêu đề ghi chú',
+                    hintStyle:
+                        TextStyle(fontStyle: FontStyle.italic, fontSize: 15),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        width: 1,
                       ),
                     ),
-                    onSubmitted: (String value) {
-                        NoteTitle = _notetitlecontroller.text;
-                        
-                    },
                   ),
-
-                  const SizedBox(height: 10),
-
-                  Container(
-                    alignment: Alignment.topLeft,
-                    child: Text(
-                      'Ngày giờ tạo: ' + CurrentDateTime,
-                      style: TextStyle(fontSize: 15, color: Colors.grey),
-                    ),
+                  onSubmitted: (String value) {
+                    NoteTitle = _notetitlecontroller.text;
+                  },
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  alignment: Alignment.topLeft,
+                  child: Text(
+                    'Ngày giờ tạo: ' + CurrentDateTime,
+                    style: TextStyle(fontSize: 15, color: Colors.grey),
                   ),
-
-                  Expanded(
+                ),
+                Expanded(
                     child: ListView.separated(
-                          controller: _controller,
-                          itemCount: NoteContentList.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            return NoteContentList[index];
-                          },
-                          separatorBuilder: (BuildContext context, int index) => const Divider()
-                        )
-                  ),
+                        controller: _controller,
+                        itemCount: NoteContentList.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          return NoteContentList[index];
+                        },
+                        separatorBuilder: (BuildContext context, int index) =>
+                            const Divider())),
+              ]),
 
-                  
-                ]
-              ),
-
-              
               //  child: Column(
               //   children: <Widget>[
-                  
+
               //     Expanded(
               //       child: ListView(
               //         controller: _controller,
@@ -317,31 +325,29 @@ class NewNoteScreenState extends State<NewNoteScreen> {
               //     ),
               //   ],
               // ),
-              
-          ),
-
-              floatingActionButton: _showFab
+            ),
+            floatingActionButton: _showFab
                 ? AvatarGlow(
-                  animate: MicroIsListening,
-                  duration: const Duration(milliseconds: 2000),
-                  glowColor: Colors.deepOrange,
-                  repeat: true,
-                  child: GestureDetector(
-                    onTapDown: (details) async{
-                      var available = await speechToText.initialize();
-                      var vitri;
-                      if(available){
-                        setState(() {
-                          MicroIsListening = true;
-                          speechToText.listen(onResult: (result){
+                    animate: MicroIsListening,
+                    duration: const Duration(milliseconds: 2000),
+                    glowColor: Colors.deepOrange,
+                    repeat: true,
+                    child: GestureDetector(
+                      onTapDown: (details) async {
+                        var available = await speechToText.initialize();
+                        var vitri;
+                        if (available) {
+                          setState(() {
+                            MicroIsListening = true;
+                            speechToText.listen(onResult: (result) {
                               setState(() {
-                                for(var i = 0; i < lstFocusNode.length; i++){
-                                  if(lstFocusNode[i].hasFocus){
+                                for (var i = 0; i < lstFocusNode.length; i++) {
+                                  if (lstFocusNode[i].hasFocus) {
                                     vitri = i;
                                     break;
                                   }
                                 }
-                                if(result.finalResult){
+                                if (result.finalResult) {
                                   String doanvannoi = result.recognizedWords;
                                   lstTxtController[vitri].text += doanvannoi;
                                   MicroIsListening = false;
@@ -352,12 +358,12 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                         }
                       },
 
-                    onTapUp: (details) {
+                      onTapUp: (details) {
                         setState(() {
                           MicroIsListening = false;
                         });
                         speechToText.stop();
-                    },
+                      },
                       // child: FloatingActionButton(
                       //   onPressed: (){},
                       //   tooltip: 'Nhận diện giọng nói',
@@ -431,22 +437,19 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                   ],
                 ),
               ),
-            )
-        )
-        
+            ))
 
-          //  child: Column(
-          //   children: <Widget>[
+        //  child: Column(
+        //   children: <Widget>[
 
-          //     Expanded(
-          //       child: ListView(
-          //         controller: _controller,
-          //         children: items.toList(),
-          //       ),
-          //     ),
-          //   ],
-          // ),
-      );
-        
+        //     Expanded(
+        //       child: ListView(
+        //         controller: _controller,
+        //         children: items.toList(),
+        //       ),
+        //     ),
+        //   ],
+        // ),
+        );
   }
 }
