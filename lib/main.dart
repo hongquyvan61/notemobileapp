@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
       // initialRoute: RoutePaths.start  ,
       onGenerateRoute: RouterCustom.generateRoute,
       theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple),
           // textTheme: GoogleFonts(
           //   Theme.of(context).textTheme
           // )
