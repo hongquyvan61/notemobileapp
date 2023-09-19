@@ -294,6 +294,9 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                   onSubmitted: (String value) {
                     NoteTitle = _notetitlecontroller.text;
                   },
+                  onTapOutside: (event) {
+                    NoteTitle = _notetitlecontroller.text;
+                  },
                 ),
                 const SizedBox(height: 10),
                 Container(
