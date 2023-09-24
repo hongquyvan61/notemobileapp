@@ -29,9 +29,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      // initialRoute: RoutePaths.start  ,
+      initialRoute: RoutePaths.start,
       onGenerateRoute: RouterCustom.generateRoute,
       theme: ThemeData(
+          //colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple),
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
           // textTheme: GoogleFonts(
           //   Theme.of(context).textTheme
@@ -41,15 +42,15 @@ class MyApp extends StatelessWidget {
           )
       ),
       builder: EasyLoading.init(),
-      home:  StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return const HomeScreen();
-          } else {
-            return const AuthPage();
-          }
-        },),
+      // home:  StreamBuilder<User?>(
+      //   stream: FirebaseAuth.instance.authStateChanges(),
+      //   builder: (context, snapshot) {
+      //     if (snapshot.hasData) {
+      //       return const HomeScreen();
+      //     } else {
+      //       return const AuthPage();
+      //     }
+      //   },),
     );
   }
 }
