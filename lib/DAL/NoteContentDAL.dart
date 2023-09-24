@@ -21,6 +21,12 @@ class NoteContentDAL {
       return check != 0 ? true : false;
     }
 
+    Future<bool> deleteNoteContentsByNoteID(Database db, int noteid) async{
+
+      int check = await db.rawDelete("delete from notecontent where note_id=?",[noteid]);
+      return check != 0 ? true : false;
+    }
+
     Future<List<NoteContentModel>> getAllNoteContentsById(Database db, int noteid) async {
       final List<Map> result = await db.rawQuery("select textcontent, imagecontent, note_id from notecontent where note_id=?",[noteid]);
 
@@ -55,4 +61,19 @@ class NoteContentDAL {
       String briefcontent = result[0]['textcontent'];
       return briefcontent;
     }
+
+    Future<List<NoteContentModel>> getAllNoteContents(Database db) async {
+      final List<Map> result = await db.rawQuery("select textcontent, imagecontent, note_id from notecontent");
+
+      return List.generate(result.length, (i) {
+        return NoteContentModel(
+          note_id: result[i]['note_id'],
+          textcontent: result[i]['textcontent'],
+          imagecontent: result[i]['imagecontent'],
+          notecontent_id: null
+        );
+      });
+    }
+
+    
 }

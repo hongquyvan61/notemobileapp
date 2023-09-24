@@ -23,7 +23,9 @@ class RouterCustom {
       case RoutePaths.newnote:
         // you can do things like pass arguments to screens
         //final event = settings.arguments as Event;
-        return MaterialPageRoute(builder: (_) => const NewNoteScreen());
+
+        //SUA NOTEID, USERID O DAY
+        return MaterialPageRoute(builder: (_) => const NewNoteScreen(isEditState: false, noteIDedit: -1, UserID: -1,));
 
       case RoutePaths.test:
         // you can do things like pass arguments to screens

@@ -10,6 +10,7 @@ import 'package:notemobileapp/DAL/NoteContentDAL.dart';
 import 'package:notemobileapp/DAL/NoteDAL.dart';
 import 'package:notemobileapp/model/NoteContentModel.dart';
 import 'package:notemobileapp/model/initializeDB.dart';
+import 'package:notemobileapp/newnote/newnote.dart';
 import 'package:notemobileapp/router.dart';
 
 import '../model/NoteModel.dart';
@@ -86,13 +87,16 @@ class HomeScreenState extends State<HomeScreen> {
         status: "Đang load danh sách ghi chú...",
         maskType: EasyLoadingMaskType.none,
       );
-      listofnote =
-          await nDAL.getAllNotesByUserID(1, InitDataBase.db).catchError(
+
+      //SUA USERID O DAY
+      //SUA USERID O DAY
+      //SUA USERID O DAY
+      listofnote = await nDAL.getAllNotesByUserID(1, InitDataBase.db).catchError(
         (Object e, StackTrace stackTrace) {
           debugPrint(e.toString());
         },
       );
-      listofBriefContent.clear();
+      
       listofTitleImage = await generateListTitleImage(listofnote);
       setState(() {});
       await EasyLoading.dismiss();
@@ -104,29 +108,31 @@ class HomeScreenState extends State<HomeScreen> {
 
   Future<List<File>> generateListTitleImage(List<NoteModel> lst) async {
     late List<File> lstimage = <File>[];
+    
     // List<NoteContentModel> temp1 = await noteContentDAL.getAllNoteContentsById(InitDataBase.db, 1);
     // bool checkdel1 = await nDAL.deleteNote(6, InitDataBase.db);
     // bool checkdel2 = await nDAL.deleteNote(7, InitDataBase.db);
     // List<NoteModel> temp3 = await nDAL.getAllNotes(InitDataBase.db);
+    
+    listofBriefContent.clear();
     for (int i = 0; i < lst.length; i++) {
       int? noteid = lst[i].note_id;
-      String imagestr = await noteContentDAL.getTitleImageofNote(
-          lst[i].note_id, InitDataBase.db);
+      String imagestr = await noteContentDAL.getTitleImageofNote(lst[i].note_id, InitDataBase.db);
       if (imagestr != '') {
         File imagetemp = File(imagestr);
         lstimage.add(imagetemp);
-      } else {
+      } 
+      else {
         File emptyfile = File('');
         lstimage.add(emptyfile);
       }
-      String briefcontent = await noteContentDAL.getBriefContentofNote(
-          lst[i].note_id, InitDataBase.db);
+      String briefcontent = await noteContentDAL.getBriefContentofNote(lst[i].note_id, InitDataBase.db);
       listofBriefContent.add(briefcontent);
     }
     return lstimage;
   }
 
-  void filterlist(String inputWord){
+  void filterlist(String inputWord) async {
     List<NoteModel> results = [];
     if (inputWord.isEmpty) {
       // if the search field is empty or only contains white-space, we'll display all users
@@ -139,9 +145,11 @@ class HomeScreenState extends State<HomeScreen> {
       // we use the toLowerCase() method to make it case-insensitive
     }
 
+    foundedNote = results;
+    listofTitleImage = await generateListTitleImage(foundedNote);
     // Refresh the UI
     setState(() {
-      foundedNote = results;
+      
     });
   }
 
@@ -262,6 +270,21 @@ class HomeScreenState extends State<HomeScreen> {
                                       child: Column(
                                         children: [
                                           ListTile(
+                                            ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
+                                            ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
+                                            ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
+                                            onTap: (){
+                                              Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) => NewNoteScreen(
+                                                      UserID: 1, 
+                                                      noteIDedit: foundedNote[index].note_id?.toInt() ?? 0, 
+                                                      isEditState: true
+                                                    ),
+                                                  ),
+                                              );
+                                            },
                                             leading: const CircleAvatar(
 
                                                 backgroundColor:
@@ -310,6 +333,7 @@ class HomeScreenState extends State<HomeScreen> {
                                 },
                                 separatorBuilder: (BuildContext context, int index) => const Divider(height: 15),
                                 itemCount: foundedNote.length,
+                                
                             )
                             :
                             GridView.builder(

@@ -22,7 +22,13 @@ import '../model/UserModel.dart';
 import '../router.dart';
 
 class NewNoteScreen extends StatefulWidget {
-  const NewNoteScreen({super.key});
+  const NewNoteScreen({
+     Key? key, required this.noteIDedit, required this.isEditState, required this.UserID
+  }) : super(key: key);
+
+  final int noteIDedit;
+  final bool isEditState;
+  final int UserID;
 
   @override
   State<StatefulWidget> createState() {
@@ -31,15 +37,18 @@ class NewNoteScreen extends StatefulWidget {
 }
 
 class NewNoteScreenState extends State<NewNoteScreen> {
+
+  late BuildContext appcontext;
+
   File? _image;
 
   SpeechToText speechToText = SpeechToText();
 
   static FocusNode fcnFirstTxtField = FocusNode();
-  static TextEditingController FirstTxtFieldController =
-      TextEditingController();
+  static TextEditingController FirstTxtFieldController = TextEditingController();
 
-  List<Widget> NoteContentList = <Widget>[
+
+  List<dynamic> NoteContentList = <dynamic>[
     TextField(
       keyboardType: TextInputType.multiline,
       focusNode: fcnFirstTxtField,
@@ -66,6 +75,9 @@ class NewNoteScreenState extends State<NewNoteScreen> {
   bool _isElevated = true;
   bool _isVisible = true;
   bool MicroIsListening = false;
+  List<bool> deleteornotListImg = <bool>[];
+
+  int vitrihinh = 0;
 
   late String NoteTitle = '';
   late String CurrentDateTime;
@@ -121,6 +133,9 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     initializeDateFormatting();
     DateTime now = DateTime.now();
     CurrentDateTime = DateFormat.yMd('vi_VN').add_jm().format(now);
+    if(widget.isEditState){
+      loadingNoteWithIDAtLocal(widget.UserID, widget.noteIDedit, widget.isEditState);
+    }
   }
 
   @override
@@ -129,8 +144,10 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     _controller.dispose();
     _notetitlecontroller.dispose();
     _notecontentcontroller.dispose();
+    FirstTxtFieldController.text = "";
     super.dispose();
   }
+
 
   Future getImage() async {
     final image = await ImagePicker().pickImage(source: ImageSource.gallery);
@@ -138,18 +155,13 @@ class NewNoteScreenState extends State<NewNoteScreen> {
 
     final imageTemp = File(image.path);
 
-    setState(() {
-      this._image = imageTemp;
-      Widget widgethinh = Image.file(
-        _image!,
-        width: 250,
-        height: 250,
-        fit: BoxFit.cover,
-      );
-      NoteContentList.add(widgethinh);
+    this._image = imageTemp;
+     
+      
+      NoteContentList.add(this._image);
       FocusNode fcnTxtField = FocusNode();
       TextEditingController txtfieldController = TextEditingController();
-      Widget TxtFieldtieptheo = TextField(
+      Widget TxtFieldtieptheo =  TextField(
         keyboardType: TextInputType.multiline,
         focusNode: fcnTxtField,
         controller: txtfieldController,
@@ -165,7 +177,93 @@ class NewNoteScreenState extends State<NewNoteScreen> {
 
       SaveNoteContentList.add(imageTemp);
       SaveNoteContentList.add(txtfieldController);
+
+    setState(() {
+      
     });
+  }
+
+  Future<bool> showAlertDialog(BuildContext context, String message) async {
+    // set up the buttons
+    Widget cancelButton = OutlinedButton(
+      child: Text("Không"),
+      onPressed: () {
+        // returnValue = false;
+        Navigator.of(context).pop(false);
+      },
+    );
+    Widget continueButton = OutlinedButton(
+      child: Text("Có"),
+      onPressed: () {
+        // returnValue = true;
+        Navigator.of(context).pop(true);
+      },
+    ); // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text("Xoá hình"),
+      content: Text(message),
+      actions: [
+        cancelButton,
+        continueButton,
+      ],
+    ); // show the dialog
+    final result = await showDialog<bool?>(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+    return result ?? false;
+  }
+
+
+  Future loadingNoteWithIDAtLocal(int uid, int noteID, bool isEdit) async {
+    List<NoteModel> tmp = await nDAL.getNoteByID(uid, noteID, InitDataBase.db);
+    if(tmp.isNotEmpty && isEdit){
+      _notetitlecontroller.text = tmp[0].title;
+      CurrentDateTime = tmp[0].date_created;
+      List<NoteContentModel> contents = await ncontentDAL.getAllNoteContentsById(InitDataBase.db, noteID);
+      if(contents.isNotEmpty){  
+
+        FirstTxtFieldController.text = contents[0].textcontent.toString();
+        //fcnFirstTxtField.requestFocus();
+
+        if(contents.length >= 2){
+          for(int i = 1; i < contents.length; i++){
+            if(contents[i].textcontent != null){
+              
+                FocusNode fcnTxtField = FocusNode();
+                TextEditingController txtfieldController = TextEditingController();
+                Widget txtfield = TextField(
+                  keyboardType: TextInputType.multiline,
+                  focusNode: fcnTxtField,
+                  controller: txtfieldController,
+                  showCursor: true,
+                  //autofocus: true,
+                  maxLines: null,
+                  style: const TextStyle(fontSize: 14),
+                  decoration: const InputDecoration(border: InputBorder.none),
+                );
+                txtfieldController.text = contents[i].textcontent.toString();
+                lstFocusNode.add(fcnTxtField);
+                lstTxtController.add(txtfieldController);
+                NoteContentList.add(txtfield);
+                
+                SaveNoteContentList.add(txtfieldController);
+            }
+            if(contents[i].imagecontent != null){
+              File img = File(contents[i].imagecontent.toString());
+              
+              NoteContentList.add(img);
+              SaveNoteContentList.add(img);
+            }
+          }
+        }
+        setState(() {
+          
+        });
+      }
+    }
   }
 
   Future<void> saveNoteToLocal() async {
@@ -174,17 +272,12 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     //SUA LAI USER ID O DAY
     //SUA LAI USER ID O DAY
     //SUA LAI USER ID O DAY
-    NoteModel md =
-        NoteModel(title: NoteTitle, date_created: CurrentDateTime, user_id: 1);
-    bool checkinsertnote =
-        await nDAL.insertNote(md, 1, InitDataBase.db).catchError(
-      (Object e, StackTrace stackTrace) {
-        debugPrint(e.toString());
-      },
-    );
+    NoteModel md = NoteModel(title: NoteTitle, date_created: CurrentDateTime, user_id: 1);
+    bool checkinsertnote = await nDAL.insertNote(md, 1, InitDataBase.db).catchError((Object e, StackTrace stackTrace) {
+                                                                                  debugPrint(e.toString());
+                                                                                },);
     if (checkinsertnote) {
-      int latestid =
-          await ncontentDAL.getLatestNoteID(InitDataBase.db).catchError(
+      int latestid = await ncontentDAL.getLatestNoteID(InitDataBase.db).catchError(
         (Object e, StackTrace stackTrace) {
           debugPrint(e.toString());
         },
@@ -210,6 +303,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
               textcontent: null,
               imagecontent: '$path/image/$imagename',
               note_id: latestid);
+
           bool checkinsertnotecontent = await ncontentDAL
               .insertNoteContent(conmd, InitDataBase.db)
               .catchError(
@@ -217,18 +311,24 @@ class NewNoteScreenState extends State<NewNoteScreen> {
               debugPrint(e.toString());
             },
           );
+
           if (checkinsertnotecontent) {
             debugPrint('insert noi dung ghi chu thanh cong');
-          } else {
+          } 
+          else {
             debugPrint('loi insert noi dung ghi chu');
           }
-        } else {
+
+        } 
+        else {
           String noidungchu = SaveNoteContentList[i].text;
           NoteContentModel conmd = NoteContentModel(
               notecontent_id: null,
               textcontent: noidungchu,
               imagecontent: null,
-              note_id: latestid);
+              note_id: latestid
+          );
+
           bool checkinsertnotecontent = await ncontentDAL
               .insertNoteContent(conmd, InitDataBase.db)
               .catchError(
@@ -236,32 +336,79 @@ class NewNoteScreenState extends State<NewNoteScreen> {
               debugPrint(e.toString());
             },
           );
+
           if (checkinsertnotecontent) {
             debugPrint('insert noi dung ghi chu thanh cong');
-          } else {
+          }
+          else {
             debugPrint('loi insert noi dung ghi chu');
           }
         }
       }
-    } else {
+    } 
+    else {
       debugPrint('loi insert note');
     }
     //List<NoteModel> lstnotemodel = await nDAL.getAllNotes(InitDataBase.db);
     //List<NoteContentModel> lstnotecontent = await ncontentDAL.getAllNoteContentsById(InitDataBase.db, 1);
   }
 
+
+  Widget buildImageWidget(BuildContext context, int index){
+     Widget widgethinh = Stack(
+        children: [
+              Image.file(
+                NoteContentList[index]!,
+                width: 350, 
+                height: 250,
+                fit: BoxFit.cover,
+              ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: IconButton(
+                  icon: Icon(
+                    Icons.cancel,
+                    color: Colors.black.withOpacity(0.5),
+                    size: 30,
+                  ),
+                  onPressed: () async {
+                    bool isDeleted = await showAlertDialog(appcontext, "Bạn có muốn xoá hình này?");
+                    if(isDeleted){
+                      NoteContentList.removeAt(index);
+                      SaveNoteContentList.removeAt(index);
+                    }
+                    if(SaveNoteContentList[index].text == ""){
+                      NoteContentList.removeAt(index);
+                      SaveNoteContentList.removeAt(index);
+                    }
+                    setState(() {
+                      
+                    });
+                  }
+                )
+              )
+        ]
+      );
+    return widgethinh;
+  }
+
   @override
   Widget build(BuildContext context) {
+    appcontext = context;
     return SafeArea(
         child: Scaffold(
             appBar: AppBar(
               backgroundColor: const Color.fromARGB(131, 0, 0, 0),
               elevation: 0.0,
-              title: const Text(
-                'Tạo ghi chú',
-              ),
+              title: widget.isEditState ? const Text('Sửa ghi chú',) : const Text('Tạo ghi chú',),
               centerTitle: true,
               actions: [
+                widget.isEditState ? 
+                Icon(null)
+
+                :
+
                 IconButton(
                   icon: const Icon(
                     Icons.check,
@@ -278,6 +425,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
               padding: EdgeInsets.all(13),
               child: Column(children: [
                 TextField(
+                  autofocus: true,
                   style: const TextStyle(
                       fontSize: 23, fontWeight: FontWeight.bold),
                   controller: _notetitlecontroller,
@@ -293,6 +441,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                   ),
                   onSubmitted: (String value) {
                     NoteTitle = _notetitlecontroller.text;
+                    fcnFirstTxtField.requestFocus();
                   },
                   onTapOutside: (event) {
                     NoteTitle = _notetitlecontroller.text;
@@ -311,7 +460,16 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                         controller: _controller,
                         itemCount: NoteContentList.length,
                         itemBuilder: (BuildContext context, int index) {
-                          return NoteContentList[index];
+                          if(NoteContentList[index] is File){
+                            //return buildTextField(context, index);
+                            return buildImageWidget(context, index);
+                          }
+                          else{
+                            return NoteContentList[index];
+                          }
+                          // else{
+                          //   return buildImageWidget(context, index);
+                          // }
                         },
                         separatorBuilder: (BuildContext context, int index) =>
                             const Divider())),
@@ -337,7 +495,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                     repeat: true,
                     child: GestureDetector(
                       onTapDown: (details) async {
-                        var available = await speechToText.initialize();
+                        var available = await speechToText.initialize(); 
                         var vitri;
                         if (available) {
                           setState(() {
