@@ -187,8 +187,9 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   void backToLogin(String message){
+    FirebaseAuth.instance.signOut();
     if(message.endsWith('Successful')){
-      Navigator.of(context).pushNamed(RoutePaths.login);
+      Navigator.of(context).pushReplacementNamed(RoutePaths.start);
     }
   }
 
