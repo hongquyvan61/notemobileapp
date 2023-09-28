@@ -11,7 +11,6 @@ class AuthPage extends StatefulWidget {
 }
 
 class _AuthPageState extends State<AuthPage> {
-  final bool _isLogin = true;
   bool _loading = false;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
@@ -28,7 +27,6 @@ class _AuthPageState extends State<AuthPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       body: SafeArea(
           child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -60,7 +58,8 @@ class _AuthPageState extends State<AuthPage> {
                         borderSide: BorderSide(
                       color: Colors.black,
                       width: 2,
-                    )), icon: Icon(Icons.account_box)),
+                    )),
+                    icon: Icon(Icons.account_box)),
               ),
               const SizedBox(
                 height: 20,
@@ -84,14 +83,16 @@ class _AuthPageState extends State<AuthPage> {
                     )),
                     suffixIcon: IconButton(
                       padding: const EdgeInsetsDirectional.only(end: 12),
-                      icon: _isObscure ? const Icon(Icons.visibility) : const Icon(Icons.visibility_off),
+                      icon: _isObscure
+                          ? const Icon(Icons.visibility)
+                          : const Icon(Icons.visibility_off),
                       onPressed: () {
                         setState(() {
                           _isObscure = !_isObscure;
                         });
                       },
-
-                    ), icon: Icon(Icons.lock)),
+                    ),
+                    icon: Icon(Icons.lock)),
               ),
               const SizedBox(
                 height: 20,
@@ -103,7 +104,9 @@ class _AuthPageState extends State<AuthPage> {
                   onPressed: () {
                     handleSubmit();
                   },
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.black, maximumSize: Size.infinite),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      maximumSize: Size.infinite),
                   child: _loading
                       ? const SizedBox(
                           width: 20,
@@ -113,18 +116,62 @@ class _AuthPageState extends State<AuthPage> {
                             strokeWidth: 2,
                           ),
                         )
-                      : Text(_isLogin ? 'Login' : 'Register'),
+                      : const Text('Login'),
                 ),
               ),
-              SizedBox(height: 20,),
+              SizedBox(
+                height: 20,
+              ),
+              Text("Or"),
+              SizedBox(
+                height: 20,
+              ),
+              SizedBox(
+                width: Size.infinite.width,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Auth().signInWithGoogle();
+                  },
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      maximumSize: Size.infinite),
+                  child: _loading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset(
+                              "lib/images/google.png",
+                              height: 30,
+                            ),
+                            SizedBox(width: 5,),
+                            Text("Sign Up with Google")
+                          ],
+                        ),
+                ),
+              ),
+              SizedBox(
+                height: 20,
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                Text("Don't have an account ?"),
-                TextButton(onPressed: (){
-                  Navigator.of(context).pushNamed(RoutePaths.signup);
-                }, child: Text("Sign Up"))
-              ],)
+                  Text("Don't have an account ?"),
+                  TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(RoutePaths.signup);
+                      },
+                      child: Text("Sign Up"))
+                ],
+              )
             ],
           ),
         ),
@@ -137,16 +184,11 @@ class _AuthPageState extends State<AuthPage> {
     final email = _emailController.value.text;
     final password = _passwordController.value.text;
 
-
-
     setState(() {
       _loading = true;
     });
-    if (_isLogin) {
-      await Auth().signInWithEmailPassword(email, password);
-    } else {
-      await Auth().registerWithEmailPassword(email, password);
-    }
+
+    await Auth().signInWithEmailPassword(email, password);
 
     Future.delayed(const Duration(seconds: 3), () {
       setState(() {

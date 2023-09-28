@@ -42,15 +42,15 @@ class MyApp extends StatelessWidget {
           )
       ),
       builder: EasyLoading.init(),
-      // home:  StreamBuilder<User?>(
-      //   stream: FirebaseAuth.instance.authStateChanges(),
-      //   builder: (context, snapshot) {
-      //     if (snapshot.hasData) {
-      //       return const HomeScreen();
-      //     } else {
-      //       return const AuthPage();
-      //     }
-      //   },),
+      home:  StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return const HomeScreen();
+          } else {
+            return const AuthPage();
+          }
+        },),
     );
   }
 }
