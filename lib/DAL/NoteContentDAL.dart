@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:notemobileapp/model/initializeDB.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'package:notemobileapp/model/NoteContentModel.dart';
@@ -27,15 +28,28 @@ class NoteContentDAL {
       return check != 0 ? true : false;
     }
 
-    Future<List<NoteContentModel>> getAllNoteContentsById(Database db, int noteid) async {
-      final List<Map> result = await db.rawQuery("select textcontent, imagecontent, note_id from notecontent where note_id=?",[noteid]);
+    Future<bool> deleteNoteContentsByID(int notecontentid, Database db) async{
+      List<Map> result = await db.rawQuery("select imagecontent from notecontent where notecontent_id=? and imagecontent is not null",[notecontentid]);
+      if(result.isNotEmpty){
+        String? imgpath = result[0]['imagecontent'].toString();
+        if(imgpath.isNotEmpty) {
+          await File(imgpath).delete();
+        }
+      }
 
+      int check = await db.rawDelete("delete from notecontent where notecontent_id=?",[notecontentid]);
+      return check != 0 ? true : false;
+    }
+
+    Future<List<NoteContentModel>> getAllNoteContentsById(Database db, int noteid) async {
+      final List<Map> result = await db.rawQuery("select * from notecontent where note_id=?",[noteid]);
+      
       return List.generate(result.length, (i) {
         return NoteContentModel(
           note_id: result[i]['note_id'],
           textcontent: result[i]['textcontent'],
           imagecontent: result[i]['imagecontent'],
-          notecontent_id: null
+          notecontent_id: result[i]['notecontent_id']
         );
       });
     }
@@ -63,17 +77,28 @@ class NoteContentDAL {
     }
 
     Future<List<NoteContentModel>> getAllNoteContents(Database db) async {
-      final List<Map> result = await db.rawQuery("select textcontent, imagecontent, note_id from notecontent");
+      final List<Map> result = await db.rawQuery("select notecontent_id, textcontent, imagecontent, note_id from notecontent");
 
       return List.generate(result.length, (i) {
         return NoteContentModel(
           note_id: result[i]['note_id'],
           textcontent: result[i]['textcontent'],
           imagecontent: result[i]['imagecontent'],
-          notecontent_id: null
+          notecontent_id: result[i]['notecontent_id']
         );
       });
     }
 
-    
+    Future<bool> updateContentByID(int notecontentid, String? txt, String? imgpath, Database db) async{
+      String sqlimage = "update notecontent set imagecontent=? where notecontent_id=?";
+      String sqltext = "update notecontent set textcontent=? where notecontent_id=?";
+      if(txt == null){
+        int changenum = await db.rawUpdate(sqlimage,[imgpath, notecontentid]);
+        return changenum != 0 ? true : false;
+      }
+      else{
+        int changenum = await db.rawUpdate(sqltext,[txt, notecontentid]);
+        return changenum != 0 ? true : false;
+      }
+    }
 }

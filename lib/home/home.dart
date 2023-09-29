@@ -97,6 +97,8 @@ class HomeScreenState extends State<HomeScreen> {
           debugPrint(e.toString());
         },
       );
+
+      foundedNote = listofnote;
       
       listofTitleImage = await generateListTitleImage(listofnote);
       setState(() {});
@@ -274,17 +276,18 @@ class HomeScreenState extends State<HomeScreen> {
                                             ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
                                             ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
                                             ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
-                                            onTap: (){
-                                              Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) => NewNoteScreen(
-                                                      UserID: 1, 
-                                                      noteIDedit: foundedNote[index].note_id?.toInt() ?? 0, 
-                                                      isEditState: true
-                                                    ),
-                                                  ),
-                                              );
+                                            onTap: () async{
+                                              final resultfromNewNote = await Navigator.push(
+                                                                          context,
+                                                                          MaterialPageRoute(
+                                                                            builder: (context) => NewNoteScreen(
+                                                                              UserID: 1, 
+                                                                              noteIDedit: foundedNote[index].note_id?.toInt() ?? 0, 
+                                                                              isEditState: true
+                                                                            ),
+                                                                          ),
+                                                                      );
+                                              ReloadNoteListAtLocal(resultfromNewNote);
                                             },
                                             leading: const CircleAvatar(
 
@@ -364,6 +367,19 @@ class HomeScreenState extends State<HomeScreen> {
                                           Expanded(
                                             flex: 2,
                                             child: ListTile(
+                                              onTap: () async{
+                                                final resultfromNewNote = await Navigator.push(
+                                                                            context,
+                                                                            MaterialPageRoute(
+                                                                              builder: (context) => NewNoteScreen(
+                                                                                UserID: 1, 
+                                                                                noteIDedit: foundedNote[index].note_id?.toInt() ?? 0, 
+                                                                                isEditState: true
+                                                                              ),
+                                                                            ),
+                                                                        );
+                                                ReloadNoteListAtLocal(resultfromNewNote);
+                                              },
                                               title: Text(
                                                 foundedNote[index].title,
                                                 style: TextStyle(
