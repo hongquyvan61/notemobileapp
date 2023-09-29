@@ -14,6 +14,7 @@ import 'package:notemobileapp/newnote/newnote.dart';
 import 'package:notemobileapp/router.dart';
 
 import '../model/NoteModel.dart';
+import '../test/authservice/auth.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -184,7 +185,7 @@ class HomeScreenState extends State<HomeScreen> {
                 ),
                 IconButton(
                   onPressed: (){
-                    FirebaseAuth.instance.signOut();
+                    Auth().googleSignOut();
                   }, 
                   icon: const Icon(Icons.account_circle), 
                   color: Colors.black,

@@ -92,11 +92,18 @@ class _AuthPageState extends State<AuthPage> {
                         });
                       },
                     ),
-                    icon: Icon(Icons.lock)),
+                    icon: const Icon(Icons.lock)),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(onPressed: (){}, child: const Text("Forgot Password?")),
+                ],
               ),
               const SizedBox(
-                height: 20,
+                height: 30,
               ),
+
               SizedBox(
                 width: Size.infinite.width,
                 height: 50,
@@ -152,7 +159,9 @@ class _AuthPageState extends State<AuthPage> {
                               "lib/images/google.png",
                               height: 30,
                             ),
-                            SizedBox(width: 5,),
+                            SizedBox(
+                              width: 5,
+                            ),
                             Text("Sign Up with Google")
                           ],
                         ),
