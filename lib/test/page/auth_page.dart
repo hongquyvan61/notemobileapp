@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:notemobileapp/router.dart';
 import 'package:notemobileapp/test/authservice/auth.dart';
+import 'package:notemobileapp/test/page/dialog.dart';
 
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
@@ -97,13 +98,16 @@ class _AuthPageState extends State<AuthPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  TextButton(onPressed: (){}, child: const Text("Forgot Password?")),
+                  TextButton(
+                      onPressed: () {
+                        DialogPage().openDialog(context);
+                      },
+                      child: const Text("Forgot Password?")),
                 ],
               ),
               const SizedBox(
                 height: 30,
               ),
-
               SizedBox(
                 width: Size.infinite.width,
                 height: 50,

@@ -4,6 +4,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:notemobileapp/router.dart';
 import 'package:notemobileapp/test/authservice/auth.dart';
 
+import '../../home/home.dart';
+
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
 
@@ -206,9 +208,11 @@ class _SignUpPageState extends State<SignUpPage> {
 
     String alert;
     if (password.endsWith(retypePassword)) {
-      alert = await Auth().registerWithEmailPassword(email, password);
-      showToast(alert);
-      backToLogin(alert);
+      await Auth().registerWithEmailPassword(email, password).then((_){
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const HomeScreen()));
+      });;
+      // showToast(alert);
+      // backToLogin(alert);
     } else {
       showToast("passwords do not match");
     }
