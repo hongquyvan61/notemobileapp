@@ -14,6 +14,7 @@ import 'package:notemobileapp/newnote/newnote.dart';
 import 'package:notemobileapp/router.dart';
 
 import '../model/NoteModel.dart';
+import '../test/authservice/auth.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -96,6 +97,8 @@ class HomeScreenState extends State<HomeScreen> {
           debugPrint(e.toString());
         },
       );
+
+      foundedNote = listofnote;
       
       listofTitleImage = await generateListTitleImage(listofnote);
       setState(() {});
@@ -184,7 +187,7 @@ class HomeScreenState extends State<HomeScreen> {
                 ),
                 IconButton(
                   onPressed: (){
-                    FirebaseAuth.instance.signOut();
+                    Auth().googleSignOut();
                   }, 
                   icon: const Icon(Icons.account_circle), 
                   color: Colors.black,
@@ -273,17 +276,18 @@ class HomeScreenState extends State<HomeScreen> {
                                             ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
                                             ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
                                             ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
-                                            onTap: (){
-                                              Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) => NewNoteScreen(
-                                                      UserID: 1, 
-                                                      noteIDedit: foundedNote[index].note_id?.toInt() ?? 0, 
-                                                      isEditState: true
-                                                    ),
-                                                  ),
-                                              );
+                                            onTap: () async{
+                                              final resultfromNewNote = await Navigator.push(
+                                                                          context,
+                                                                          MaterialPageRoute(
+                                                                            builder: (context) => NewNoteScreen(
+                                                                              UserID: 1, 
+                                                                              noteIDedit: foundedNote[index].note_id?.toInt() ?? 0, 
+                                                                              isEditState: true
+                                                                            ),
+                                                                          ),
+                                                                      );
+                                              ReloadNoteListAtLocal(resultfromNewNote);
                                             },
                                             leading: const CircleAvatar(
 
@@ -363,6 +367,19 @@ class HomeScreenState extends State<HomeScreen> {
                                           Expanded(
                                             flex: 2,
                                             child: ListTile(
+                                              onTap: () async{
+                                                final resultfromNewNote = await Navigator.push(
+                                                                            context,
+                                                                            MaterialPageRoute(
+                                                                              builder: (context) => NewNoteScreen(
+                                                                                UserID: 1, 
+                                                                                noteIDedit: foundedNote[index].note_id?.toInt() ?? 0, 
+                                                                                isEditState: true
+                                                                              ),
+                                                                            ),
+                                                                        );
+                                                ReloadNoteListAtLocal(resultfromNewNote);
+                                              },
                                               title: Text(
                                                 foundedNote[index].title,
                                                 style: TextStyle(

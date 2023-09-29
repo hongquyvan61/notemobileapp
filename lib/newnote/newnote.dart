@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:notemobileapp/model/NoteContentModel.dart';
+import 'package:notemobileapp/model/UpdateNoteModel.dart';
 import 'package:notemobileapp/test/database/todo_db.dart';
 import 'package:notemobileapp/test/page/todo_page.dart';
 import 'package:speech_to_text/speech_to_text.dart';
@@ -67,15 +68,22 @@ class NewNoteScreenState extends State<NewNoteScreen> {
   ];
 
   List<dynamic> SaveNoteContentList = <dynamic>[FirstTxtFieldController];
+  List<dynamic> UpdateNoteContentList = <dynamic>[FirstTxtFieldController];
 
+
+  List<UpdateNoteModel> lstupdatecontents = <UpdateNoteModel>[];
+  List<UpdateNoteModel> lstdeletecontents = <UpdateNoteModel>[];
+  
   late ScrollController _controller;
   late TextEditingController _notetitlecontroller;
   late TextEditingController _notecontentcontroller;
   bool _showFab = true;
   bool _isElevated = true;
   bool _isVisible = true;
+  bool _isBottomAppBarVisible = false;
   bool MicroIsListening = false;
-  List<bool> deleteornotListImg = <bool>[];
+
+  bool isEditCompleted = true;
 
   int vitrihinh = 0;
 
@@ -157,26 +165,61 @@ class NewNoteScreenState extends State<NewNoteScreen> {
 
     this._image = imageTemp;
      
-      
-      NoteContentList.add(this._image);
-      FocusNode fcnTxtField = FocusNode();
-      TextEditingController txtfieldController = TextEditingController();
-      Widget TxtFieldtieptheo =  TextField(
-        keyboardType: TextInputType.multiline,
-        focusNode: fcnTxtField,
-        controller: txtfieldController,
-        showCursor: true,
-        autofocus: true,
-        maxLines: null,
-        style: const TextStyle(fontSize: 14),
-        decoration: const InputDecoration(border: InputBorder.none),
-      );
-      lstFocusNode.add(fcnTxtField);
-      lstTxtController.add(txtfieldController);
-      NoteContentList.add(TxtFieldtieptheo);
+      if(widget.isEditState == false){
+        NoteContentList.add(this._image);
+        FocusNode fcnTxtField = FocusNode();
+        TextEditingController txtfieldController = TextEditingController();
+        Widget TxtFieldtieptheo =  TextField(
+          keyboardType: TextInputType.multiline,
+          focusNode: fcnTxtField,
+          controller: txtfieldController,
+          showCursor: true,
+          autofocus: true,
+          maxLines: null,
+          style: const TextStyle(fontSize: 14),
+          decoration: const InputDecoration(border: InputBorder.none),
+        );
+        lstFocusNode.add(fcnTxtField);
+        lstTxtController.add(txtfieldController);
+        NoteContentList.add(TxtFieldtieptheo);
 
-      SaveNoteContentList.add(imageTemp);
-      SaveNoteContentList.add(txtfieldController);
+        SaveNoteContentList.add(imageTemp);
+        SaveNoteContentList.add(txtfieldController);
+      }
+      else{
+        NoteContentList.add(this._image);
+        FocusNode fcnTxtField = FocusNode();
+        TextEditingController txtfieldController = TextEditingController();
+        Widget TxtFieldtieptheo =  TextField(
+          keyboardType: TextInputType.multiline,
+          focusNode: fcnTxtField,
+          controller: txtfieldController,
+          showCursor: true,
+          autofocus: true,
+          maxLines: null,
+          style: const TextStyle(fontSize: 14),
+          decoration: const InputDecoration(border: InputBorder.none),
+        );
+        lstFocusNode.add(fcnTxtField);
+        lstTxtController.add(txtfieldController);
+        NoteContentList.add(TxtFieldtieptheo);
+
+        UpdateNoteContentList.add(imageTemp);
+
+        UpdateNoteModel updtmodel = UpdateNoteModel(
+          notecontent_id: null, 
+          type: "insert_img"
+        );
+        UpdateNoteModel updtmodel2 = UpdateNoteModel(
+          notecontent_id: null, 
+          type: "insert_text"
+        );
+
+        lstupdatecontents.add(updtmodel);
+        lstupdatecontents.add(updtmodel2);
+
+        UpdateNoteContentList.add(txtfieldController);
+      }
 
     setState(() {
       
@@ -226,6 +269,13 @@ class NewNoteScreenState extends State<NewNoteScreen> {
       if(contents.isNotEmpty){  
 
         FirstTxtFieldController.text = contents[0].textcontent.toString();
+
+        UpdateNoteModel firstupdtmodel = UpdateNoteModel(
+          notecontent_id: contents[0].notecontent_id?.toInt() ?? 0, 
+          type: "update"
+        );
+
+        lstupdatecontents.add(firstupdtmodel);
         //fcnFirstTxtField.requestFocus();
 
         if(contents.length >= 2){
@@ -249,13 +299,27 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                 lstTxtController.add(txtfieldController);
                 NoteContentList.add(txtfield);
                 
-                SaveNoteContentList.add(txtfieldController);
+                UpdateNoteContentList.add(txtfieldController);
+                
+                UpdateNoteModel updtmodel = UpdateNoteModel(
+                  notecontent_id: contents[i].notecontent_id?.toInt() ?? 0, 
+                  type: "update"
+                );
+
+                lstupdatecontents.add(updtmodel);
             }
             if(contents[i].imagecontent != null){
               File img = File(contents[i].imagecontent.toString());
               
               NoteContentList.add(img);
-              SaveNoteContentList.add(img);
+              UpdateNoteContentList.add(img);
+
+              UpdateNoteModel updtmodel = UpdateNoteModel(
+                notecontent_id: contents[i].notecontent_id?.toInt() ?? 0, 
+                type: "update"
+              );
+
+              lstupdatecontents.add(updtmodel);
             }
           }
         }
@@ -353,6 +417,113 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     //List<NoteContentModel> lstnotecontent = await ncontentDAL.getAllNoteContentsById(InitDataBase.db, 1);
   }
 
+  Future<void> updateNoteToLocal() async {
+    bool updttitle = await nDAL.updateNoteTitle(widget.noteIDedit, _notetitlecontroller.text, InitDataBase.db);
+    if(updttitle){
+      debugPrint("cap nhat tieu de ghi chu thanh cong");
+    }
+    else{
+      debugPrint("xay ra loi khi cap nhat tieu de ghi chu");
+    }
+    for(int i = 0; i < lstupdatecontents.length; i++){
+      if(lstupdatecontents[i].type == "update"){
+        if(UpdateNoteContentList[i] is File){
+          String imgpath = UpdateNoteContentList[i].path;
+          bool isSuccess = await ncontentDAL.updateContentByID(
+            lstupdatecontents[i].notecontent_id?.toInt() ?? 0, 
+            null, 
+            imgpath, 
+            InitDataBase.db
+          );
+
+        }
+        else{
+          String txt = UpdateNoteContentList[i].text;
+          bool isSuccess = await ncontentDAL.updateContentByID(
+            lstupdatecontents[i].notecontent_id?.toInt() ?? 0, 
+            txt, 
+            null, 
+            InitDataBase.db
+          );
+        }
+      }
+      if(lstupdatecontents[i].type == "insert_img"){
+        final Directory directory = await getApplicationDocumentsDirectory();
+        String drpath = directory.path;
+
+        String imgpath = UpdateNoteContentList[i].path;
+        String imagename = basename(imgpath);
+
+        final File newImage = await File(imgpath)
+              .copy('$drpath/image/$imagename')
+              .catchError(
+            (Object e, StackTrace stackTrace) {
+              debugPrint(e.toString());
+            },
+          );
+
+          NoteContentModel conmd = NoteContentModel(
+              notecontent_id: null,
+              textcontent: null,
+              imagecontent: '$drpath/image/$imagename',
+              note_id: widget.noteIDedit
+          );
+        
+
+        bool checkinsertimgnotecontent = await ncontentDAL
+              .insertNoteContent(conmd, InitDataBase.db)
+              .catchError(
+            (Object e, StackTrace stackTrace) {
+              debugPrint(e.toString());
+            },
+          );
+
+          if (checkinsertimgnotecontent) {
+            debugPrint('insert hinh moi khi edit ghi chu thanh cong');
+          } 
+          else {
+            debugPrint('loi insert hinh moi khi edit ghi chu');
+          }
+
+      }
+      if(lstupdatecontents[i].type == "insert_text"){
+
+        NoteContentModel conmd = NoteContentModel(
+              notecontent_id: null,
+              textcontent: UpdateNoteContentList[i].text,
+              imagecontent: null,
+              note_id: widget.noteIDedit
+          );
+        
+
+        bool checkinsertnotecontent = await ncontentDAL
+              .insertNoteContent(conmd, InitDataBase.db)
+              .catchError(
+            (Object e, StackTrace stackTrace) {
+              debugPrint(e.toString());
+            },
+          );
+
+          if (checkinsertnotecontent) {
+            debugPrint('insert text moi khi edit ghi chu thanh cong');
+          } 
+          else {
+            debugPrint('loi insert text moi khi edit ghi chu');
+          }
+      }
+    }
+
+    for(int i = 0; i < lstdeletecontents.length; i++){
+      bool checkdel = await ncontentDAL.deleteNoteContentsByID(lstdeletecontents[i].notecontent_id?.toInt() ?? 0, InitDataBase.db);
+      if(checkdel){
+        debugPrint("Xoa text field hoac img sau khi edit thanh cong");
+      }
+      else{
+        debugPrint("Xoa text field hoac img sau khi edit xay ra loi!!");
+      }
+    }
+  }
+
 
   Widget buildImageWidget(BuildContext context, int index){
      Widget widgethinh = Stack(
@@ -374,13 +545,42 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                   ),
                   onPressed: () async {
                     bool isDeleted = await showAlertDialog(appcontext, "Bạn có muốn xoá hình này?");
-                    if(isDeleted){
+                    if(isDeleted){                                   //XOA HINH
                       NoteContentList.removeAt(index);
-                      SaveNoteContentList.removeAt(index);
+                      if(widget.isEditState == false){
+                        SaveNoteContentList.removeAt(index);
+                      }
+                      else{
+                        UpdateNoteContentList.removeAt(index);
+
+                        UpdateNoteModel delmodel = UpdateNoteModel(
+                          notecontent_id: lstupdatecontents[index].notecontent_id, 
+                          type: "delete"
+                        );
+
+                        lstupdatecontents.removeAt(index);
+                        lstdeletecontents.add(delmodel);
+                      }
                     }
-                    if(SaveNoteContentList[index].text == ""){
-                      NoteContentList.removeAt(index);
-                      SaveNoteContentList.removeAt(index);
+                    if(widget.isEditState == false){
+                      if(SaveNoteContentList[index].text == ""){       //XOA TEXT FIELD NGAY SAU HINH NEU TEXT FIELD TRONG KHI TAO GHI CHU
+                        NoteContentList.removeAt(index);
+                      }
+                    }
+                    else{
+                      if(UpdateNoteContentList[index] is TextEditingController){
+                        if(UpdateNoteContentList[index].text == ""){       //XOA TEXT FIELD NGAY SAU HINH NEU TEXT FIELD TRONG KHI EDIT GHI CHU
+                          NoteContentList.removeAt(index);
+
+                          UpdateNoteModel delmodel = UpdateNoteModel(
+                            notecontent_id: lstupdatecontents[index].notecontent_id, 
+                            type: "delete"
+                          );
+
+                          lstupdatecontents.removeAt(index);
+                          lstdeletecontents.add(delmodel);
+                        }
+                      }
                     }
                     setState(() {
                       
@@ -404,21 +604,44 @@ class NewNoteScreenState extends State<NewNoteScreen> {
               title: widget.isEditState ? const Text('Sửa ghi chú',) : const Text('Tạo ghi chú',),
               centerTitle: true,
               actions: [
-                widget.isEditState ? 
-                Icon(null)
+                if(widget.isEditState && isEditCompleted)
+                  IconButton(
+                    icon: const Icon(
+                      Icons.edit,
+                    ),
+                    onPressed: () {
+                      isEditCompleted = false;
+                      setState(() {
+                        
+                      });
+                      return ;
+                    },
+                  )
+                else
+                  if(isEditCompleted == false)
+                     IconButton(
+                        icon: const Icon(
+                          Icons.update,
+                        ),
+                        onPressed: () {
 
-                :
+                          updateNoteToLocal();
 
-                IconButton(
-                  icon: const Icon(
-                    Icons.check,
-                  ),
-                  onPressed: () {
-                    saveNoteToLocal();
-                    Navigator.of(context).pop('RELOAD_LIST');
-                    //Navigator.push(context, MaterialPageRoute(builder: (context) => const ToDoPage()));
-                  },
-                )
+                          Navigator.of(context).pop('RELOAD_LIST');
+                          //Navigator.push(context, MaterialPageRoute(builder: (context) => const ToDoPage()));
+                        },
+                    ),
+                //Icon(null)
+                  if(widget.isEditState == false)
+                    IconButton(
+                      icon: const Icon(
+                        Icons.check,
+                      ),
+                      onPressed: () {
+                        saveNoteToLocal();
+                        Navigator.of(context).pop('RELOAD_LIST');
+                      },
+                    )  
               ],
             ),
             body: Container(
@@ -447,7 +670,9 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                     NoteTitle = _notetitlecontroller.text;
                   },
                 ),
+
                 const SizedBox(height: 10),
+
                 Container(
                   alignment: Alignment.topLeft,
                   child: Text(
@@ -455,24 +680,89 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                     style: TextStyle(fontSize: 15, color: Colors.grey),
                   ),
                 ),
+
                 Expanded(
                     child: ListView.separated(
                         controller: _controller,
                         itemCount: NoteContentList.length,
                         itemBuilder: (BuildContext context, int index) {
                           if(NoteContentList[index] is File){
-                            //return buildTextField(context, index);
                             return buildImageWidget(context, index);
                           }
                           else{
                             return NoteContentList[index];
                           }
-                          // else{
-                          //   return buildImageWidget(context, index);
-                          // }
                         },
                         separatorBuilder: (BuildContext context, int index) =>
                             const Divider())),
+                
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: isEditCompleted ? Row(
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: SizedBox()
+                      ),
+
+                      Expanded(
+                        flex: 2,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () {},
+                                child: const Icon(
+                                  Icons.share,
+                                  size: 20.0,
+                                ),
+                                style: ButtonStyle(
+                                  padding: MaterialStateProperty.all(EdgeInsets.zero),
+                                  backgroundColor:
+                                      MaterialStateProperty.all<Color>(Color.fromARGB(255, 97, 115, 239)),
+                                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                    RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(5),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            SizedBox(width: 5,),
+
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () {},
+                                child: const Icon(
+                                  Icons.delete,
+                                  size: 20.0,
+                                ),
+                                style: ButtonStyle(
+                                  padding: MaterialStateProperty.all(EdgeInsets.zero),
+                                  backgroundColor:
+                                      MaterialStateProperty.all<Color>(Color.fromARGB(255, 97, 115, 239)),
+                                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                    RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(5),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      Expanded(
+                        flex: 1,
+                        child: SizedBox()
+                      ),
+                    ],
+                  )
+                  :
+                  null
+                )
               ]),
 
               //  child: Column(
@@ -487,7 +777,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
               //   ],
               // ),
             ),
-            floatingActionButton: _showFab
+            floatingActionButton: isEditCompleted == false
                 ? AvatarGlow(
                     animate: MicroIsListening,
                     duration: const Duration(milliseconds: 2000),
@@ -548,14 +838,14 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                   bottomLeft: Radius.circular(0),
                   bottomRight: Radius.circular(0)),
               child: BottomAppBar(
-                height: 70.0,
+                height: isEditCompleted == false ?  70.0 : 0.0, 
                 color: Color.fromARGB(255, 108, 127, 244),
                 shape: CircularNotchedRectangle(),
                 elevation: _isElevated ? null : 0.0,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: <Widget>[
-                    IconButton(
+                      IconButton(
                         tooltip: 'Chèn hình',
                         icon: const Icon(Icons.image_outlined),
                         color: Colors.white,

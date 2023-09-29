@@ -42,6 +42,11 @@ class NoteDAL {
     return false;
   }
 
+  Future<bool> updateNoteTitle(int noteid, String tieude, Database db) async {
+    int checkupdate  = await db.rawUpdate("update note set title=? where note_id=?",[tieude,noteid]);
+    return checkupdate != 0 ? true : false;
+  }
+
   Future<List<NoteModel>> getAllNotes(Database db) async {
 
     // Query the table for all The Dogs.
