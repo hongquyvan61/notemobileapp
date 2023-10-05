@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:notemobileapp/home/home.dart';
 import 'package:notemobileapp/router.dart';
 import 'package:notemobileapp/test/authservice/auth.dart';
 import 'package:notemobileapp/test/page/dialog.dart';
@@ -28,6 +29,7 @@ class _AuthPageState extends State<AuthPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: Text('Đăng nhập'),),
       body: SafeArea(
           child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -41,9 +43,11 @@ class _AuthPageState extends State<AuthPage> {
                 'Login',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
               ),
+
               const SizedBox(
                 height: 20,
               ),
+
               TextFormField(
                 controller: _emailController,
                 validator: (value) {
@@ -62,9 +66,11 @@ class _AuthPageState extends State<AuthPage> {
                     )),
                     icon: Icon(Icons.account_box)),
               ),
+
               const SizedBox(
                 height: 20,
               ),
+
               TextFormField(
                 controller: _passwordController,
                 obscureText: _isObscure,
@@ -95,6 +101,7 @@ class _AuthPageState extends State<AuthPage> {
                     ),
                     icon: const Icon(Icons.lock)),
               ),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -105,9 +112,11 @@ class _AuthPageState extends State<AuthPage> {
                       child: const Text("Forgot Password?")),
                 ],
               ),
+
               const SizedBox(
                 height: 30,
               ),
+
               SizedBox(
                 width: Size.infinite.width,
                 height: 50,
@@ -130,19 +139,23 @@ class _AuthPageState extends State<AuthPage> {
                       : const Text('Login'),
                 ),
               ),
+
               SizedBox(
                 height: 20,
               ),
+
               Text("Or"),
+
               SizedBox(
                 height: 20,
               ),
+
               SizedBox(
                 width: Size.infinite.width,
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
-                    Auth().signInWithGoogle();
+                    Auth().signInWithGoogle(context);
                   },
                   style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
@@ -160,7 +173,7 @@ class _AuthPageState extends State<AuthPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Image.asset(
-                              "lib/images/google.png",
+                              "assets/images/google.png",
                               height: 30,
                             ),
                             SizedBox(
@@ -171,9 +184,11 @@ class _AuthPageState extends State<AuthPage> {
                         ),
                 ),
               ),
+
               SizedBox(
                 height: 20,
               ),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -201,12 +216,18 @@ class _AuthPageState extends State<AuthPage> {
       _loading = true;
     });
 
-    await Auth().signInWithEmailPassword(email, password);
+    int uID = await Auth().signInWithEmailPassword(email, password);
+    if(uID != -1){
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => HomeScreen(userID: uID)));
+    }
+    // if(ucre != null){
+    //   Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const HomeScreen()));
+    // }
 
-    Future.delayed(const Duration(seconds: 3), () {
-      setState(() {
-        _loading = false;
-      });
-    });
+    // Future.delayed(const Duration(seconds: 3), () {
+    //   setState(() {
+    //     _loading = false;
+    //   });
+    // });
   }
 }

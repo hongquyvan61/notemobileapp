@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:notemobileapp/DAL/NoteContentDAL.dart';
 import 'package:sqflite/sqflite.dart';
 
-import 'package:notemobileapp/model/NoteModel.dart';
+import 'package:notemobileapp/model/SqliteModel/NoteModel.dart';
 
 class NoteDAL {
   

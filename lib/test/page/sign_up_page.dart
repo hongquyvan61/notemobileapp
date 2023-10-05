@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:notemobileapp/router.dart';
 import 'package:notemobileapp/test/authservice/auth.dart';
+import 'package:notemobileapp/test/page/auth_page.dart';
 
 import '../../home/home.dart';
 
@@ -188,13 +189,6 @@ class _SignUpPageState extends State<SignUpPage> {
         fontSize: 16.0);
   }
 
-  void backToLogin(String message){
-    FirebaseAuth.instance.signOut();
-    if(message.endsWith('Successful')){
-      Navigator.of(context).pushReplacementNamed(RoutePaths.start);
-    }
-  }
-
 
   void handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
@@ -206,21 +200,21 @@ class _SignUpPageState extends State<SignUpPage> {
       _loading = true;
     });
 
-    String alert;
     if (password.endsWith(retypePassword)) {
-      await Auth().registerWithEmailPassword(email, password).then((_){
-        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const HomeScreen()));
-      });;
+      String returnstr = await Auth().registerWithEmailPassword(email, password);
+      if(returnstr == "Successful"){
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const AuthPage()));
+      }
       // showToast(alert);
       // backToLogin(alert);
     } else {
       showToast("passwords do not match");
     }
 
-    Future.delayed(const Duration(seconds: 2), () {
-      setState(() {
-        _loading = false;
-      });
-    });
+    // Future.delayed(const Duration(seconds: 2), () {
+    //   setState(() {
+    //     _loading = false;
+    //   });
+    // });
   }
 }
