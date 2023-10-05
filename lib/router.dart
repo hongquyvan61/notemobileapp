@@ -3,6 +3,7 @@ import 'package:notemobileapp/home/home.dart';
 import 'package:notemobileapp/newnote/newnote.dart';
 import 'package:notemobileapp/test/page/auth_page.dart';
 import 'package:notemobileapp/test/page/sign_up_page.dart';
+import 'package:notemobileapp/test/page/verify_email.dart';
 import 'package:notemobileapp/test/test_page.dart';
 
 class RoutePaths {
@@ -12,6 +13,7 @@ class RoutePaths {
   static const test = 'testscreen';
   static const login = 'loginscreen';
   static const signup = 'signupscreen';
+  static const verifyEmail = 'verifyscreen';
 }
 
 class RouterCustom {
@@ -25,7 +27,12 @@ class RouterCustom {
         //final event = settings.arguments as Event;
 
         //SUA NOTEID, USERID O DAY
-        return MaterialPageRoute(builder: (_) => const NewNoteScreen(isEditState: false, noteIDedit: -1, UserID: -1,));
+        return MaterialPageRoute(
+            builder: (_) => const NewNoteScreen(
+                  isEditState: false,
+                  noteIDedit: -1,
+                  UserID: -1,
+                ));
 
       case RoutePaths.test:
         // you can do things like pass arguments to screens
@@ -35,6 +42,8 @@ class RouterCustom {
         return MaterialPageRoute(builder: (_) => const AuthPage());
       case RoutePaths.signup:
         return MaterialPageRoute(builder: (_) => const SignUpPage());
+      case RoutePaths.verifyEmail:
+        return MaterialPageRoute(builder: (_) => const VerifyEmailPage());
 
       default:
         return MaterialPageRoute(

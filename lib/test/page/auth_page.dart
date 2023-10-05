@@ -28,6 +28,7 @@ class _AuthPageState extends State<AuthPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: Text('Đăng nhập'),),
       body: SafeArea(
           child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -142,7 +143,7 @@ class _AuthPageState extends State<AuthPage> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
-                    Auth().signInWithGoogle();
+                    Auth().signInWithGoogle(context);
                   },
                   style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
@@ -201,7 +202,7 @@ class _AuthPageState extends State<AuthPage> {
       _loading = true;
     });
 
-    await Auth().signInWithEmailPassword(email, password);
+    await Auth().signInWithEmailPassword(context,email, password);
 
     Future.delayed(const Duration(seconds: 3), () {
       setState(() {

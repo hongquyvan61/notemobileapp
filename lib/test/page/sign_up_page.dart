@@ -188,13 +188,6 @@ class _SignUpPageState extends State<SignUpPage> {
         fontSize: 16.0);
   }
 
-  void backToLogin(String message){
-    FirebaseAuth.instance.signOut();
-    if(message.endsWith('Successful')){
-      Navigator.of(context).pushReplacementNamed(RoutePaths.start);
-    }
-  }
-
 
   void handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
@@ -206,13 +199,9 @@ class _SignUpPageState extends State<SignUpPage> {
       _loading = true;
     });
 
-    String alert;
     if (password.endsWith(retypePassword)) {
-      await Auth().registerWithEmailPassword(email, password).then((_){
-        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const HomeScreen()));
-      });;
-      // showToast(alert);
-      // backToLogin(alert);
+    await Auth().registerWithEmailPassword(email, password).then((value) => Navigator.of(context).pop());
+
     } else {
       showToast("passwords do not match");
     }

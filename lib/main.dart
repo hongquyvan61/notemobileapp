@@ -9,6 +9,7 @@ import 'package:notemobileapp/newnote/newnote.dart';
 import 'package:notemobileapp/router.dart';
 import 'package:notemobileapp/test/notifi_service.dart';
 import 'package:notemobileapp/test/page/auth_page.dart';
+import 'package:notemobileapp/test/page/verify_email.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
 void main() async {
@@ -42,15 +43,16 @@ class MyApp extends StatelessWidget {
           )
       ),
       builder: EasyLoading.init(),
-      home:  StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return const HomeScreen();
-          } else {
-            return const AuthPage();
-          }
-        },),
+      home: const HomeScreen(),
+      // StreamBuilder<User?>(
+      //   stream: FirebaseAuth.instance.authStateChanges(),
+      //   builder: (context, snapshot) {
+      //     if (snapshot.hasData) {
+      //       return const VerifyEmailPage();
+      //     } else {
+      //       return const AuthPage();
+      //     }
+      //   },),
     );
   }
 }
