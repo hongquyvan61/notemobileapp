@@ -1,6 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 
-import 'package:notemobileapp/model/UserModel.dart';
+import 'package:notemobileapp/model/SqliteModel/UserModel.dart';
 
 class UserDAL {
   
@@ -17,7 +17,7 @@ class UserDAL {
 
     //List<UserModel> lst = await getAllUsers(db);
     //bool checkdel = await deleteAllUser(db);
-      int check = await db.rawInsert("insert into users(username,password) values(?,?)",[user.username,user.password]);
+      int check = await db.rawInsert("insert into users(username,password, account_type) values(?,?,?)",[user.username,user.password, user.account_type]);
       return check != 0 ? true : false;
     
   }
@@ -37,7 +37,7 @@ class UserDAL {
   Future<List<UserModel>> getAllUsers(Database db)async {
 
     // Query the table for all The Dogs.
-    final List<Map<String, dynamic>> maps = await db.rawQuery("select user_id, username from users");
+    final List<Map<String, dynamic>> maps = await db.rawQuery("select user_id, username, account_type from users");
 
     // Convert the List<Map<String, dynamic> into a List<Dog>.
     return List.generate(maps.length, (i) {
@@ -45,6 +45,7 @@ class UserDAL {
         user_id: maps[i]['user_id'],
         username: maps[i]['username'],
         password: null,
+        account_type: maps[i]['account_type']
       );
     });
   }

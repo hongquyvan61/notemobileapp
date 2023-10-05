@@ -3,22 +3,30 @@ import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:notemobileapp/DAL/FB_DAL.dart/FB_Note.dart';
+import 'package:notemobileapp/DAL/FB_DAL.dart/FB_NoteContent.dart';
 import 'package:notemobileapp/DAL/NoteContentDAL.dart';
 import 'package:notemobileapp/DAL/NoteDAL.dart';
-import 'package:notemobileapp/model/NoteContentModel.dart';
-import 'package:notemobileapp/model/initializeDB.dart';
+import 'package:notemobileapp/model/SqliteModel/FirebaseModel/FBNoteModel.dart';
+import 'package:notemobileapp/model/SqliteModel/NoteContentModel.dart';
+import 'package:notemobileapp/model/SqliteModel/initializeDB.dart';
 import 'package:notemobileapp/newnote/newnote.dart';
 import 'package:notemobileapp/router.dart';
 import 'package:notemobileapp/test/component/popup_menu.dart';
 
-import '../model/NoteModel.dart';
+import '../model/SqliteModel/NoteModel.dart';
 import '../test/authservice/auth.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({
+     Key? key, required this.userID
+  }) : super(key: key);
+
+  final int userID;
 
   @override
   State<StatefulWidget> createState() {
@@ -30,11 +38,20 @@ class HomeScreenState extends State<HomeScreen> {
   bool loginState = false;
   NoteDAL nDAL = NoteDAL();
   NoteContentDAL noteContentDAL = NoteContentDAL();
+  FB_Note fb_noteDAL = FB_Note();
+  FB_NoteContent fb_noteContentDAL = FB_NoteContent();
+
   late List<NoteModel> listofnote = <NoteModel>[];
   late List<NoteModel> foundedNote = <NoteModel>[];
+
+  late List<FBNoteModel> fb_listofnote = <FBNoteModel>[];
+  late List<String> fb_listofimglink = <String>[];
+
   late List<String> listofBriefContent = <String>[];
   late List<File> listofTitleImage = <File>[];
-  bool isOffline = false;
+
+  late List<String> fb_listofBriefContent = <String>[];
+  bool isConnected = false;
   bool listState = true;
   late StreamSubscription subscription;
 
@@ -50,7 +67,7 @@ class HomeScreenState extends State<HomeScreen> {
       ..indicatorType = EasyLoadingIndicatorType.chasingDots
       ..loadingStyle = EasyLoadingStyle.dark;
 
-    AssignSubscription();
+    //AssignSubscription();
     InitiateListOfNote();
     checkLogin();
   }
@@ -67,23 +84,42 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   void ConnectionListener(ConnectivityResult result) async {
-    if (result != ConnectivityResult.none) {
-      isOffline = await InternetConnectionChecker().hasConnection;
-    }
+    // if (result != ConnectivityResult.none) {
+    //   isOffline = await InternetConnectionChecker().hasConnection;
+    // }
   }
 
   InitiateListOfNote() async {
-    if (!isOffline) {
-      listofnote =
-          await nDAL.getAllNotesByUserID(1, InitDataBase.db).catchError(
-        (Object e, StackTrace stackTrace) {
-          debugPrint(e.toString());
-        },
-      );
-      foundedNote = listofnote;
-      listofTitleImage = await generateListTitleImage(listofnote);
-      setState(() {});
-    }
+
+      final connectedRef = FirebaseDatabase.instance.ref(".info/connected");
+        connectedRef.onValue.listen((event) async {
+          isConnected = event.snapshot.value as bool? ?? false;
+          
+          if(isConnected){
+            debugPrint("Co mang ne!!");
+            listofnote.clear();
+            listofTitleImage.clear();
+
+            fb_listofnote = await fb_noteDAL.FB_getAllNoteByUid(widget.userID);
+
+            fb_listofimglink = await FB_generateTitleImage(fb_listofnote);
+
+          }
+          else{
+
+            listofnote = await nDAL.getAllNotesByUserID(widget.userID, InitDataBase.db).catchError((Object e, StackTrace stackTrace) {
+                                                                                        debugPrint(e.toString());
+                                                                                      },
+                                                                                    );
+            foundedNote = listofnote;
+            listofTitleImage = await generateListTitleImage(listofnote);
+            setState(() {
+                    
+            });
+
+          }
+      });
+
   }
 
   void ReloadNoteListAtLocal(Object? result) async {
@@ -96,8 +132,7 @@ class HomeScreenState extends State<HomeScreen> {
       //SUA USERID O DAY
       //SUA USERID O DAY
       //SUA USERID O DAY
-      listofnote =
-          await nDAL.getAllNotesByUserID(1, InitDataBase.db).catchError(
+      listofnote = await nDAL.getAllNotesByUserID(widget.userID, InitDataBase.db).catchError(
         (Object e, StackTrace stackTrace) {
           debugPrint(e.toString());
         },
@@ -111,6 +146,23 @@ class HomeScreenState extends State<HomeScreen> {
     } else {
       debugPrint('Du lieu tra ve tu new note screen bi loi');
     }
+  }
+
+  Future<List<String>> FB_generateTitleImage(List<FBNoteModel> lst) async{
+    late List<String> lstimage = <String>[];
+    
+    fb_listofBriefContent.clear();
+
+    for (int i = 0; i < lst.length; i++) {
+      int noteid = lst[i].note_id?.toInt() ?? -1;
+
+      String imagestr = await fb_noteContentDAL.FB_getTitleImageOfNote(noteid);
+      lstimage.add(imagestr);
+
+      String briefcontent = await fb_noteContentDAL.FB_getBriefContentOfNote(noteid);
+      fb_listofBriefContent.add(briefcontent);
+    }
+    return lstimage;
   }
 
   Future<List<File>> generateListTitleImage(List<NoteModel> lst) async {
@@ -157,6 +209,41 @@ class HomeScreenState extends State<HomeScreen> {
     listofTitleImage = await generateListTitleImage(foundedNote);
     // Refresh the UI
     setState(() {});
+  }
+
+  Widget? displayImagefromFBOrLocal_list(int index){
+    if(isConnected){
+      return (fb_listofimglink[index]) == '' ? null : Image.network(fb_listofimglink[index], width: 290, height: 200, fit: BoxFit.cover,);
+    }
+    return (listofTitleImage[index]).path == '' ? null : Image.file(listofTitleImage[index], width: 290, height: 200, fit: BoxFit.cover,);
+  }
+
+  Widget? displayImagefromFBOrLocal_grid(int index){
+    if(isConnected){
+      return (fb_listofimglink[index]) == '' ? null : Image.network(fb_listofimglink[index], width: 140, height: 60, fit: BoxFit.cover,);
+    }
+    return (listofTitleImage[index]).path == '' ? null : Image.file(listofTitleImage[index], width: 140, height: 60, fit: BoxFit.cover,);  
+  }
+
+  int settingimgflex(int index){
+    if(isConnected){
+      return fb_listofimglink[index] == '' ? 0 : 3;
+    }
+    return listofTitleImage[index].path == '' ? 0 : 3;
+  }
+
+  int settingBriefContentflex(int index){
+    if(isConnected){
+      return fb_listofimglink[index] == '' ? 4 : 1;
+    }
+    return listofTitleImage[index].path == '' ? 4 : 1;
+  }
+
+  int settingBriefContentMaxLines(int index){
+    if(isConnected){
+      return fb_listofimglink[index] == '' ? 5 : 1;
+    }
+    return listofTitleImage[index].path == '' ? 5 : 1;
   }
 
   @override
@@ -247,109 +334,98 @@ class HomeScreenState extends State<HomeScreen> {
                           fillColor: Color.fromARGB(255, 239, 241, 243),
                           enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                            width: 0.5,
-                          ))),
-                      onChanged: (value) => filterlist(value),
-                    ),
-                    const SizedBox(
-                      height: 13,
-                    ),
-                    Expanded(
-                      child: listState == true
-                          ? ListView.separated(
-                              itemBuilder: (BuildContext context, int index) {
-                                return Container(
-                                    padding:
-                                        const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                                    decoration: BoxDecoration(
-                                      color: const Color.fromARGB(
-                                          255, 212, 253, 244),
-                                      //color: Color.fromARGB(255, 255, 255, 255),
-                                      //border: Border.all(width: 0.5, color: Colors.grey),
-                                      borderRadius: BorderRadius.circular(10.0),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.grey.withOpacity(0.2),
-                                          spreadRadius: 5,
-                                          blurRadius: 7,
-                                          offset: const Offset(25,
-                                              10), // changes position of shadow
-                                        ),
-                                      ],
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        ListTile(
-                                          ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
-                                          ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
-                                          ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
-                                          onTap: () async {
-                                            final resultfromNewNote =
-                                                await Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    NewNoteScreen(
-                                                        UserID: 1,
-                                                        noteIDedit:
-                                                            foundedNote[index]
-                                                                    .note_id
-                                                                    ?.toInt() ??
-                                                                0,
-                                                        isEditState: true),
-                                              ),
-                                            );
-                                            ReloadNoteListAtLocal(
-                                                resultfromNewNote);
-                                          },
-                                          leading: const CircleAvatar(
-                                            backgroundColor: Color.fromARGB(
-                                                255, 97, 115, 239),
-                                            child: Icon(
-                                              Icons.turned_in_not_outlined,
-                                              color: Colors.white,
-                                              size: 20,
+                                width: 0.5,
+                              )
+                            )
+                          ),
+                          onChanged: (value) => filterlist(value),
+                        ),
+                        SizedBox(height: 13,),
+                        Expanded(
+                          child: listState == true ? 
+                               ListView.separated(
+                                separatorBuilder: (BuildContext context, int index) => const Divider(height: 15),
+                                itemCount: isConnected ? fb_listofnote.length : foundedNote.length,
+                                
+                                itemBuilder: (BuildContext context, int index) {
+                                  return Container(
+                                      padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+                                      decoration: BoxDecoration(
+                                           color: Color.fromARGB(255, 212, 253, 244),
+                                          //color: Color.fromARGB(255, 255, 255, 255),
+                                          //border: Border.all(width: 0.5, color: Colors.grey),
+                                          borderRadius: BorderRadius.circular(10.0),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.grey.withOpacity(0.2),
+                                              spreadRadius: 5,
+                                              blurRadius: 7,
+                                              offset: Offset(25, 10), // changes position of shadow
                                             ),
-                                            minRadius: 10,
-                                            maxRadius: 17,
+                                          ],
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          ListTile(
+                                            ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
+                                            ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
+                                            ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
+                                            onTap: () async{
+                                              final resultfromNewNote = await Navigator.push(
+                                                                          context,
+                                                                          MaterialPageRoute(
+                                                                            builder: (context) => NewNoteScreen(
+                                                                              UserID: widget.userID, 
+                                                                              noteIDedit: isConnected ? (fb_listofnote[index].note_id?.toInt() ?? 0) : (foundedNote[index].note_id?.toInt() ?? 0), 
+                                                                              isEditState: true
+                                                                            ),
+                                                                          ),
+                                                                      );
+                                              ReloadNoteListAtLocal(resultfromNewNote);
+                                            },
+                                            leading: const CircleAvatar(
+
+                                                backgroundColor:
+                                                    Color.fromARGB(255, 97, 115, 239),
+                                                child: Icon(
+                                                  Icons.turned_in_not_outlined,
+                                                  color: Colors.white,
+                                                  size: 20,
+                                                ),
+                                                minRadius: 10,
+                                                maxRadius: 17,
+                                            ),
+                                            title: Text(
+                                                isConnected ? fb_listofnote[index].title : foundedNote[index].title,
+                                                style: const TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.bold),
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 1,
+                                            ),
+                                            subtitle: Text(
+                                                isConnected ? fb_listofnote[index].date_created : foundedNote[index].date_created,
+                                                style: const TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.grey),
+                                            ),
                                           ),
-                                          title: Text(
-                                            foundedNote[index].title,
-                                            style: const TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.bold),
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 1,
-                                          ),
-                                          subtitle: Text(
-                                            foundedNote[index].date_created,
-                                            style: const TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.grey),
-                                          ),
-                                        ),
+
+                                        
                                         Container(
                                           margin: const EdgeInsets.fromLTRB(
                                               3, 0, 3, 0),
                                           child: ClipRRect(
                                               borderRadius:
                                                   BorderRadius.circular(8.0),
-                                              child: (listofTitleImage[index])
-                                                          .path ==
-                                                      ''
-                                                  ? null
-                                                  : Image.file(
-                                                      listofTitleImage[index],
-                                                      width: 290,
-                                                      height: 200,
-                                                      fit: BoxFit.cover,
-                                                    )),
+                                              child: displayImagefromFBOrLocal_list(index)
+                                          ),
                                         ),
                                         Container(
                                           margin: const EdgeInsets.all(10),
                                           alignment: Alignment.centerLeft,
                                           child: Text(
-                                            listofBriefContent[index],
+                                            isConnected ? fb_listofBriefContent[index] : listofBriefContent[index],
                                             style:
                                                 const TextStyle(fontSize: 12),
                                             overflow: TextOverflow.ellipsis,
@@ -359,137 +435,108 @@ class HomeScreenState extends State<HomeScreen> {
                                       ],
                                     ));
                               },
-                              separatorBuilder:
-                                  (BuildContext context, int index) =>
-                                      const Divider(height: 15),
-                              itemCount: foundedNote.length,
+                              
                             )
-                          : GridView.builder(
-                              itemCount: foundedNote.length,
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 2,
-                                      crossAxisSpacing: 4.0,
-                                      mainAxisSpacing: 10.0),
+
+                            :
+
+                            GridView.builder(
+                              itemCount: isConnected ? fb_listofnote.length : foundedNote.length,
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 4.0,
+                                mainAxisSpacing: 10.0
+                              ),
                               itemBuilder: (context, index) {
-                                return Container(
-                                    decoration: BoxDecoration(
-                                      color: const Color.fromARGB(
-                                          255, 212, 253, 244),
-                                      //border: Border.all(width: 0.5, color: Colors.grey),
-                                      borderRadius: BorderRadius.circular(10.0),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.grey.withOpacity(0.2),
-                                          spreadRadius: 3,
-                                          blurRadius: 7,
-                                          offset: const Offset(15,
-                                              10), // changes position of shadow
-                                        ),
-                                      ],
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        Expanded(
-                                          flex: 2,
-                                          child: ListTile(
-                                            onTap: () async {
-                                              final resultfromNewNote =
-                                                  await Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      NewNoteScreen(
-                                                          UserID: 1,
-                                                          noteIDedit:
-                                                              foundedNote[index]
-                                                                      .note_id
-                                                                      ?.toInt() ??
-                                                                  0,
-                                                          isEditState: true),
-                                                ),
-                                              );
-                                              ReloadNoteListAtLocal(
-                                                  resultfromNewNote);
-                                            },
-                                            title: Text(
-                                              foundedNote[index].title,
-                                              style: const TextStyle(
-                                                  fontSize: 13,
-                                                  fontWeight: FontWeight.bold),
-                                              overflow: TextOverflow.ellipsis,
-                                              maxLines: 1,
+                                  return Container(
+                                      decoration: BoxDecoration(
+                                          color: Color.fromARGB(255, 212, 253, 244),
+                                          //border: Border.all(width: 0.5, color: Colors.grey),
+                                          borderRadius: BorderRadius.circular(10.0),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.grey.withOpacity(0.2),
+                                              spreadRadius: 3,
+                                              blurRadius: 7,
+                                              offset: Offset(15, 10), // changes position of shadow
                                             ),
-                                            // subtitle: Text(
-                                            //   foundedNote[index].date_created,
-                                            //   style: const TextStyle(
-                                            //       fontSize: 11, color: Colors.grey),
-                                            // ),
-                                            trailing: const CircleAvatar(
-                                              backgroundColor: Color.fromARGB(
-                                                  255, 97, 115, 239),
-                                              child: Icon(
-                                                Icons.turned_in_not_outlined,
-                                                color: Colors.white,
-                                                size: 20,
+                                          ],
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          Expanded(
+                                            flex: 2,
+                                            child: ListTile(
+                                              onTap: () async{
+                                                final resultfromNewNote = await Navigator.push(
+                                                                            context,
+                                                                            MaterialPageRoute(
+                                                                              builder: (context) => NewNoteScreen(
+                                                                                UserID: widget.userID, 
+                                                                                noteIDedit: isConnected ? (fb_listofnote[index].note_id?.toInt() ?? 0) : (foundedNote[index].note_id?.toInt() ?? 0), 
+                                                                                isEditState: true
+                                                                              ),
+                                                                            ),
+                                                                        );
+                                                ReloadNoteListAtLocal(resultfromNewNote);
+                                              },
+                                              title: Text(
+                                                isConnected ? fb_listofnote[index].title : foundedNote[index].title,
+                                                style: TextStyle(
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.bold),
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 1,
                                               ),
-                                              minRadius: 10,
-                                              maxRadius: 17,
+                                              // subtitle: Text(
+                                              //   foundedNote[index].date_created,
+                                              //   style: const TextStyle(
+                                              //       fontSize: 11, color: Colors.grey),
+                                              // ),
+                                              trailing: const CircleAvatar(
+                                                
+                                                backgroundColor:
+                                                    Color.fromARGB(255, 97, 115, 239),
+                                                child: Icon(
+                                                  Icons.turned_in_not_outlined,
+                                                  color: Colors.white,
+                                                  size: 20,
+                                                ),
+                                                minRadius: 10,
+                                                maxRadius: 17,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                        const SizedBox(
-                                          height: 10,
-                                        ),
-                                        Expanded(
-                                          flex:
-                                              listofTitleImage[index].path == ''
-                                                  ? 0
-                                                  : 3,
-                                          child: ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(8.0),
-                                              child: (listofTitleImage[index])
-                                                          .path ==
-                                                      ''
-                                                  ? null
-                                                  : Image.file(
-                                                      listofTitleImage[index],
-                                                      width: 140,
-                                                      height: 60,
-                                                      fit: BoxFit.cover,
-                                                    )),
-                                        ),
-                                        Expanded(
-                                          flex:
-                                              listofTitleImage[index].path == ''
-                                                  ? 4
-                                                  : 1,
-                                          child: Container(
-                                            margin: const EdgeInsets.only(
-                                                left: 10, top: 5, right: 10),
-                                            alignment: Alignment.topLeft,
-                                            child: Text(
-                                              listofBriefContent[index],
-                                              style:
-                                                  const TextStyle(fontSize: 11),
-                                              overflow: TextOverflow.ellipsis,
-                                              maxLines: listofTitleImage[index]
-                                                          .path ==
-                                                      ''
-                                                  ? 5
-                                                  : 1,
+                                          SizedBox(height: 10,),
+                                          Expanded(
+                                            flex: settingimgflex(index),
+                                            child: ClipRRect(
+                                              
+                                                borderRadius: BorderRadius.circular(8.0),
+                                                child: displayImagefromFBOrLocal_grid(index)
                                             ),
                                           ),
-                                        ),
-                                        Expanded(
+                                          Expanded(
+                                            flex: settingBriefContentflex(index),
+                                            child: Container(
+                                              margin: EdgeInsets.only(left: 10, top: 5, right: 10),
+                                              alignment: Alignment.topLeft,
+                                              child: Text(
+                                                  fb_listofBriefContent[index],
+                                                  style: const TextStyle(fontSize: 11),
+                                                  overflow: TextOverflow.ellipsis,
+                                                  maxLines: settingBriefContentMaxLines(index),
+                                              ),
+                                            ),
+                                          ),
+                                          Expanded(
                                             flex: 1,
                                             child: Container(
                                               alignment: Alignment.centerRight,
                                               padding: const EdgeInsets.only(
                                                   right: 10),
                                               child: Text(
-                                                foundedNote[index].date_created,
+                                                isConnected ? fb_listofnote[index].date_created : foundedNote[index].date_created,
                                                 style: const TextStyle(
                                                     fontSize: 11,
                                                     color: Colors.grey),
@@ -503,196 +550,48 @@ class HomeScreenState extends State<HomeScreen> {
                   ]),
                 ),
 
-                Container(
-                  margin: const EdgeInsets.only(bottom: 10.0),
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: ElevatedButton.icon(
-                      icon: const Icon(
-                        Icons.add,
-                        size: 16.0,
-                      ),
-                      onPressed: () async {
-                        final resultfromNewNote = await Navigator.of(context)
-                            .pushNamed(RoutePaths.newnote);
-                        ReloadNoteListAtLocal(resultfromNewNote);
-                      },
-                      style: ElevatedButton.styleFrom(
-                          shape: const StadiumBorder(),
-                          backgroundColor:
-                              const Color.fromARGB(255, 97, 115, 239)),
-                      label: const Text(
-                        'Tạo ghi chú',
-                        style: TextStyle(fontSize: 16),
+                  Container(
+                    margin: EdgeInsets.only(bottom: 10.0),
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(
+                          Icons.add,
+                          size: 16.0,
+                        ),
+                        onPressed: () async {
+                          final resultfromNewNote = await Navigator.push(
+                                                                          context,
+                                                                          MaterialPageRoute(
+                                                                            builder: (context) => NewNoteScreen(
+                                                                              UserID: widget.userID, 
+                                                                              noteIDedit: -1, 
+                                                                              isEditState: false
+                                                                            ),
+                                                                          ),
+                                                                      );
+                          ReloadNoteListAtLocal(resultfromNewNote);
+                        },
+                        style: ElevatedButton.styleFrom(
+                            shape: const StadiumBorder(),
+                            backgroundColor:
+                                const Color.fromARGB(255, 97, 115, 239)),
+                        label: const Text(
+                          'Tạo ghi chú',
+                          style: TextStyle(fontSize: 16),
+                        ),
                       ),
                     ),
-                  ),
-                )
-                // const Row(
-                //   children: [
-                //     Expanded(
-                //       flex: 2,
-                //       child: Text('Username', style: TextStyle(color: Colors.grey),)
-                //     ),
-                //     Expanded(
-                //       flex: 3,
-                //       child: Text('abcxyz', style: TextStyle(fontWeight: FontWeight.bold),)
-                //     ),
-                //   ],
-                // ),
-
-                // const Row(children: [SizedBox(height: 10),],),
-
-                // const Row(
-                //   children: [
-                //     Expanded(
-                //       flex: 2,
-                //       child: Text('email', style: TextStyle(color: Colors.grey),)
-                //     ),
-                //     Expanded(
-                //       flex: 3,
-                //       child: Text('abcxyz@gmail.com', style: TextStyle(fontWeight: FontWeight.bold),)
-                //     ),
-                //   ],
-                // ),
-
-                // const Row(children: [SizedBox(height: 10),],),
-
-                // const Row(
-                //   children: [
-                //     Expanded(
-                //       flex: 2,
-                //       child: Text('Address', style: TextStyle(color: Colors.grey),)
-                //     ),
-                //     Expanded(
-                //       flex: 3,
-                //       child: Text('abcxyz 1284712jnj', style: TextStyle(fontWeight: FontWeight.bold),)
-                //     ),
-                //   ],
-                // ),
-
-                // const Row(children: [SizedBox(height: 10),],),
-
-                // const Row(
-                //   children: [
-                //      Expanded(
-                //       flex: 1,
-                //       child: ElevatedButton(
-                //           onPressed: null,
-                //           child: Text('Tạo ghi chú'),
-                //         ),
-                //     ),
-                //      SizedBox(width: 10),
-                //      Expanded(
-                //       flex: 1,
-                //       child: ElevatedButton(
-                //           onPressed: null,
-                //           child: Text('ahihi 3'),
-                //         ),
-                //     )
-                //   ],
-
-                // ),
-              ]),
+                ),
+                ]
+              )
+                
+                
             ),
           )
 
-          // Row(
-          //   mainAxisSize: MainAxisSize.max,
-          //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          //   children: [
-          //       ElevatedButton(
-          //               onPressed: ()
-          //               {
-          //                 print('button pressed!');
-          //               },
-          //               child: const Text('ahihi'),
-          //       ),
-
-          //     ElevatedButton(
-          //               onPressed: ()
-          //               {
-          //                 print('button pressed!');
-          //               },
-          //               child: const Text('ahihi 2'),
-          //       ),
-
-          //     ElevatedButton(
-          //               onPressed: ()
-          //               {
-          //                 print('button pressed!');
-          //               },
-          //               child: const Text('ahihi 3'),
-          //       ),
-          //   ],
-          // ),
-
-          // Column(
-          //   mainAxisAlignment: MainAxisAlignment.start,
-          //   children: [
-          //     Container(
-          //       padding: const EdgeInsets.all(10),
-          //       child: Row(
-          //         mainAxisSize: MainAxisSize.min,
-          //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          //         children: [
-          //             Expanded(
-          //               flex: 2,
-          //               child: Container(
-          //                 color: Colors.green,
-          //                 child: ElevatedButton(
-          //                     onPressed: ()
-          //                     {
-          //                       print('button pressed!');
-          //                     },
-          //                     child: const Text('ahihi'),
-          //                 ),
-          //               )
-          //             ),
-
-          //             Expanded(
-          //               flex: 1,
-          //               child: Container(
-          //                 color: Colors.red,
-          //                 child: ElevatedButton(
-          //                     onPressed: ()
-          //                     {
-          //                       print('button pressed!');
-          //                     },
-          //                     child: const Text('ahihi 2'),
-          //                 ),
-          //               )
-          //             ),
-
-          //             Expanded(
-          //               flex: 2,
-          //               child: Container(
-          //                 child: ElevatedButton(
-          //                     onPressed: ()
-          //                     {
-          //                       print('button pressed!');
-          //                     },
-          //                     child: const Text('ahihi 3'),
-          //                 ),
-          //               )
-          //             )
-          //         ],
-          //       ),
-          //     ),
-          //     Center(
-          //        child: ElevatedButton(
-          //             onPressed: ()
-          //             {
-          //               print('button pressed!');
-          //             },
-          //             child: const Text('ahihi'),
-          //         ),
-          //     ),
-
-          //   ],
-          // )
-
-          ),
+          
+      ),
     );
   }
 

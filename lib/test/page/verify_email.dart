@@ -45,7 +45,8 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
   @override
   Widget build(BuildContext context) =>
       _isEmailVerified
-          ? const HomeScreen()
+          ? const HomeScreen(userID: -1,)                 /////TAO BO SUNG USERID O DAY NE, CO GI SUA LAI CHO PHU HOP VOI CODE
+                                                          /////CUA M
           : Scaffold(
         appBar: AppBar(
           title: const Text("Verify email"),

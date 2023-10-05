@@ -1,25 +1,32 @@
 import 'dart:io';
 
 import 'package:avatar_glow/avatar_glow.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:notemobileapp/model/NoteContentModel.dart';
-import 'package:notemobileapp/model/UpdateNoteModel.dart';
+import 'package:notemobileapp/DAL/FB_DAL.dart/FB_Note.dart';
+import 'package:notemobileapp/DAL/FB_DAL.dart/FB_NoteContent.dart';
+import 'package:notemobileapp/model/SqliteModel/FirebaseModel/FBNoteContentModel.dart';
+import 'package:notemobileapp/model/SqliteModel/NoteContentModel.dart';
+import 'package:notemobileapp/model/SqliteModel/UpdateNoteModel.dart';
 import 'package:notemobileapp/test/database/todo_db.dart';
 import 'package:notemobileapp/test/page/todo_page.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:notemobileapp/DAL/UserDAL.dart';
-import 'package:notemobileapp/model/NoteModel.dart';
-import 'package:notemobileapp/model/initializeDB.dart';
+import 'package:notemobileapp/model/SqliteModel/NoteModel.dart';
+import 'package:notemobileapp/model/SqliteModel/initializeDB.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:notemobileapp/DAL/NoteDAL.dart';
 import 'package:notemobileapp/DAL/NoteContentDAL.dart';
+import 'package:sqflite/sqflite.dart';
 
-import '../model/UserModel.dart';
+import '../model/SqliteModel/FirebaseModel/FBNoteModel.dart';
+import '../model/SqliteModel/UserModel.dart';
 import '../router.dart';
 
 class NewNoteScreen extends StatefulWidget {
@@ -89,10 +96,14 @@ class NewNoteScreenState extends State<NewNoteScreen> {
 
   late String NoteTitle = '';
   late String CurrentDateTime;
+  late String firsttxtfieldcont;
 
   UserDAL uDAL = UserDAL();
   NoteDAL nDAL = NoteDAL();
   NoteContentDAL ncontentDAL = NoteContentDAL();
+
+  FB_Note fb_note = FB_Note();
+  FB_NoteContent fb_notect = FB_NoteContent();
 
   FloatingActionButtonLocation get _fabLocation => _isVisible
       ? FloatingActionButtonLocation.centerDocked
@@ -330,14 +341,92 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     }
   }
 
+  Future<void> uploadNoteToFB() async{
+
+    try{
+
+      firsttxtfieldcont = SaveNoteContentList[0].text;
+
+
+      int totalnote = await fb_note.FB_CountTotalNote();
+
+      int noteID = totalnote + 1;
+
+      FBNoteModel fbnote = FBNoteModel(
+        title: NoteTitle, 
+        date_created: CurrentDateTime, 
+        user_id: widget.UserID,
+        tag_id: -1,
+        note_id: noteID
+      );
+
+      fb_note.FB_insertNotetoFB(widget.UserID, noteID, fbnote);
+
+      
+      for(int i = 0; i < SaveNoteContentList.length; i++){
+        if(SaveNoteContentList[i] is File){
+
+          String imagename = basename(SaveNoteContentList[i].path);
+          File file = File(SaveNoteContentList[i].path);
+
+          var imagefile = FirebaseStorage.instance.ref().child("userID_${widget.UserID}").child("${imagename}");
+          UploadTask task = imagefile.putFile(file!);
+          TaskSnapshot snapshot = await task;
+
+          String url = await snapshot.ref.getDownloadURL();
+
+          if(url != null){
+
+
+            int count = await fb_notect.FB_CountTotalNoteContents();
+
+            int notectID = count + 1;
+
+            FBNoteContentModel fbnotecontent = FBNoteContentModel(
+              textcontent: "", 
+              imagecontent: url, 
+              note_id: noteID,
+              notecontent_id: notectID
+            );
+
+            await fb_notect.FB_insertNoteContent(noteID, notectID, fbnotecontent);
+
+          }
+        }
+        else{
+          
+          String noidungchu = i == 0 ? firsttxtfieldcont : SaveNoteContentList[i].text;
+
+          int count = await fb_notect.FB_CountTotalNoteContents();
+
+          int notectID = count + 1;
+
+          FBNoteContentModel fbnotecontent = FBNoteContentModel(
+              textcontent: noidungchu, 
+              imagecontent: "", 
+              note_id: noteID,
+              notecontent_id: notectID
+            );
+
+          await fb_notect.FB_insertNoteContent(noteID, notectID, fbnotecontent);
+
+        }
+      }
+
+    }
+    on Exception catch (e){
+      debugPrint(e.toString());
+    }
+  }
+
   Future<void> saveNoteToLocal() async {
     //SUA LAI USER ID O DAY
     //SUA LAI USER ID O DAY
     //SUA LAI USER ID O DAY
     //SUA LAI USER ID O DAY
     //SUA LAI USER ID O DAY
-    NoteModel md = NoteModel(title: NoteTitle, date_created: CurrentDateTime, user_id: 1);
-    bool checkinsertnote = await nDAL.insertNote(md, 1, InitDataBase.db).catchError((Object e, StackTrace stackTrace) {
+    NoteModel md = NoteModel(title: NoteTitle, date_created: CurrentDateTime, user_id: widget.UserID);
+    bool checkinsertnote = await nDAL.insertNote(md, widget.UserID, InitDataBase.db).catchError((Object e, StackTrace stackTrace) {
                                                                                   debugPrint(e.toString());
                                                                                 },);
     if (checkinsertnote) {
@@ -638,6 +727,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                         Icons.check,
                       ),
                       onPressed: () {
+                        uploadNoteToFB();
                         saveNoteToLocal();
                         Navigator.of(context).pop('RELOAD_LIST');
                       },
@@ -698,7 +788,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                 
                 Align(
                   alignment: Alignment.bottomCenter,
-                  child: isEditCompleted ? Row(
+                  child: widget.isEditState  && (isEditCompleted == true) ? Row(
                     children: [
                       Expanded(
                         flex: 1,
@@ -777,7 +867,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
               //   ],
               // ),
             ),
-            floatingActionButton: isEditCompleted == false
+            floatingActionButton: (isEditCompleted == false) || widget.isEditState == false
                 ? AvatarGlow(
                     animate: MicroIsListening,
                     duration: const Duration(milliseconds: 2000),
@@ -801,6 +891,9 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                                 if (result.finalResult) {
                                   String doanvannoi = result.recognizedWords;
                                   lstTxtController[vitri].text += doanvannoi;
+                                  if(vitri == 0){
+                                    firsttxtfieldcont = doanvannoi;
+                                  }
                                   MicroIsListening = false;
                                 }
                               });
@@ -838,7 +931,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                   bottomLeft: Radius.circular(0),
                   bottomRight: Radius.circular(0)),
               child: BottomAppBar(
-                height: isEditCompleted == false ?  70.0 : 0.0, 
+                height: (isEditCompleted == false) || widget.isEditState == false ?  70.0 : 0.0, 
                 color: Color.fromARGB(255, 108, 127, 244),
                 shape: CircularNotchedRectangle(),
                 elevation: _isElevated ? null : 0.0,

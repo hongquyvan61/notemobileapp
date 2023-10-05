@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:notemobileapp/model/initializeDB.dart';
+import 'package:notemobileapp/model/SqliteModel/initializeDB.dart';
 import 'package:sqflite/sqflite.dart';
 
-import 'package:notemobileapp/model/NoteContentModel.dart';
+import 'package:notemobileapp/model/SqliteModel/NoteContentModel.dart';
 
 class NoteContentDAL {
   

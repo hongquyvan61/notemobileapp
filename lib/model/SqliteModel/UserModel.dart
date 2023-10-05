@@ -2,11 +2,13 @@ class UserModel {
   late int? user_id;
   late String? username;
   late String? password;
+  late String? account_type;
 
   UserModel({
     required this.user_id,
     required this.username,
     required this.password,
+    required this.account_type
   });
 
   // Convert a NoteModel into a Map. The keys must correspond to the names of the
@@ -16,6 +18,7 @@ class UserModel {
       'user_id': user_id,
       'username': username,
       'password': password,
+      'account_type': account_type
     };
   }
 
