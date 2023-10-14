@@ -1,11 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:notemobileapp/router.dart';
-import 'package:notemobileapp/test/authservice/auth.dart';
-import 'package:notemobileapp/test/page/auth_page.dart';
 
-import '../../home/home.dart';
+import '../services/auth.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -20,8 +16,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _retypePasswordController =
-  TextEditingController();
-
+      TextEditingController();
 
   var _isObscure;
 
@@ -38,143 +33,143 @@ class _SignUpPageState extends State<SignUpPage> {
       appBar: AppBar(),
       body: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Text(
-                    'Sign Up',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
-                  ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  TextFormField(
-                    controller: _emailController,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Please enter your Email";
-                      }
-                      return null;
-                    },
-                    decoration: const InputDecoration(
-                        hintText: 'Email',
-                        focusColor: Colors.black,
-                        focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Colors.black,
-                              width: 2,
-                            )),
-                        icon: Icon(Icons.account_box)),
-                  ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  TextFormField(
-                    controller: _passwordController,
-                    obscureText: _isObscure,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Please enter your Password";
-                      }
-                      return null;
-                    },
-                    decoration: InputDecoration(
-                        hintText: 'Password',
-                        focusColor: Colors.black,
-                        focusedBorder: const UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Colors.black,
-                              width: 2,
-                            )),
-                        suffixIcon: IconButton(
-                          padding: const EdgeInsetsDirectional.only(end: 12),
-                          icon: _isObscure
-                              ? const Icon(Icons.visibility)
-                              : const Icon(Icons.visibility_off),
-                          onPressed: () {
-                            setState(() {
-                              _isObscure = !_isObscure;
-                            });
-                          },
-                        ),
-                        icon: Icon(Icons.lock)),
-                  ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  TextFormField(
-                    controller: _retypePasswordController,
-                    obscureText: _isObscure,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Please enter your Password";
-                      }
-                      return null;
-                    },
-                    decoration: InputDecoration(
-                        hintText: 'Re-type Password',
-                        focusColor: Colors.black,
-                        focusedBorder: const UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Colors.black,
-                              width: 2,
-                            )),
-                        suffixIcon: IconButton(
-                          padding: const EdgeInsetsDirectional.only(end: 12),
-                          icon: _isObscure
-                              ? const Icon(Icons.visibility)
-                              : const Icon(Icons.visibility_off),
-                          onPressed: () {
-                            setState(() {
-                              _isObscure = !_isObscure;
-                            });
-                          },
-                        ),
-                        icon: Icon(Icons.lock)),
-                  ),
-                  SizedBox(
-                    height: 50,
-                  ),
-                  SizedBox(
-                    width: Size.infinite.width,
-                    height: 50,
-                    child: ElevatedButton(
+        padding: const EdgeInsets.symmetric(horizontal: 15),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Text(
+                'Sign Up',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              TextFormField(
+                controller: _emailController,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Please enter your Email";
+                  }
+                  return null;
+                },
+                decoration: const InputDecoration(
+                    hintText: 'Email',
+                    focusColor: Colors.black,
+                    focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(
+                      color: Colors.black,
+                      width: 2,
+                    )),
+                    icon: Icon(Icons.account_box)),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              TextFormField(
+                controller: _passwordController,
+                obscureText: _isObscure,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Please enter your Password";
+                  }
+                  return null;
+                },
+                decoration: InputDecoration(
+                    hintText: 'Password',
+                    focusColor: Colors.black,
+                    focusedBorder: const UnderlineInputBorder(
+                        borderSide: BorderSide(
+                      color: Colors.black,
+                      width: 2,
+                    )),
+                    suffixIcon: IconButton(
+                      padding: const EdgeInsetsDirectional.only(end: 12),
+                      icon: _isObscure
+                          ? const Icon(Icons.visibility)
+                          : const Icon(Icons.visibility_off),
                       onPressed: () {
-                        handleSubmit();
+                        setState(() {
+                          _isObscure = !_isObscure;
+                        });
                       },
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
-                          maximumSize: Size.infinite),
-                      child: _loading
-                          ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                          : Text('Register'),
                     ),
-                  ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text("Already have an account ?"),
-                      TextButton(onPressed: () {}, child: Text("Login"))
-                    ],
-                  ),
+                    icon: Icon(Icons.lock)),
+              ),
+              const SizedBox(
+                height: 20,
+              ),
+              TextFormField(
+                controller: _retypePasswordController,
+                obscureText: _isObscure,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Please enter your Password";
+                  }
+                  return null;
+                },
+                decoration: InputDecoration(
+                    hintText: 'Re-type Password',
+                    focusColor: Colors.black,
+                    focusedBorder: const UnderlineInputBorder(
+                        borderSide: BorderSide(
+                      color: Colors.black,
+                      width: 2,
+                    )),
+                    suffixIcon: IconButton(
+                      padding: const EdgeInsetsDirectional.only(end: 12),
+                      icon: _isObscure
+                          ? const Icon(Icons.visibility)
+                          : const Icon(Icons.visibility_off),
+                      onPressed: () {
+                        setState(() {
+                          _isObscure = !_isObscure;
+                        });
+                      },
+                    ),
+                    icon: Icon(Icons.lock)),
+              ),
+              SizedBox(
+                height: 50,
+              ),
+              SizedBox(
+                width: Size.infinite.width,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {
+                    handleSubmit();
+                  },
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      maximumSize: Size.infinite),
+                  child: _loading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text('Register'),
+                ),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text("Already have an account ?"),
+                  TextButton(onPressed: () {}, child: Text("Login"))
                 ],
               ),
-            ),
-          )),
+            ],
+          ),
+        ),
+      )),
     );
   }
 
@@ -189,7 +184,6 @@ class _SignUpPageState extends State<SignUpPage> {
         fontSize: 16.0);
   }
 
-
   void handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
     final email = _emailController.value.text;
@@ -201,20 +195,22 @@ class _SignUpPageState extends State<SignUpPage> {
     });
 
     if (password.endsWith(retypePassword)) {
-      String returnstr = await Auth().registerWithEmailPassword(email, password);
-      if(returnstr == "Successful"){
-        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const AuthPage()));
-      }
+      // String returnstr =
+          await Auth().registerWithEmailPassword(context, email, password);
+      // if (returnstr == "Successful") {
+      //   Navigator.of(context).pushReplacement(
+      //       MaterialPageRoute(builder: (context) => const AuthPage()));
+      // }
       // showToast(alert);
       // backToLogin(alert);
     } else {
       showToast("passwords do not match");
     }
 
-    // Future.delayed(const Duration(seconds: 2), () {
-    //   setState(() {
-    //     _loading = false;
-    //   });
-    // });
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() {
+        _loading = false;
+      });
+    });
   }
 }

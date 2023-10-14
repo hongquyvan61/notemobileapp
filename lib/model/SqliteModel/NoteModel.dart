@@ -2,14 +2,14 @@ class NoteModel {
   late int? note_id;
   late String title;
   late String date_created;
-  late int user_id;
+  late String email;
   late int? tag_id;
 
   NoteModel({
     this.note_id,
     required this.title,
     required this.date_created,
-    required this.user_id,
+    required this.email,
     this.tag_id,
   });
 
@@ -20,7 +20,7 @@ class NoteModel {
       'note_id': note_id,
       'title': title,
       'date_created': date_created,
-      'user_id': user_id,
+      'user_id': email,
       'tag_id': tag_id
     };
   }
@@ -29,6 +29,6 @@ class NoteModel {
   // each dog when using the print statement.
   @override
   String toString() {
-    return 'NoteModel{note_id: $note_id, title: $title, date_created: $date_created, user_id: $user_id, tag_id: $tag_id}';
+    return 'NoteModel{note_id: $note_id, title: $title, date_created: $date_created, user_id: $email, tag_id: $tag_id}';
   }
 }

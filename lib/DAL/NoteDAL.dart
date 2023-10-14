@@ -8,7 +8,7 @@ import 'package:notemobileapp/model/SqliteModel/NoteModel.dart';
 
 class NoteDAL {
   
-  Future<bool> insertNote(NoteModel note, int userid, Database db) async {
+  Future<bool> insertNote(NoteModel note, String email, Database db) async {
     // Insert the Dog into the correct table. You might also specify the
     // `conflictAlgorithm` to use in case the same dog is inserted twice.
     //
@@ -19,7 +19,7 @@ class NoteDAL {
     //   conflictAlgorithm: ConflictAlgorithm.replace,
     // );
 
-    int check = await db.rawInsert("insert into note(title,date_created,user_id) values(?,?,?)",[note.title,note.date_created,userid]);
+    int check = await db.rawInsert("insert into note(title,date_created,user_id) values(?,?,?)",[note.title,note.date_created,email]);
     return check != 0 ? true : false;
   }
 
@@ -58,16 +58,16 @@ class NoteDAL {
         note_id: maps[i]['note_id'],
         title: maps[i]['title'],
         date_created: maps[i]['date_created'],
-        user_id: maps[i]['user_id'],
+        email: maps[i]['user_id'],
         tag_id: maps[i]['tag_id']
       );
     });
   }
 
-  Future<List<NoteModel>> getAllNotesByUserID(int userid, Database db) async {
+  Future<List<NoteModel>> getAllNotesByUserID(String email, Database db) async {
 
     // Query the table for all The Dogs.
-    final List<Map<String, dynamic>> maps = await db.rawQuery('select * from note where user_id=?',[userid]);
+    final List<Map<String, dynamic>> maps = await db.rawQuery('select * from note where user_id=?',[email]);
 
     // Convert the List<Map<String, dynamic> into a List<Dog>.
     return List.generate(maps.length, (i) {
@@ -75,15 +75,15 @@ class NoteDAL {
         note_id: maps[i]['note_id'],
         title: maps[i]['title'],
         date_created: maps[i]['date_created'],
-        user_id: maps[i]['user_id'],
+        email: maps[i]['user_id'],
         tag_id: maps[i]['tag_id']
       );
     });
   }
 
-  Future<List<NoteModel>> getNoteByID(int uid, int noteid, Database db) async{
+  Future<List<NoteModel>> getNoteByID(String email, int noteid, Database db) async{
 
-    final List<Map<String, dynamic>> maps = await db.rawQuery('select * from note where user_id=? and note_id=?',[uid, noteid]);
+    final List<Map<String, dynamic>> maps = await db.rawQuery('select * from note where user_id=? and note_id=?',[email, noteid]);
 
     // Convert the List<Map<String, dynamic> into a List<Dog>.
     return List.generate(maps.length, (i) {
@@ -91,7 +91,7 @@ class NoteDAL {
         note_id: maps[i]['note_id'],
         title: maps[i]['title'],
         date_created: maps[i]['date_created'],
-        user_id: maps[i]['user_id'],
+        email: maps[i]['user_id'],
         tag_id: maps[i]['tag_id']
       );
     });

@@ -20,7 +20,7 @@ class RouterCustom {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case RoutePaths.start:
-        return MaterialPageRoute(builder: (_) => const HomeScreen(userID: -1,));
+        return MaterialPageRoute(builder: (_) => const HomeScreen());
 
       case RoutePaths.newnote:
         // you can do things like pass arguments to screens
@@ -29,9 +29,8 @@ class RouterCustom {
         //SUA NOTEID, USERID O DAY
         return MaterialPageRoute(
             builder: (_) => const NewNoteScreen(
-                  isEditState: false,
-                  noteIDedit: -1,
-                  UserID: -1,
+                  isEdit: false,
+                  noteId: '',
                 ));
 
       case RoutePaths.test:

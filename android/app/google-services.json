@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "994037449002",
+    "firebase_url": "https://note-app-flutter-6d90a-default-rtdb.firebaseio.com",
     "project_id": "note-app-flutter-6d90a",
     "storage_bucket": "note-app-flutter-6d90a.appspot.com"
   },
@@ -12,7 +13,20 @@
           "package_name": "com.example.notemobileapp"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "994037449002-vg6vk2vrg8ctubjjjdcnhrvho31p5c3l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.notemobileapp",
+            "certificate_hash": "6074eedc3bdf8fcd3ae1926a92d8285ecd72cb30"
+          }
+        },
+        {
+          "client_id": "994037449002-nrj6gjc6foqu9gm7h62geapi37mhqj0g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBDejKjhMjWhulR7FbwE__stmykz-d7iSw"
@@ -20,7 +34,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "994037449002-nrj6gjc6foqu9gm7h62geapi37mhqj0g.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

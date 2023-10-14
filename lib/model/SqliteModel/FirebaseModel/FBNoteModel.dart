@@ -2,14 +2,14 @@ class FBNoteModel {
   late int? note_id;
   late String title;
   late String date_created;
-  late int user_id;
+  late String email;
   late int? tag_id;
 
   FBNoteModel({
     this.note_id,
     required this.title,
     required this.date_created,
-    required this.user_id,
+    required this.email,
     required this.tag_id,
   });
 
@@ -19,7 +19,7 @@ class FBNoteModel {
     return {
       'title': title,
       'date_created': date_created,
-      'user_id': user_id,
+      'user_id': email,
       'tag_id': tag_id,
       'note_id': note_id
     };
@@ -29,6 +29,6 @@ class FBNoteModel {
   // each dog when using the print statement.
   @override
   String toString() {
-    return 'FBNoteModel{note_id: $note_id, title: $title, date_created: $date_created, user_id: $user_id, tag_id: $tag_id, note_id: $note_id}';
+    return 'FBNoteModel{note_id: $note_id, title: $title, date_created: $date_created, user_id: $email, tag_id: $tag_id, note_id: $note_id}';
   }
 }

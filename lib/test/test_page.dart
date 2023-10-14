@@ -1,6 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:notemobileapp/test/notifi_service.dart';
-
+import 'package:notemobileapp/test/services/firebase_firestore_service.dart';
 
 import 'date_time_picker.dart';
 
@@ -12,7 +13,7 @@ class TestPage extends StatefulWidget {
 }
 
 class _TestPageState extends State<TestPage> {
-  // TextEditingController textEditingController = TextEditingController();
+  TextEditingController textEditingController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -31,16 +32,38 @@ class _TestPageState extends State<TestPage> {
               child: ElevatedButton(
                 child: const Text("Show Notification"),
                 onPressed: () {
-                  NotificationService()
-                      .showNotification(title: "Sample title", body: "it's work");
-
+                  NotificationService().showNotification(
+                      title: "Sample title", body: "it's work");
                 },
               ),
             ),
-
+            ElevatedButton(
+                onPressed: () {
+                  openDialog();
+                },
+                child: Text("Add Note")),
           ],
         ),
       ),
     );
+  }
+
+  void openDialog() {
+    showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+              title: Text('New Note'),
+              content: TextField(
+                decoration: InputDecoration(hintText: 'note'),
+                controller: textEditingController,
+              ),
+              actions: [TextButton(onPressed: () {
+                if(FirebaseAuth.instance.currentUser?.email != null) {
+                  // FireStoreService().addNote(textEditingController.text);
+                }
+                textEditingController.clear();
+                Navigator.pop(context);
+              }, child: Text('Save'))],
+            ));
   }
 }

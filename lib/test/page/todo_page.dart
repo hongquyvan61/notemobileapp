@@ -11,13 +11,13 @@ class ToDoPage extends StatefulWidget {
 }
 
 class _ToDoPageState extends State<ToDoPage> {
-  Future<List<ToDo>>? futureTodos;
-  final todoDB = TodoDB();
+  Future<List<ToDoModel>>? futureTodos;
+  // final todoDB = TodoDB();
 
   @override
   void initState() {
     super.initState();
-    fetchTodos();
+    // fetchTodos();
   }
 
   @override
@@ -26,7 +26,7 @@ class _ToDoPageState extends State<ToDoPage> {
       appBar: AppBar(
         title: const Text('Todo list view'),
       ),
-      body: FutureBuilder<List<ToDo>>(
+      body: FutureBuilder<List<ToDoModel>>(
         future: futureTodos,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -53,9 +53,9 @@ class _ToDoPageState extends State<ToDoPage> {
     );
   }
 
-  void fetchTodos() {
-    setState(() {
-      futureTodos = todoDB.fetchAll();
-    });
-  }
+  // void fetchTodos() {
+  //   setState(() {
+  //     futureTodos = todoDB.fetchAll();
+  //   });
+  // }
 }

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -17,16 +18,13 @@ import 'package:notemobileapp/model/SqliteModel/initializeDB.dart';
 import 'package:notemobileapp/newnote/newnote.dart';
 import 'package:notemobileapp/router.dart';
 import 'package:notemobileapp/test/component/popup_menu.dart';
+import 'package:notemobileapp/test/services/firebase_firestore_service.dart';
 
 import '../model/SqliteModel/NoteModel.dart';
-import '../test/authservice/auth.dart';
+import '../test/model/note_receive.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({
-     Key? key, required this.userID
-  }) : super(key: key);
-
-  final int userID;
+  const HomeScreen({Key? key}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -40,6 +38,7 @@ class HomeScreenState extends State<HomeScreen> {
   NoteContentDAL noteContentDAL = NoteContentDAL();
   FB_Note fb_noteDAL = FB_Note();
   FB_NoteContent fb_noteContentDAL = FB_NoteContent();
+  String email = '';
 
   late List<NoteModel> listofnote = <NoteModel>[];
   late List<NoteModel> foundedNote = <NoteModel>[];
@@ -67,8 +66,9 @@ class HomeScreenState extends State<HomeScreen> {
       ..indicatorType = EasyLoadingIndicatorType.chasingDots
       ..loadingStyle = EasyLoadingStyle.dark;
 
-    //AssignSubscription();
+    AssignSubscription();
     InitiateListOfNote();
+    refreshNoteList();
     checkLogin();
   }
 
@@ -90,67 +90,65 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   InitiateListOfNote() async {
+    final connectedRef = FirebaseDatabase.instance.ref(".info/connected");
+    connectedRef.onValue.listen((event) async {
+      isConnected = event.snapshot.value as bool? ?? false;
 
-      final connectedRef = FirebaseDatabase.instance.ref(".info/connected");
-        connectedRef.onValue.listen((event) async {
-          isConnected = event.snapshot.value as bool? ?? false;
-          
-          if(isConnected){
-            debugPrint("Co mang ne!!");
-            listofnote.clear();
-            listofTitleImage.clear();
+      if (isConnected) {
+        debugPrint("Co mang ne!!");
+        listofnote.clear();
+        listofTitleImage.clear();
 
-            fb_listofnote = await fb_noteDAL.FB_getAllNoteByUid(widget.userID);
+        fb_listofnote = await fb_noteDAL.FB_getAllNoteByUid(email);
 
-            fb_listofimglink = await FB_generateTitleImage(fb_listofnote);
-
-          }
-          else{
-
-            listofnote = await nDAL.getAllNotesByUserID(widget.userID, InitDataBase.db).catchError((Object e, StackTrace stackTrace) {
-                                                                                        debugPrint(e.toString());
-                                                                                      },
-                                                                                    );
-            foundedNote = listofnote;
-            listofTitleImage = await generateListTitleImage(listofnote);
-            setState(() {
-                    
-            });
-
-          }
-      });
-
+        fb_listofimglink = await FB_generateTitleImage(fb_listofnote);
+      } else {
+        listofnote =
+            await nDAL.getAllNotesByUserID(email, InitDataBase.db).catchError(
+          (Object e, StackTrace stackTrace) {
+            debugPrint(e.toString());
+          },
+        );
+        foundedNote = listofnote;
+        listofTitleImage = await generateListTitleImage(listofnote);
+        setState(() {});
+      }
+    });
   }
 
-  void ReloadNoteListAtLocal(Object? result) async {
-    if (result.toString() == 'RELOAD_LIST') {
-      await EasyLoading.show(
-        status: "Đang load danh sách ghi chú...",
-        maskType: EasyLoadingMaskType.none,
-      );
-
-      //SUA USERID O DAY
-      //SUA USERID O DAY
-      //SUA USERID O DAY
-      listofnote = await nDAL.getAllNotesByUserID(widget.userID, InitDataBase.db).catchError(
-        (Object e, StackTrace stackTrace) {
-          debugPrint(e.toString());
-        },
-      );
-
-      foundedNote = listofnote;
-
-      listofTitleImage = await generateListTitleImage(listofnote);
-      setState(() {});
-      await EasyLoading.dismiss();
-    } else {
-      debugPrint('Du lieu tra ve tu new note screen bi loi');
+  void reloadNoteListAtLocal(bool result) {
+    // if (result.toString() == 'RELOAD_LIST') {
+    //   await EasyLoading.show(
+    //     status: "Đang load danh sách ghi chú...",
+    //     maskType: EasyLoadingMaskType.none,
+    //   );
+    //
+    //   //SUA USERID O DAY
+    //   //SUA USERID O DAY
+    //   //SUA USERID O DAY
+    //   listofnote =
+    //       await nDAL.getAllNotesByUserID(email, InitDataBase.db).catchError(
+    //     (Object e, StackTrace stackTrace) {
+    //       debugPrint(e.toString());
+    //     },
+    //   );
+    //
+    //   foundedNote = listofnote;
+    //
+    //   listofTitleImage = await generateListTitleImage(listofnote);
+    //   setState(() {});
+    //   await EasyLoading.dismiss();
+    // } else {
+    //   debugPrint('Du lieu tra ve tu new note screen bi loi');
+    // }
+    if(result){
+      refreshNoteList();
     }
   }
 
-  Future<List<String>> FB_generateTitleImage(List<FBNoteModel> lst) async{
+  Future<List<String>> FB_generateTitleImage(List<FBNoteModel> lst) async {
     late List<String> lstimage = <String>[];
-    
+
     fb_listofBriefContent.clear();
 
     for (int i = 0; i < lst.length; i++) {
@@ -159,7 +157,8 @@ class HomeScreenState extends State<HomeScreen> {
       String imagestr = await fb_noteContentDAL.FB_getTitleImageOfNote(noteid);
       lstimage.add(imagestr);
 
-      String briefcontent = await fb_noteContentDAL.FB_getBriefContentOfNote(noteid);
+      String briefcontent =
+          await fb_noteContentDAL.FB_getBriefContentOfNote(noteid);
       fb_listofBriefContent.add(briefcontent);
     }
     return lstimage;
@@ -211,40 +210,70 @@ class HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
-  Widget? displayImagefromFBOrLocal_list(int index){
-    if(isConnected){
-      return (fb_listofimglink[index]) == '' ? null : Image.network(fb_listofimglink[index], width: 290, height: 200, fit: BoxFit.cover,);
+  Widget? displayImagefromFBOrLocal_list(int index) {
+    if (isConnected) {
+      return (fb_listofimglink[index]) == ''
+          ? null
+          : Image.network(
+              fb_listofimglink[index],
+              width: 290,
+              height: 200,
+              fit: BoxFit.cover,
+            );
     }
-    return (listofTitleImage[index]).path == '' ? null : Image.file(listofTitleImage[index], width: 290, height: 200, fit: BoxFit.cover,);
+    return (listofTitleImage[index]).path == ''
+        ? null
+        : Image.file(
+            listofTitleImage[index],
+            width: 290,
+            height: 200,
+            fit: BoxFit.cover,
+          );
   }
 
-  Widget? displayImagefromFBOrLocal_grid(int index){
-    if(isConnected){
-      return (fb_listofimglink[index]) == '' ? null : Image.network(fb_listofimglink[index], width: 140, height: 60, fit: BoxFit.cover,);
+  Widget? displayImagefromFBOrLocal_grid(int index) {
+    if (isConnected) {
+      return (fb_listofimglink[index]) == ''
+          ? null
+          : Image.network(
+              fb_listofimglink[index],
+              width: 140,
+              height: 60,
+              fit: BoxFit.cover,
+            );
     }
-    return (listofTitleImage[index]).path == '' ? null : Image.file(listofTitleImage[index], width: 140, height: 60, fit: BoxFit.cover,);  
+    return (listofTitleImage[index]).path == ''
+        ? null
+        : Image.file(
+            listofTitleImage[index],
+            width: 140,
+            height: 60,
+            fit: BoxFit.cover,
+          );
   }
 
-  int settingimgflex(int index){
-    if(isConnected){
+  int settingimgflex(int index) {
+    if (isConnected) {
       return fb_listofimglink[index] == '' ? 0 : 3;
     }
     return listofTitleImage[index].path == '' ? 0 : 3;
   }
 
-  int settingBriefContentflex(int index){
-    if(isConnected){
+  int settingBriefContentflex(int index) {
+    if (isConnected) {
       return fb_listofimglink[index] == '' ? 4 : 1;
     }
     return listofTitleImage[index].path == '' ? 4 : 1;
   }
 
-  int settingBriefContentMaxLines(int index){
-    if(isConnected){
+  int settingBriefContentMaxLines(int index) {
+    if (isConnected) {
       return fb_listofimglink[index] == '' ? 5 : 1;
     }
     return listofTitleImage[index].path == '' ? 5 : 1;
   }
+
+  List<NoteReceive> noteList = [];
 
   @override
   Widget build(BuildContext context) {
@@ -278,8 +307,8 @@ class HomeScreenState extends State<HomeScreen> {
                   shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.all(Radius.circular(6))),
                   offset: const Offset(0, 50),
-                  icon: const Icon(
-                    Icons.account_circle,
+                  icon: Icon(
+                    loginState ? Icons.manage_accounts : Icons.account_circle,
                     color: Colors.black,
                   ),
                   itemBuilder: (context) => loginState
@@ -319,237 +348,281 @@ class HomeScreenState extends State<HomeScreen> {
           body: Container(
             margin: const EdgeInsets.all(5),
             child: Container(
-              padding: const EdgeInsets.all(5),
-              child: Stack(children: [
-                Container(
-                  child: Column(children: [
-                    TextField(
-                      style: const TextStyle(
-                        fontSize: 15,
-                      ),
-                      decoration: const InputDecoration(
-                          hintText: "Tìm kiếm nè...",
-                          prefixIcon: Icon(Icons.search),
-                          filled: true,
-                          fillColor: Color.fromARGB(255, 239, 241, 243),
-                          enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                width: 0.5,
-                              )
-                            )
-                          ),
-                          onChanged: (value) => filterlist(value),
+                padding: const EdgeInsets.all(5),
+                child: Stack(children: [
+                  Container(
+                    child: Column(children: [
+                      TextField(
+                        style: const TextStyle(
+                          fontSize: 15,
                         ),
-                        SizedBox(height: 13,),
-                        Expanded(
-                          child: listState == true ? 
-                               ListView.separated(
-                                separatorBuilder: (BuildContext context, int index) => const Divider(height: 15),
-                                itemCount: isConnected ? fb_listofnote.length : foundedNote.length,
-                                
-                                itemBuilder: (BuildContext context, int index) {
-                                  return Container(
-                                      padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                                      decoration: BoxDecoration(
-                                           color: Color.fromARGB(255, 212, 253, 244),
-                                          //color: Color.fromARGB(255, 255, 255, 255),
-                                          //border: Border.all(width: 0.5, color: Colors.grey),
-                                          borderRadius: BorderRadius.circular(10.0),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.grey.withOpacity(0.2),
-                                              spreadRadius: 5,
-                                              blurRadius: 7,
-                                              offset: Offset(25, 10), // changes position of shadow
-                                            ),
-                                          ],
+                        decoration: const InputDecoration(
+                            hintText: "Tìm kiếm nè...",
+                            prefixIcon: Icon(Icons.search),
+                            filled: true,
+                            fillColor: Color.fromARGB(255, 239, 241, 243),
+                            enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                              width: 0.5,
+                            ))),
+                        onChanged: (value) => filterlist(value),
+                      ),
+                      SizedBox(
+                        height: 13,
+                      ),
+                      Expanded(
+                        child:
+                            // listState == true ?
+                            RefreshIndicator(
+                          onRefresh: () => refreshNoteList(),
+                          child: ListView.separated(
+                            separatorBuilder:
+                                (BuildContext context, int index) =>
+                                    const Divider(height: 15),
+                            itemCount: noteList.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              return Container(
+                                  padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+                                  decoration: BoxDecoration(
+                                    color: Color.fromARGB(255, 212, 253, 244),
+                                    //color: Color.fromARGB(255, 255, 255, 255),
+                                    //border: Border.all(width: 0.5, color: Colors.grey),
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.2),
+                                        spreadRadius: 5,
+                                        blurRadius: 7,
+                                        offset: Offset(25,
+                                            10), // changes position of shadow
                                       ),
-                                      child: Column(
-                                        children: [
-                                          ListTile(
-                                            ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
-                                            ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
-                                            ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
-                                            onTap: () async{
-                                              final resultfromNewNote = await Navigator.push(
-                                                                          context,
-                                                                          MaterialPageRoute(
-                                                                            builder: (context) => NewNoteScreen(
-                                                                              UserID: widget.userID, 
-                                                                              noteIDedit: isConnected ? (fb_listofnote[index].note_id?.toInt() ?? 0) : (foundedNote[index].note_id?.toInt() ?? 0), 
-                                                                              isEditState: true
-                                                                            ),
-                                                                          ),
-                                                                      );
-                                              ReloadNoteListAtLocal(resultfromNewNote);
-                                            },
-                                            leading: const CircleAvatar(
+                                    ],
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      ListTile(
+                                        ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
+                                        ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
+                                        ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
+                                        onTap: () async {
+                                          bool resultFromNewNote =
+                                              await Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  NewNoteScreen(
+                                                      noteId:
+                                                      // isConnected
+                                                      //     ?                                                                                                                                                                          (fb_listofnote[
+                                                      //                 index]
+                                                      //             .note_id
+                                                      //             ?.toInt() ??
+                                                      //         0)
+                                                      //     : (foundedNote[index`  ]
+                                                      //             .note_id
+                                                      //             ?.toInt() ??
+                                                      //         0
+                                                      // )
 
-                                                backgroundColor:
-                                                    Color.fromARGB(255, 97, 115, 239),
-                                                child: Icon(
-                                                  Icons.turned_in_not_outlined,
-                                                  color: Colors.white,
-                                                  size: 20,
-                                                ),
-                                                minRadius: 10,
-                                                maxRadius: 17,
+                                                      noteList[index].noteId
+                                                      ,
+                                                      isEdit: true),
                                             ),
-                                            title: Text(
-                                                isConnected ? fb_listofnote[index].title : foundedNote[index].title,
-                                                style: const TextStyle(
-                                                    fontSize: 18,
-                                                    fontWeight: FontWeight.bold),
-                                                overflow: TextOverflow.ellipsis,
-                                                maxLines: 1,
-                                            ),
-                                            subtitle: Text(
-                                                isConnected ? fb_listofnote[index].date_created : foundedNote[index].date_created,
-                                                style: const TextStyle(
-                                                    fontSize: 12,
-                                                    color: Colors.grey),
-                                            ),
-                                          ),
-
-                                        
-                                        Container(
-                                          margin: const EdgeInsets.fromLTRB(
-                                              3, 0, 3, 0),
-                                          child: ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(8.0),
-                                              child: displayImagefromFBOrLocal_list(index)
+                                          );
+                                          reloadNoteListAtLocal(
+                                              resultFromNewNote);
+                                        },
+                                        leading: const CircleAvatar(
+                                          backgroundColor:
+                                              Color.fromARGB(255, 97, 115, 239),
+                                          minRadius: 10,
+                                          maxRadius: 17,
+                                          child: Icon(
+                                            Icons.turned_in_not_outlined,
+                                            color: Colors.white,
+                                            size: 20,
                                           ),
                                         ),
-                                        Container(
-                                          margin: const EdgeInsets.all(10),
-                                          alignment: Alignment.centerLeft,
-                                          child: Text(
-                                            isConnected ? fb_listofBriefContent[index] : listofBriefContent[index],
-                                            style:
-                                                const TextStyle(fontSize: 12),
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 2,
-                                          ),
-                                        )
-                                      ],
-                                    ));
-                              },
-                              
-                            )
-
-                            :
-
-                            GridView.builder(
-                              itemCount: isConnected ? fb_listofnote.length : foundedNote.length,
-                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                crossAxisSpacing: 4.0,
-                                mainAxisSpacing: 10.0
-                              ),
-                              itemBuilder: (context, index) {
-                                  return Container(
-                                      decoration: BoxDecoration(
-                                          color: Color.fromARGB(255, 212, 253, 244),
-                                          //border: Border.all(width: 0.5, color: Colors.grey),
-                                          borderRadius: BorderRadius.circular(10.0),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.grey.withOpacity(0.2),
-                                              spreadRadius: 3,
-                                              blurRadius: 7,
-                                              offset: Offset(15, 10), // changes position of shadow
-                                            ),
-                                          ],
+                                        title: Text(
+                                          noteList[index].title,
+                                          style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold),
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,
+                                        ),
+                                        subtitle: Text(
+                                          noteList[index].timeStamp,
+                                          style: const TextStyle(
+                                              fontSize: 12, color: Colors.grey),
+                                        ),
                                       ),
-                                      child: Column(
-                                        children: [
-                                          Expanded(
-                                            flex: 2,
-                                            child: ListTile(
-                                              onTap: () async{
-                                                final resultfromNewNote = await Navigator.push(
-                                                                            context,
-                                                                            MaterialPageRoute(
-                                                                              builder: (context) => NewNoteScreen(
-                                                                                UserID: widget.userID, 
-                                                                                noteIDedit: isConnected ? (fb_listofnote[index].note_id?.toInt() ?? 0) : (foundedNote[index].note_id?.toInt() ?? 0), 
-                                                                                isEditState: true
-                                                                              ),
-                                                                            ),
-                                                                        );
-                                                ReloadNoteListAtLocal(resultfromNewNote);
-                                              },
-                                              title: Text(
-                                                isConnected ? fb_listofnote[index].title : foundedNote[index].title,
-                                                style: TextStyle(
-                                                    fontSize: 13,
-                                                    fontWeight: FontWeight.bold),
-                                                overflow: TextOverflow.ellipsis,
-                                                maxLines: 1,
-                                              ),
-                                              // subtitle: Text(
-                                              //   foundedNote[index].date_created,
-                                              //   style: const TextStyle(
-                                              //       fontSize: 11, color: Colors.grey),
-                                              // ),
-                                              trailing: const CircleAvatar(
-                                                
-                                                backgroundColor:
-                                                    Color.fromARGB(255, 97, 115, 239),
-                                                child: Icon(
-                                                  Icons.turned_in_not_outlined,
-                                                  color: Colors.white,
-                                                  size: 20,
-                                                ),
-                                                minRadius: 10,
-                                                maxRadius: 17,
-                                              ),
-                                            ),
-                                          ),
-                                          SizedBox(height: 10,),
-                                          Expanded(
-                                            flex: settingimgflex(index),
-                                            child: ClipRRect(
-                                              
-                                                borderRadius: BorderRadius.circular(8.0),
-                                                child: displayImagefromFBOrLocal_grid(index)
-                                            ),
-                                          ),
-                                          Expanded(
-                                            flex: settingBriefContentflex(index),
-                                            child: Container(
-                                              margin: EdgeInsets.only(left: 10, top: 5, right: 10),
-                                              alignment: Alignment.topLeft,
-                                              child: Text(
-                                                  fb_listofBriefContent[index],
-                                                  style: const TextStyle(fontSize: 11),
-                                                  overflow: TextOverflow.ellipsis,
-                                                  maxLines: settingBriefContentMaxLines(index),
-                                              ),
-                                            ),
-                                          ),
-                                          Expanded(
-                                            flex: 1,
-                                            child: Container(
-                                              alignment: Alignment.centerRight,
-                                              padding: const EdgeInsets.only(
-                                                  right: 10),
-                                              child: Text(
-                                                isConnected ? fb_listofnote[index].date_created : foundedNote[index].date_created,
-                                                style: const TextStyle(
-                                                    fontSize: 11,
-                                                    color: Colors.grey),
-                                              ),
-                                            ))
-                                      ],
-                                    ));
-                              },
-                            ),
-                    ),
-                  ]),
-                ),
-
+                                      // Container(
+                                      //   margin: const EdgeInsets.fromLTRB(
+                                      //       3, 0, 3, 0),
+                                      //   child: ClipRRect(
+                                      //       borderRadius:
+                                      //           BorderRadius.circular(8.0),
+                                      //       child:
+                                      //           displayImagefromFBOrLocal_list(
+                                      //               index)),
+                                      // ),
+                                      Container(
+                                        margin: const EdgeInsets.all(10),
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(
+                                          noteList[index].content[0]['text'],
+                                          style: const TextStyle(fontSize: 12),
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 2,
+                                        ),
+                                      )
+                                    ],
+                                  ));
+                            },
+                          ),
+                        )
+                        // : GridView.builder(
+                        //     itemCount: isConnected
+                        //         ? fb_listofnote.length
+                        //         : foundedNote.length,
+                        //     gridDelegate:
+                        //         const SliverGridDelegateWithFixedCrossAxisCount(
+                        //             crossAxisCount: 2,
+                        //             crossAxisSpacing: 4.0,
+                        //             mainAxisSpacing: 10.0),
+                        //     itemBuilder: (context, index) {
+                        //       return Container(
+                        //           decoration: BoxDecoration(
+                        //             color:
+                        //                 Color.fromARGB(255, 212, 253, 244),
+                        //             //border: Border.all(width: 0.5, color: Colors.grey),
+                        //             borderRadius:
+                        //                 BorderRadius.circular(10.0),
+                        //             boxShadow: [
+                        //               BoxShadow(
+                        //                 color: Colors.grey.withOpacity(0.2),
+                        //                 spreadRadius: 3,
+                        //                 blurRadius: 7,
+                        //                 offset: Offset(15,
+                        //                     10), // changes position of shadow
+                        //               ),
+                        //             ],
+                        //           ),
+                        //           child: Column(
+                        //             children: [
+                        //               Expanded(
+                        //                 flex: 2,
+                        //                 child: ListTile(
+                        //                   onTap: () async {
+                        //                     final resultfromNewNote =
+                        //                         await Navigator.push(
+                        //                       context,
+                        //                       MaterialPageRoute(
+                        //                         builder: (context) => NewNoteScreen(
+                        //                             email: email,
+                        //                             noteIdEdit: isConnected
+                        //                                 ? (fb_listofnote[
+                        //                                             index]
+                        //                                         .note_id
+                        //                                         ?.toInt() ??
+                        //                                     0)
+                        //                                 : (foundedNote[
+                        //                                             index]
+                        //                                         .note_id
+                        //                                         ?.toInt() ??
+                        //                                     0),
+                        //                             isEditState: true),
+                        //                       ),
+                        //                     );
+                        //                     ReloadNoteListAtLocal(
+                        //                         resultfromNewNote);
+                        //                   },
+                        //                   title: Text(
+                        //                     isConnected
+                        //                         ? fb_listofnote[index].title
+                        //                         : foundedNote[index].title,
+                        //                     style: TextStyle(
+                        //                         fontSize: 13,
+                        //                         fontWeight:
+                        //                             FontWeight.bold),
+                        //                     overflow: TextOverflow.ellipsis,
+                        //                     maxLines: 1,
+                        //                   ),
+                        //                   // subtitle: Text(
+                        //                   //   foundedNote[index].date_created,
+                        //                   //   style: const TextStyle(
+                        //                   //       fontSize: 11, color: Colors.grey),
+                        //                   // ),
+                        //                   trailing: const CircleAvatar(
+                        //                     backgroundColor: Color.fromARGB(
+                        //                         255, 97, 115, 239),
+                        //                     child: Icon(
+                        //                       Icons.turned_in_not_outlined,
+                        //                       color: Colors.white,
+                        //                       size: 20,
+                        //                     ),
+                        //                     minRadius: 10,
+                        //                     maxRadius: 17,
+                        //                   ),
+                        //                 ),
+                        //               ),
+                        //               SizedBox(
+                        //                 height: 10,
+                        //               ),
+                        //               Expanded(
+                        //                 flex: settingimgflex(index),
+                        //                 child: ClipRRect(
+                        //                     borderRadius:
+                        //                         BorderRadius.circular(8.0),
+                        //                     child:
+                        //                         displayImagefromFBOrLocal_grid(
+                        //                             index)),
+                        //               ),
+                        //               Expanded(
+                        //                 flex:
+                        //                     settingBriefContentflex(index),
+                        //                 child: Container(
+                        //                   margin: EdgeInsets.only(
+                        //                       left: 10, top: 5, right: 10),
+                        //                   alignment: Alignment.topLeft,
+                        //                   child: Text(
+                        //                     fb_listofBriefContent[index],
+                        //                     style: const TextStyle(
+                        //                         fontSize: 11),
+                        //                     overflow: TextOverflow.ellipsis,
+                        //                     maxLines:
+                        //                         settingBriefContentMaxLines(
+                        //                             index),
+                        //                   ),
+                        //                 ),
+                        //               ),
+                        //               Expanded(
+                        //                   flex: 1,
+                        //                   child: Container(
+                        //                     alignment:
+                        //                         Alignment.centerRight,
+                        //                     padding: const EdgeInsets.only(
+                        //                         right: 10),
+                        //                     child: Text(
+                        //                       isConnected
+                        //                           ? fb_listofnote[index]
+                        //                               .date_created
+                        //                           : foundedNote[index]
+                        //                               .date_created,
+                        //                       style: const TextStyle(
+                        //                           fontSize: 11,
+                        //                           color: Colors.grey),
+                        //                     ),
+                        //                   ))
+                        //             ],
+                        //           ));
+                        //     },
+                        //   ),
+                        ,
+                      ),
+                    ]),
+                  ),
                   Container(
                     margin: EdgeInsets.only(bottom: 10.0),
                     child: Align(
@@ -560,17 +633,17 @@ class HomeScreenState extends State<HomeScreen> {
                           size: 16.0,
                         ),
                         onPressed: () async {
-                          final resultfromNewNote = await Navigator.push(
-                                                                          context,
-                                                                          MaterialPageRoute(
-                                                                            builder: (context) => NewNoteScreen(
-                                                                              UserID: widget.userID, 
-                                                                              noteIDedit: -1, 
-                                                                              isEditState: false
-                                                                            ),
-                                                                          ),
-                                                                      );
-                          ReloadNoteListAtLocal(resultfromNewNote);
+                          bool resultFromNewNote = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              // ignore: prefer_const_constructors
+                              builder: (context) => NewNoteScreen(
+
+                                  noteId: '',
+                                  isEdit: false),
+                            ),
+                          );
+                          reloadNoteListAtLocal(resultFromNewNote);
                         },
                         style: ElevatedButton.styleFrom(
                             shape: const StadiumBorder(),
@@ -582,16 +655,9 @@ class HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-                ),
-                ]
-              )
-                
-                
-            ),
-          )
-
-          
-      ),
+                  ),
+                ])),
+          )),
     );
   }
 
@@ -606,6 +672,12 @@ class HomeScreenState extends State<HomeScreen> {
           loginState = false;
         });
       }
+    });
+  }
+
+  Future<void> refreshNoteList() async {
+    noteList = await FireStorageService().getAllNote().whenComplete(() {
+      setState(() {});
     });
   }
 }

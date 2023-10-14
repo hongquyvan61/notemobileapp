@@ -1,13 +1,16 @@
-class ToDo {
-  final int id;
+
+
+class ToDoModel {
+  final String? id;
   final String title;
   final String text;
-  final String? imageUrl;
 
-  ToDo(
-      {required this.id, required this.text, required this.title, this.imageUrl});
+  const ToDoModel({this.id, required this.title, required this.text});
 
-  factory ToDo.fromSqfliteDatabase(Map<String, dynamic> map) =>
-      ToDo(
-        id: map['id']?.toInt() ?? 0, title: map['title'] ?? '', text: map['text'] ?? '');
+  toJson(){
+    return {
+      "Title": title,
+      "Text": text,
+    };
+  }
 }

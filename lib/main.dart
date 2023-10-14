@@ -15,7 +15,6 @@ import 'package:timezone/data/latest.dart' as tz;
 
 void main() async {
   InitDataBase.db = await InitDataBase().initDB();
-  
   NotificationService().initNotification();
   tz.initializeTimeZones();
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,23 +48,23 @@ class MyApp extends StatelessWidget {
           )
       ),
       builder: EasyLoading.init(),
-      //home: const HomeScreen(),
-      home:  StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, snapshot) {
-          if(snapshot.hasError){
-            return Text(snapshot.error.toString());
-          }
-          if(snapshot.connectionState == ConnectionState.active){
-            if (snapshot.hasData) {
-              return const HomeScreen(userID: -1);
-            } 
-            else {
-              return const AuthPage();
-            }
-          }
-          return Divider();
-        },),
+      home: const HomeScreen(),
+      // home:  StreamBuilder<User?>(
+      //   stream: FirebaseAuth.instance.authStateChanges(),
+      //   builder: (context, snapshot) {
+      //     if(snapshot.hasError){
+      //       return Text(snapshot.error.toString());
+      //     }
+      //     if(snapshot.connectionState == ConnectionState.active){
+      //       if (snapshot.hasData) {
+      //         return const HomeScreen();
+      //       }
+      //       else {
+      //         return const AuthPage();
+      //       }
+      //     }
+      //     return Divider();
+      //   },),
     );
   }
 }

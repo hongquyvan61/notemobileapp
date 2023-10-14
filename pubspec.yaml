@@ -60,6 +60,7 @@ dependencies:
   firebase_storage: ^11.2.7
   provider: ^6.0.5
   google_sign_in: ^6.1.5
+  cloud_firestore: ^4.9.3
 
 dev_dependencies:
   flutter_test:

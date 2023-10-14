@@ -22,10 +22,10 @@ class FB_Note{
     return total;
   }
 
-  Future<void> FB_insertNotetoFB(int uID, int noteID, FBNoteModel fbnote) async {
+  Future<void> FB_insertNotetoFB(String email, int noteID, FBNoteModel fbnote) async {
     DatabaseReference? notetable = InitDataBase.firebasedb?.child("note");
 
-    await notetable!.child("userID_${uID.toString()}").child("noteID_${noteID.toString()}").set(fbnote.toMap());
+    await notetable!.child("userID_$email").child("noteID_${noteID.toString()}").set(fbnote.toMap());
   }
 
   Future<dynamic> FB_getAllNoteIDKey() async {
@@ -44,15 +44,15 @@ class FB_Note{
     return lstnoteid;
   }
 
-  Future<List<FBNoteModel>> FB_getAllNoteByUid(int uid) async {
+  Future<List<FBNoteModel>> FB_getAllNoteByUid(String email) async {
     DatabaseReference? notetable = InitDataBase.firebasedb?.child("note");
-    DataSnapshot snap = await notetable!.child("userID_${uid.toString()}").get();
+    DataSnapshot snap = await notetable!.child("userID_$email").get();
     Map map = snap.value as Map;
 
     List<FBNoteModel> notelist = map.entries.map((e) => FBNoteModel(
       title: e.value["title"], 
       date_created: e.value["date_created"], 
-      user_id: e.value["user_id"], 
+      email: e.value["user_id"],
       tag_id: e.value["tag_id"]
     )).toList();
     

@@ -28,6 +28,6 @@ class DatabaseService {
   }
 
   Future<void> create(Database db, int version) async  {
-    await TodoDB().createTable(db);
+    // await TodoDB().createTable(db);
   }
 }
