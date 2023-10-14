@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:notemobileapp/DAL/NoteContentDAL.dart';
+import 'package:notemobileapp/model/SqliteModel/FirebaseModel/FBNoteModel.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'package:notemobileapp/model/SqliteModel/NoteModel.dart';
@@ -77,6 +78,57 @@ class NoteDAL {
         date_created: maps[i]['date_created'],
         user_id: maps[i]['user_id'],
         tag_id: maps[i]['tag_id']
+      );
+    });
+  }
+
+  Future<List<FBNoteModel>> getAllNotesByUserIDForFB(int userid, Database db) async {
+
+    // Query the table for all The Dogs.
+    final List<Map<String, dynamic>> maps = await db.rawQuery('select title, date_created, tag_id from note where user_id=?',[userid]);
+
+    // Convert the List<Map<String, dynamic> into a List<Dog>.
+    return List.generate(maps.length, (i) {
+      return FBNoteModel(
+        note_id: -1,
+        title: maps[i]['title'],
+        date_created: maps[i]['date_created'],
+        user_id: -1,
+        tag_id: maps[i]['tag_id']
+      );
+    });
+  }
+
+  Future<List<FBNoteModel>> getAllNotesWithTagByUserID_FB_setData(int userid, int tagid, int newtagid, Database db) async {
+
+    // Query the table for all The Dogs.
+    final List<Map<String, dynamic>> maps = await db.rawQuery('select title, date_created, tag_id from note where user_id=? and tag_id=?',[userid, tagid]);
+
+    // Convert the List<Map<String, dynamic> into a List<Dog>.
+    return List.generate(maps.length, (i) {
+      return FBNoteModel(
+        note_id: -1,
+        title: maps[i]['title'],
+        date_created: maps[i]['date_created'],
+        user_id: -1,
+        tag_id: newtagid
+      );
+    });
+  }
+
+  Future<List<FBNoteModel>> getAllNotes_WithoutTag_ByUserID_FB(int userid, Database db) async {
+
+    // Query the table for all The Dogs.
+    final List<Map<String, dynamic>> maps = await db.rawQuery('select title, date_created from note where user_id=? and tag_id is null',[userid]);
+
+    // Convert the List<Map<String, dynamic> into a List<Dog>.
+    return List.generate(maps.length, (i) {
+      return FBNoteModel(
+        note_id: -1,
+        title: maps[i]['title'],
+        date_created: maps[i]['date_created'],
+        user_id: -1,
+        tag_id: -1
       );
     });
   }

@@ -6,9 +6,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
-import 'package:notemobileapp/DAL/FB_DAL.dart/FB_Note.dart';
-import 'package:notemobileapp/DAL/FB_DAL.dart/FB_NoteContent.dart';
+import 'package:notemobileapp/DAL/FB_DAL/FB_Note.dart';
+import 'package:notemobileapp/DAL/FB_DAL/FB_NoteContent.dart';
 import 'package:notemobileapp/DAL/NoteContentDAL.dart';
 import 'package:notemobileapp/DAL/NoteDAL.dart';
 import 'package:notemobileapp/model/SqliteModel/FirebaseModel/FBNoteModel.dart';
@@ -45,6 +46,8 @@ class HomeScreenState extends State<HomeScreen> {
   late List<NoteModel> foundedNote = <NoteModel>[];
 
   late List<FBNoteModel> fb_listofnote = <FBNoteModel>[];
+  late List<FBNoteModel> fb_foundednote = <FBNoteModel>[];
+
   late List<String> fb_listofimglink = <String>[];
 
   late List<String> listofBriefContent = <String>[];
@@ -68,7 +71,10 @@ class HomeScreenState extends State<HomeScreen> {
       ..loadingStyle = EasyLoadingStyle.dark;
 
     //AssignSubscription();
+    FirebaseDatabase.instance.ref("note").keepSynced(true);
+    FirebaseDatabase.instance.ref("notecontent").keepSynced(true);
     InitiateListOfNote();
+    
     checkLogin();
   }
 
@@ -96,16 +102,60 @@ class HomeScreenState extends State<HomeScreen> {
           isConnected = event.snapshot.value as bool? ?? false;
           
           if(isConnected){
-            debugPrint("Co mang ne!!");
-            listofnote.clear();
-            listofTitleImage.clear();
+            if(widget.userID != -1){
+              //debugPrint("Co mang ne!!");
+              showToast("Đã có kết nối Internet trở lại");
+              listofnote.clear();
+              foundedNote.clear();
+              listofTitleImage.clear();
 
-            fb_listofnote = await fb_noteDAL.FB_getAllNoteByUid(widget.userID);
+              await EasyLoading.show(
+                  status: "Đang load danh sách ghi chú...",
+                  maskType: EasyLoadingMaskType.none,
+              );
 
-            fb_listofimglink = await FB_generateTitleImage(fb_listofnote);
+              fb_listofnote = await fb_noteDAL.FB_getAllNoteByUid(widget.userID);
 
+              fb_foundednote = fb_listofnote;
+
+              fb_listofimglink = await FB_generateTitleImage(fb_listofnote);
+
+              setState(() {
+                
+              });
+
+              await EasyLoading.dismiss();
+            }
+            else{
+              showToast("Hiện đang không dùng tài khoản đăng nhập nào!");
+
+              await EasyLoading.show(
+                  status: "Đang load danh sách ghi chú...",
+                  maskType: EasyLoadingMaskType.none,
+              );
+
+              listofnote = await nDAL.getAllNotesByUserID(widget.userID, InitDataBase.db).catchError((Object e, StackTrace stackTrace) {
+                                                                                          debugPrint(e.toString());
+                                                                                        },
+                                                                                      );
+              foundedNote = listofnote;
+              listofTitleImage = await generateListTitleImage(listofnote);
+              setState(() {
+                      
+              });
+
+              await EasyLoading.dismiss();
+            }
+            
           }
           else{
+            //debugPrint("Dang khong co mang!");
+            showToast("Hiện không có kết nối mạng, hãy kết nối mạng nếu cần để đồng bộ dữ liệu ở cục bộ máy");
+
+            await EasyLoading.show(
+                status: "Đang load danh sách ghi chú...",
+                maskType: EasyLoadingMaskType.none,
+            );
 
             listofnote = await nDAL.getAllNotesByUserID(widget.userID, InitDataBase.db).catchError((Object e, StackTrace stackTrace) {
                                                                                         debugPrint(e.toString());
@@ -117,6 +167,7 @@ class HomeScreenState extends State<HomeScreen> {
                     
             });
 
+            await EasyLoading.dismiss();
           }
       });
 
@@ -132,16 +183,34 @@ class HomeScreenState extends State<HomeScreen> {
       //SUA USERID O DAY
       //SUA USERID O DAY
       //SUA USERID O DAY
-      listofnote = await nDAL.getAllNotesByUserID(widget.userID, InitDataBase.db).catchError(
-        (Object e, StackTrace stackTrace) {
-          debugPrint(e.toString());
-        },
-      );
+      if(isConnected){
+        listofnote.clear();
+        listofTitleImage.clear();
 
-      foundedNote = listofnote;
+        fb_listofnote = await fb_noteDAL.FB_getAllNoteByUid(widget.userID);
 
-      listofTitleImage = await generateListTitleImage(listofnote);
-      setState(() {});
+        fb_foundednote = fb_listofnote;
+
+        fb_listofimglink = await FB_generateTitleImage(fb_listofnote);
+
+        setState(() {
+              
+        });
+      }
+      else{
+        listofnote = await nDAL.getAllNotesByUserID(widget.userID, InitDataBase.db).catchError(
+          (Object e, StackTrace stackTrace) {
+            debugPrint(e.toString());
+          },
+        );
+
+        foundedNote = listofnote;
+
+        listofTitleImage = await generateListTitleImage(listofnote);
+        setState((){
+          
+        });
+      }
       await EasyLoading.dismiss();
     } else {
       debugPrint('Du lieu tra ve tu new note screen bi loi');
@@ -194,21 +263,44 @@ class HomeScreenState extends State<HomeScreen> {
 
   void filterlist(String inputWord) async {
     List<NoteModel> results = [];
+    List<FBNoteModel> fb_results = [];
+
     if (inputWord.isEmpty) {
       // if the search field is empty or only contains white-space, we'll display all users
-      results = listofnote;
+      if(isConnected){
+        fb_results = fb_listofnote;
+      }
+      else{
+        results = listofnote;
+      }
     } else {
-      results = listofnote
+      if(isConnected){
+        fb_results = fb_listofnote
+                    .where(
+                      (fbnote) => fbnote.title.toLowerCase().contains(inputWord.toLowerCase())
+                    ).toList();
+      }
+      else{
+        results = listofnote
           .where((note) =>
               note.title.toLowerCase().contains(inputWord.toLowerCase()))
           .toList();
+      }
       // we use the toLowerCase() method to make it case-insensitive
     }
 
-    foundedNote = results;
-    listofTitleImage = await generateListTitleImage(foundedNote);
+    if(isConnected){
+      fb_foundednote = fb_results;
+      fb_listofimglink = await FB_generateTitleImage(fb_foundednote);
+    }
+    else{
+      foundedNote = results;
+      listofTitleImage = await generateListTitleImage(foundedNote);
+    }
     // Refresh the UI
-    setState(() {});
+    setState(() {
+
+    });
   }
 
   Widget? displayImagefromFBOrLocal_list(int index){
@@ -244,6 +336,43 @@ class HomeScreenState extends State<HomeScreen> {
       return fb_listofimglink[index] == '' ? 5 : 1;
     }
     return listofTitleImage[index].path == '' ? 5 : 1;
+  }
+
+  String FB_generateBriefContent_list(int index){
+    try{
+      if(isConnected){
+        return fb_listofBriefContent[index];
+      }
+      return listofBriefContent[index];
+    }
+    on Exception catch (e){
+      debugPrint(e.toString());
+    }
+    return "";
+  }
+
+  String FB_generateBriefContent_grid(int index){
+    try{
+      if(isConnected){
+        return fb_listofBriefContent[index];
+      }
+      return listofBriefContent[index];
+    }
+    on Exception catch (e){
+      debugPrint(e.toString());
+    }
+    return "";
+  }
+
+  void showToast(String message) {
+    Fluttertoast.showToast(
+        msg: message,
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0);
   }
 
   @override
@@ -345,7 +474,7 @@ class HomeScreenState extends State<HomeScreen> {
                           child: listState == true ? 
                                ListView.separated(
                                 separatorBuilder: (BuildContext context, int index) => const Divider(height: 15),
-                                itemCount: isConnected ? fb_listofnote.length : foundedNote.length,
+                                itemCount: isConnected ? fb_foundednote.length : foundedNote.length,
                                 
                                 itemBuilder: (BuildContext context, int index) {
                                   return Container(
@@ -376,7 +505,7 @@ class HomeScreenState extends State<HomeScreen> {
                                                                           MaterialPageRoute(
                                                                             builder: (context) => NewNoteScreen(
                                                                               UserID: widget.userID, 
-                                                                              noteIDedit: isConnected ? (fb_listofnote[index].note_id?.toInt() ?? 0) : (foundedNote[index].note_id?.toInt() ?? 0), 
+                                                                              noteIDedit: isConnected ? (fb_foundednote[index].note_id?.toInt() ?? 0) : (foundedNote[index].note_id?.toInt() ?? 0), 
                                                                               isEditState: true
                                                                             ),
                                                                           ),
@@ -396,7 +525,7 @@ class HomeScreenState extends State<HomeScreen> {
                                                 maxRadius: 17,
                                             ),
                                             title: Text(
-                                                isConnected ? fb_listofnote[index].title : foundedNote[index].title,
+                                                isConnected ? fb_foundednote[index].title : foundedNote[index].title,
                                                 style: const TextStyle(
                                                     fontSize: 18,
                                                     fontWeight: FontWeight.bold),
@@ -404,7 +533,7 @@ class HomeScreenState extends State<HomeScreen> {
                                                 maxLines: 1,
                                             ),
                                             subtitle: Text(
-                                                isConnected ? fb_listofnote[index].date_created : foundedNote[index].date_created,
+                                                isConnected ? fb_foundednote[index].date_created : foundedNote[index].date_created,
                                                 style: const TextStyle(
                                                     fontSize: 12,
                                                     color: Colors.grey),
@@ -425,7 +554,7 @@ class HomeScreenState extends State<HomeScreen> {
                                           margin: const EdgeInsets.all(10),
                                           alignment: Alignment.centerLeft,
                                           child: Text(
-                                            isConnected ? fb_listofBriefContent[index] : listofBriefContent[index],
+                                            FB_generateBriefContent_list(index),
                                             style:
                                                 const TextStyle(fontSize: 12),
                                             overflow: TextOverflow.ellipsis,
@@ -441,7 +570,7 @@ class HomeScreenState extends State<HomeScreen> {
                             :
 
                             GridView.builder(
-                              itemCount: isConnected ? fb_listofnote.length : foundedNote.length,
+                              itemCount: isConnected ? fb_foundednote.length : foundedNote.length,
                               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 2,
                                 crossAxisSpacing: 4.0,
@@ -473,7 +602,7 @@ class HomeScreenState extends State<HomeScreen> {
                                                                             MaterialPageRoute(
                                                                               builder: (context) => NewNoteScreen(
                                                                                 UserID: widget.userID, 
-                                                                                noteIDedit: isConnected ? (fb_listofnote[index].note_id?.toInt() ?? 0) : (foundedNote[index].note_id?.toInt() ?? 0), 
+                                                                                noteIDedit: isConnected ? (fb_foundednote[index].note_id?.toInt() ?? 0) : (foundedNote[index].note_id?.toInt() ?? 0), 
                                                                                 isEditState: true
                                                                               ),
                                                                             ),
@@ -481,7 +610,7 @@ class HomeScreenState extends State<HomeScreen> {
                                                 ReloadNoteListAtLocal(resultfromNewNote);
                                               },
                                               title: Text(
-                                                isConnected ? fb_listofnote[index].title : foundedNote[index].title,
+                                                isConnected ? fb_foundednote[index].title : foundedNote[index].title,
                                                 style: TextStyle(
                                                     fontSize: 13,
                                                     fontWeight: FontWeight.bold),
@@ -522,7 +651,7 @@ class HomeScreenState extends State<HomeScreen> {
                                               margin: EdgeInsets.only(left: 10, top: 5, right: 10),
                                               alignment: Alignment.topLeft,
                                               child: Text(
-                                                  fb_listofBriefContent[index],
+                                                  FB_generateBriefContent_grid(index),
                                                   style: const TextStyle(fontSize: 11),
                                                   overflow: TextOverflow.ellipsis,
                                                   maxLines: settingBriefContentMaxLines(index),
@@ -536,7 +665,7 @@ class HomeScreenState extends State<HomeScreen> {
                                               padding: const EdgeInsets.only(
                                                   right: 10),
                                               child: Text(
-                                                isConnected ? fb_listofnote[index].date_created : foundedNote[index].date_created,
+                                                isConnected ? fb_foundednote[index].date_created : foundedNote[index].date_created,
                                                 style: const TextStyle(
                                                     fontSize: 11,
                                                     color: Colors.grey),

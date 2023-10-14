@@ -201,9 +201,9 @@ class _SignUpPageState extends State<SignUpPage> {
     });
 
     if (password.endsWith(retypePassword)) {
-      String returnstr = await Auth().registerWithEmailPassword(email, password);
-      if(returnstr == "Successful"){
-        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const AuthPage()));
+      int uID = await Auth().registerWithEmailPassword(email, password);
+      if(uID != -1){
+        //Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const AuthPage()));
       }
       // showToast(alert);
       // backToLogin(alert);
@@ -211,10 +211,10 @@ class _SignUpPageState extends State<SignUpPage> {
       showToast("passwords do not match");
     }
 
-    // Future.delayed(const Duration(seconds: 2), () {
-    //   setState(() {
-    //     _loading = false;
-    //   });
-    // });
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() {
+        _loading = false;
+      });
+    });
   }
 }

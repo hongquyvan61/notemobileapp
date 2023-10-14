@@ -5,11 +5,12 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:notemobileapp/DAL/FB_DAL.dart/FB_Note.dart';
-import 'package:notemobileapp/DAL/FB_DAL.dart/FB_NoteContent.dart';
+import 'package:notemobileapp/DAL/FB_DAL/FB_Note.dart';
+import 'package:notemobileapp/DAL/FB_DAL/FB_NoteContent.dart';
 import 'package:notemobileapp/model/SqliteModel/FirebaseModel/FBNoteContentModel.dart';
 import 'package:notemobileapp/model/SqliteModel/NoteContentModel.dart';
 import 'package:notemobileapp/model/SqliteModel/UpdateNoteModel.dart';
@@ -682,6 +683,17 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     return widgethinh;
   }
 
+  void showToast(String message) {
+    Fluttertoast.showToast(
+        msg: message,
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0);
+  }
+
   @override
   Widget build(BuildContext context) {
     appcontext = context;
@@ -727,7 +739,10 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                         Icons.check,
                       ),
                       onPressed: () {
-                        uploadNoteToFB();
+                        
+                        if(widget.UserID == -1) {
+                          uploadNoteToFB();
+                        }
                         saveNoteToLocal();
                         Navigator.of(context).pop('RELOAD_LIST');
                       },

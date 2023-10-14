@@ -1,9 +1,9 @@
-class TagModel {
+class FBTagModel {
   late int? tag_id;
   late String? tag_name;
   late int? user_id;
 
-  TagModel({
+  FBTagModel({
     this.tag_id,
     required this.tag_name,
     required this.user_id,
@@ -23,6 +23,6 @@ class TagModel {
   // each dog when using the print statement.
   @override
   String toString() {
-    return 'TagModel{tag_id: $tag_id, tag_name: $tag_name, user_id: $user_id}';
+    return 'FBTagModel{tag_id: $tag_id, tag_name: $tag_name, user_id: $user_id}';
   }
 }

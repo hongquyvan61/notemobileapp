@@ -1,5 +1,9 @@
 
 
+import 'package:notemobileapp/DAL/FB_DAL/FB_Note.dart';
+import 'package:notemobileapp/DAL/FB_DAL/FB_Upload.dart';
+import 'package:notemobileapp/DAL/NoteDAL.dart';
+import 'package:notemobileapp/model/SqliteModel/FirebaseModel/FBNoteModel.dart';
 import 'package:notemobileapp/router.dart';
 import 'dart:convert';
 
@@ -15,6 +19,7 @@ import 'package:notemobileapp/DAL/UserDAL.dart';
 import 'package:notemobileapp/model/SqliteModel/FirebaseModel/FBUserModel.dart';
 import 'package:notemobileapp/model/SqliteModel/UserModel.dart';
 import 'package:notemobileapp/model/SqliteModel/initializeDB.dart';
+import '../../model/SqliteModel/NoteModel.dart';
 import '../page/auth_page.dart';
 import '../page/verify_email.dart';
 
@@ -22,6 +27,8 @@ class Auth {
   final _auth = FirebaseAuth.instance;
   final _googleSignIn = GoogleSignIn();
   final UserDAL uDAL = UserDAL();
+  final NoteDAL nDAL = NoteDAL();
+  final FB_Upload fb_upload = FB_Upload();
 
   DatabaseReference? userstable;
 
@@ -32,25 +39,9 @@ class Auth {
       //   password: password,
       // );
 
-      //INSERT INTO LOCAL
+      //INSERT NEW USER INTO FIREBASE
       String encryptpass = md5.convert(utf8.encode(password)).toString();
-      UserModel umodel = UserModel(
-        user_id: null, 
-        username: email, 
-        password: encryptpass, 
-        account_type: 'normal'
-      );
 
-      bool checkinsert = await uDAL.insertUser(umodel, InitDataBase.db);
-
-      if(checkinsert == false){
-        debugPrint("Insert user vao db local xay ra loi!!");
-        return "Đăng kí tài khoản thất bại, hãy thử lại";
-      }
-
-      //INSERT INTO LOCAL
-
-      //INSERT INTO FIREBASE
       userstable = InitDataBase.firebasedb?.child("users");
       DataSnapshot snap = await userstable!.get();
       int count = snap.children.length;
@@ -68,7 +59,45 @@ class Auth {
                                                                                   debugPrint(e.toString());
                                                                                 },);
 
-      //INSERT INTO FIREBASE
+      
+      //INSERT NEW USER INTO FIREBASE
+      
+      List<FBNoteModel> listnotefromLocal = await nDAL.getAllNotesByUserIDForFB(-1, InitDataBase.db);
+        if(listnotefromLocal.isNotEmpty){
+          bool uploadFromLocalToFB = await fb_upload.UploadAllDataToFB(uID);
+          if(uploadFromLocalToFB){
+            
+          }
+        }
+
+      //INSERT INTO LOCAL
+      
+      // UserModel umodel = UserModel(
+      //   user_id: uID, 
+      //   username: email, 
+      //   password: encryptpass, 
+      //   account_type: 'normal'
+      // );
+
+      // bool checkinsert = await uDAL.insertUser(umodel, InitDataBase.db);
+
+      // if(checkinsert == false){
+      //   debugPrint("Insert user vao db local xay ra loi!!");
+      //   return -1;
+      // }
+      // else{
+        //////USER ID -1 LA USER CHUA DANG KI TAI KHOAN NHUNG DA SU DUNG OFFLINE MOT THOI GIAN
+        //////USER ID -1 LA USER CHUA DANG KI TAI KHOAN NHUNG DA SU DUNG OFFLINE MOT THOI GIAN
+        //////USER ID -1 LA USER CHUA DANG KI TAI KHOAN NHUNG DA SU DUNG OFFLINE MOT THOI GIAN
+        
+        
+
+      //}
+
+      //INSERT INTO LOCAL
+
+      return uID;
+
 
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
@@ -82,28 +111,38 @@ class Auth {
     } catch (e) {
       ToastComponent().showToast(e.toString());
     }
+
   }
 
-  // Future signInWithEmailPassword(context, String email, String password) async {
-  //   try {
-  //     final _user = await _auth
-  //         .signInWithEmailAndPassword(email: email, password: password)
-  //         .then((value) {
-  //       ToastComponent().showToast('Successful');
-  //       Navigator.of(context).pushReplacementNamed(RoutePaths.verifyEmail);
-  //     });
-  //   } on FirebaseAuthException catch (e) {
-  //     if (e.code == 'INVALID_LOGIN_CREDENTIALS') {
-  //       ToastComponent().showToast('Thông tin đăng nhập không hợp lệ');
-  //     } else if (e.code == 'invalid-email') {
-  //       ToastComponent().showToast('Email không đúng định dạng');
-  //     }
+  Future SignUpWithAuthenticate(context, String email, String password) async {
+    try {
+      final _user = await _auth.createUserWithEmailAndPassword(
+                            email: email,
+                            password: password,
+                          ).then((value) {
+                            _auth.signInWithEmailAndPassword(
+                              email: email, 
+                              password: password
+                            );
+                            Navigator.of(context).pushReplacement(MaterialPageRoute(
+                              builder: (context) => VerifyEmailPage(
+                                email: email, 
+                                password: password
+                              )
+                            ));
+                          });
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'INVALID_LOGIN_CREDENTIALS') {
+        ToastComponent().showToast('Thông tin đăng nhập không hợp lệ');
+      } else if (e.code == 'invalid-email') {
+        ToastComponent().showToast('Email không đúng định dạng');
+      }
 
-  //     print(e);
-  //   } catch (e) {
-  //     print(e);
-  //   }
-  // }
+      print(e);
+    } catch (e) {
+      print(e);
+    }
+  }
 
   Future<int> signInWithEmailPassword(String email, String password) async {
 

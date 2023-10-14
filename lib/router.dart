@@ -43,7 +43,7 @@ class RouterCustom {
       case RoutePaths.signup:
         return MaterialPageRoute(builder: (_) => const SignUpPage());
       case RoutePaths.verifyEmail:
-        return MaterialPageRoute(builder: (_) => const VerifyEmailPage());
+        return MaterialPageRoute(builder: (_) => const VerifyEmailPage(email: "", password: "",));
 
       default:
         return MaterialPageRoute(

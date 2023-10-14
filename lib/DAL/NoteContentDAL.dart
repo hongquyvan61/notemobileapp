@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:notemobileapp/model/SqliteModel/FirebaseModel/FBNoteContentModel.dart';
 import 'package:notemobileapp/model/SqliteModel/initializeDB.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -50,6 +51,32 @@ class NoteContentDAL {
           textcontent: result[i]['textcontent'],
           imagecontent: result[i]['imagecontent'],
           notecontent_id: result[i]['notecontent_id']
+        );
+      });
+    }
+
+    Future<List<FBNoteContentModel>> getAllNoteContentsById_FB(Database db, int noteid) async {
+      final List<Map> result = await db.rawQuery("select * from notecontent where note_id=?",[noteid]);
+      
+      return List.generate(result.length, (i) {
+        return FBNoteContentModel(
+          note_id: result[i]['note_id'],
+          textcontent: result[i]['textcontent'],
+          imagecontent: result[i]['imagecontent'],
+          notecontent_id: result[i]['notecontent_id']
+        );
+      });
+    }
+
+    Future<List<FBNoteContentModel>> getAllNoteContentsById_FB_setData(Database db, int noteid, int newnoteid) async {
+      final List<Map> result = await db.rawQuery("select * from notecontent where note_id=?",[noteid]);
+      
+      return List.generate(result.length, (i) {
+        return FBNoteContentModel(
+          note_id: newnoteid,
+          textcontent: result[i]['textcontent'],
+          imagecontent: result[i]['imagecontent'],
+          notecontent_id: null
         );
       });
     }
