@@ -1,10 +1,11 @@
 // ignore_for_file: prefer_const_constructors, sort_child_properties_last
 
 import 'dart:io';
-import 'package:flutter/src/widgets/text.dart' as text_default;
+import 'package:avatar_glow/avatar_glow.dart';
+import 'package:flutter/src/widgets/text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter_quill/flutter_quill.dart' hide Text;
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:image_picker/image_picker.dart';
@@ -23,6 +24,11 @@ import 'package:notemobileapp/DAL/UserDAL.dart';
 
 import 'package:notemobileapp/DAL/NoteDAL.dart';
 import 'package:notemobileapp/DAL/NoteContentDAL.dart';
+
+import '../model/SqliteModel/NoteContentModel.dart';
+import '../model/SqliteModel/NoteModel.dart';
+import '../model/SqliteModel/initializeDB.dart';
+import '../router.dart';
 
 class NewNoteScreen extends StatefulWidget {
   const NewNoteScreen({
@@ -202,104 +208,104 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     setState(() {});
   }
 
-  // Future<bool> showAlertDialog(BuildContext context, String message) async {
-  //   // set up the buttons
-  //   Widget cancelButton = OutlinedButton(
-  //     child: Text('Không'),
-  //     onPressed: () {
-  //       // returnValue = false;
-  //       Navigator.of(context).pop(false);
-  //     },
-  //   );
-  //   Widget continueButton = OutlinedButton(
-  //     child: Text("Có"),
-  //     onPressed: () {
-  //       // returnValue = true;
-  //       Navigator.of(context).pop(true);
-  //     },
-  //   ); // set up the AlertDialog
-  //   AlertDialog alert = AlertDialog(
-  //     title: Text("Xoá hình"),
-  //     content: Text(message),
-  //     actions: [
-  //       cancelButton,
-  //       continueButton,
-  //     ],
-  //   ); // show the dialog
-  //   final result = await showDialog<bool?>(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return alert;
-  //     },
-  //   );
-  //   return result ?? false;
-  // }
+  Future<bool> showAlertDialog(BuildContext context, String message) async {
+    // set up the buttons
+    Widget cancelButton = OutlinedButton(
+      child: Text('Không'),
+      onPressed: () {
+        // returnValue = false;
+        Navigator.of(context).pop(false);
+      },
+    );
+    Widget continueButton = OutlinedButton(
+      child: Text("Có"),
+      onPressed: () {
+        // returnValue = true;
+        Navigator.of(context).pop(true);
+      },
+    ); // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text("Xoá hình"),
+      content: Text(message),
+      actions: [
+        cancelButton,
+        continueButton,
+      ],
+    ); // show the dialog
+    final result = await showDialog<bool?>(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+    return result ?? false;
+  }
 
-  // Future loadingNoteWithIDAtLocal(String email, int noteID, bool isEdit) async {
-  //   List<NoteModel> tmp =
-  //       await nDAL.getNoteByID(email, noteID, InitDataBase.db);
-  //   if (tmp.isNotEmpty && isEdit) {
-  //     _noteTitleController.text = tmp[0].title;
-  //     CurrentDateTime = tmp[0].date_created;
-  //     List<NoteContentModel> contents =
-  //         await ncontentDAL.getAllNoteContentsById(InitDataBase.db, noteID);
-  //     if (contents.isNotEmpty) {
-  //       firstTxtFieldController.text = contents[0].textcontent.toString();
-  //
-  //       UpdateNoteModel firstupdtmodel = UpdateNoteModel(
-  //           notecontent_id: contents[0].notecontent_id?.toInt() ?? 0,
-  //           type: "update");
-  //
-  //       lstupdatecontents.add(firstupdtmodel);
-  //       //fcnFirstTxtField.requestFocus();
-  //
-  //       if (contents.length >= 2) {
-  //         for (int i = 1; i < contents.length; i++) {
-  //           if (contents[i].textcontent != null) {
-  //             FocusNode fcnTxtField = FocusNode();
-  //             TextEditingController txtFieldController =
-  //                 TextEditingController();
-  //             Widget txtfield = TextField(
-  //               keyboardType: TextInputType.multiline,
-  //               focusNode: fcnTxtField,
-  //               controller: txtFieldController,
-  //               showCursor: true,
-  //               //autofocus: true,
-  //               maxLines: null,
-  //               style: const TextStyle(fontSize: 14),
-  //               decoration: const InputDecoration(border: InputBorder.none),
-  //             );
-  //             txtFieldController.text = contents[i].textcontent.toString();
-  //             lstFocusNode.add(fcnTxtField);
-  //             lstTxtController.add(txtFieldController);
-  //             noteContentList.add(txtfield);
-  //
-  //             UpdateNoteContentList.add(txtFieldController);
-  //
-  //             UpdateNoteModel updtmodel = UpdateNoteModel(
-  //                 notecontent_id: contents[i].notecontent_id?.toInt() ?? 0,
-  //                 type: "update");
-  //
-  //             lstupdatecontents.add(updtmodel);
-  //           }
-  //           if (contents[i].imagecontent != null) {
-  //             File img = File(contents[i].imagecontent.toString());
-  //
-  //             noteContentList.add(img);
-  //             UpdateNoteContentList.add(img);
-  //
-  //             UpdateNoteModel updtmodel = UpdateNoteModel(
-  //                 notecontent_id: contents[i].notecontent_id?.toInt() ?? 0,
-  //                 type: "update");
-  //
-  //             lstupdatecontents.add(updtmodel);
-  //           }
-  //         }
-  //       }
-  //       setState(() {});
-  //     }
-  //   }
-  // }
+  Future loadingNoteWithIDAtLocal(String email, int noteID, bool isEdit) async {
+    List<NoteModel> tmp =
+        await nDAL.getNoteByID(email, noteID, InitDataBase.db);
+    if (tmp.isNotEmpty && isEdit) {
+      _noteTitleController.text = tmp[0].title;
+      currentDateTime = tmp[0].date_created;
+      List<NoteContentModel> contents =
+          await ncontentDAL.getAllNoteContentsById(InitDataBase.db, noteID);
+      if (contents.isNotEmpty) {
+        firstTxtFieldController.text = contents[0].textcontent.toString();
+
+        UpdateNoteModel firstupdtmodel = UpdateNoteModel(
+            notecontent_id: contents[0].notecontent_id?.toInt() ?? 0,
+            type: "update");
+
+        lstupdatecontents.add(firstupdtmodel);
+        //fcnFirstTxtField.requestFocus();
+
+        if (contents.length >= 2) {
+          for (int i = 1; i < contents.length; i++) {
+            if (contents[i].textcontent != null) {
+              FocusNode fcnTxtField = FocusNode();
+              TextEditingController txtFieldController =
+                  TextEditingController();
+              Widget txtfield = TextField(
+                keyboardType: TextInputType.multiline,
+                focusNode: fcnTxtField,
+                controller: txtFieldController,
+                showCursor: true,
+                //autofocus: true,
+                maxLines: null,
+                style: const TextStyle(fontSize: 14),
+                decoration: const InputDecoration(border: InputBorder.none),
+              );
+              txtFieldController.text = contents[i].textcontent.toString();
+              lstFocusNode.add(fcnTxtField);
+              lstTxtController.add(txtFieldController);
+              noteContentList.add(txtfield);
+
+              UpdateNoteContentList.add(txtFieldController);
+
+              UpdateNoteModel updtmodel = UpdateNoteModel(
+                  notecontent_id: contents[i].notecontent_id?.toInt() ?? 0,
+                  type: "update");
+
+              lstupdatecontents.add(updtmodel);
+            }
+            if (contents[i].imagecontent != null) {
+              File img = File(contents[i].imagecontent.toString());
+
+              noteContentList.add(img);
+              UpdateNoteContentList.add(img);
+
+              UpdateNoteModel updtmodel = UpdateNoteModel(
+                  notecontent_id: contents[i].notecontent_id?.toInt() ?? 0,
+                  type: "update");
+
+              lstupdatecontents.add(updtmodel);
+            }
+          }
+        }
+        setState(() {});
+      }
+    }
+  }
 
   Future<void> uploadNoteToFB() async {
     NoteContent noteContent = NoteContent();
@@ -566,430 +572,430 @@ class NewNoteScreenState extends State<NewNoteScreen> {
   //   }
   // }
 
-  // Widget buildImageWidget(BuildContext context, int index) {
-  //   Widget imageWidget = Stack(children: [
-  //     noteContentList[index] is String ?
-  //     Image.network(
-  //       noteContentList[index],
-  //       width: 350,
-  //       height: 250,
-  //       fit: BoxFit.cover,
-  //     ) :
-  //     Image.file(
-  //       noteContentList[index]!,
-  //       width: 350,
-  //       height: 250,
-  //       fit: BoxFit.cover,
-  //     ),
-  //
-  //     Positioned(
-  //         bottom: 0,
-  //         right: 0,
-  //         child: IconButton(
-  //             icon: Icon(
-  //               Icons.cancel,
-  //               color: Colors.black.withOpacity(0.5),
-  //               size: 30,
-  //             ),
-  //             onPressed: () async {
-  //               bool isDeleted = await showAlertDialog(
-  //                   appcontext, "Bạn có muốn xoá hình này?");
-  //               if (isDeleted) {
-  //                 //XOA HINH
-  //                 noteContentList.removeAt(index);
-  //                 if (widget.isEdit == false) {
-  //                   SaveNoteContentList.removeAt(index);
-  //                 } else {
-  //                   UpdateNoteContentList.removeAt(index);
-  //
-  //                   UpdateNoteModel delmodel = UpdateNoteModel(
-  //                       notecontent_id: lstupdatecontents[index].notecontent_id,
-  //                       type: "delete");
-  //
-  //                   lstupdatecontents.removeAt(index);
-  //                   lstdeletecontents.add(delmodel);
-  //                 }
-  //               }
-  //               if (widget.isEdit == false) {
-  //                 if (SaveNoteContentList[index].text == "") {
-  //                   //XOA TEXT FIELD NGAY SAU HINH NEU TEXT FIELD TRONG KHI TAO GHI CHU
-  //                   noteContentList.removeAt(index);
-  //                 }
-  //               } else {
-  //                 if (UpdateNoteContentList[index] is TextEditingController) {
-  //                   if (UpdateNoteContentList[index].text == "") {
-  //                     //XOA TEXT FIELD NGAY SAU HINH NEU TEXT FIELD TRONG KHI EDIT GHI CHU
-  //                     noteContentList.removeAt(index);
-  //
-  //                     UpdateNoteModel delmodel = UpdateNoteModel(
-  //                         notecontent_id:
-  //                             lstupdatecontents[index].notecontent_id,
-  //                         type: "delete");
-  //
-  //                     lstupdatecontents.removeAt(index);
-  //                     lstdeletecontents.add(delmodel);
-  //                   }
-  //                 }
-  //               }
-  //               setState(() {});
-  //             }))
-  //   ]);
-  //   return imageWidget;
-  // }
+  Widget buildImageWidget(BuildContext context, int index) {
+    Widget imageWidget = Stack(children: [
+      noteContentList[index] is String ?
+      Image.network(
+        noteContentList[index],
+        width: 350,
+        height: 250,
+        fit: BoxFit.cover,
+      ) :
+      Image.file(
+        noteContentList[index]!,
+        width: 350,
+        height: 250,
+        fit: BoxFit.cover,
+      ),
+
+      Positioned(
+          bottom: 0,
+          right: 0,
+          child: IconButton(
+              icon: Icon(
+                Icons.cancel,
+                color: Colors.black.withOpacity(0.5),
+                size: 30,
+              ),
+              onPressed: () async {
+                bool isDeleted = await showAlertDialog(
+                    appcontext, "Bạn có muốn xoá hình này?");
+                if (isDeleted) {
+                  //XOA HINH
+                  noteContentList.removeAt(index);
+                  if (widget.isEdit == false) {
+                    SaveNoteContentList.removeAt(index);
+                  } else {
+                    UpdateNoteContentList.removeAt(index);
+
+                    UpdateNoteModel delmodel = UpdateNoteModel(
+                        notecontent_id: lstupdatecontents[index].notecontent_id,
+                        type: "delete");
+
+                    lstupdatecontents.removeAt(index);
+                    lstdeletecontents.add(delmodel);
+                  }
+                }
+                if (widget.isEdit == false) {
+                  if (SaveNoteContentList[index].text == "") {
+                    //XOA TEXT FIELD NGAY SAU HINH NEU TEXT FIELD TRONG KHI TAO GHI CHU
+                    noteContentList.removeAt(index);
+                  }
+                } else {
+                  if (UpdateNoteContentList[index] is TextEditingController) {
+                    if (UpdateNoteContentList[index].text == "") {
+                      //XOA TEXT FIELD NGAY SAU HINH NEU TEXT FIELD TRONG KHI EDIT GHI CHU
+                      noteContentList.removeAt(index);
+
+                      UpdateNoteModel delmodel = UpdateNoteModel(
+                          notecontent_id:
+                              lstupdatecontents[index].notecontent_id,
+                          type: "delete");
+
+                      lstupdatecontents.removeAt(index);
+                      lstdeletecontents.add(delmodel);
+                    }
+                  }
+                }
+                setState(() {});
+              }))
+    ]);
+    return imageWidget;
+  }
 
   final QuillController _quillController = QuillController.basic();
 
   @override
   Widget build(BuildContext context) {
-    // appcontext = context;
-    // return SafeArea(
-    //     child: Scaffold(
-    //         appBar: AppBar(
-    //           backgroundColor: const Color.fromARGB(131, 0, 0, 0),
-    //           elevation: 0.0,
-    //           title: widget.isEdit
-    //               ? const Row(
-    //                   mainAxisAlignment: MainAxisAlignment.center,
-    //                   children: [
-    //                     Icon(Icons.edit_note),
-    //                     Text(
-    //                       'Sửa ghi chú',
-    //                     )
-    //                   ],
-    //                 )
-    //               : const Row(
-    //                   mainAxisAlignment: MainAxisAlignment.center,
-    //                   children: [
-    //                     Icon(Icons.create),
-    //                     Text(
-    //                       'Tạo ghi chú',
-    //                     )
-    //                   ],
-    //                 ),
-    //           centerTitle: true,
-    //           actions: [
-    //             if (widget.isEdit && isEditCompleted)
-    //               IconButton(
-    //                 icon: const Icon(
-    //                   Icons.check,
-    //                 ),
-    //                 onPressed: () {
-    //                   isEditCompleted = false;
-    //                   // return;
-    //                   updateNote();
-    //                   Navigator.pop(context, true);
-    //                 },
-    //               ),
-    //             // else if (isEditCompleted == false)
-    //             //   IconButton(
-    //             //     icon: const Icon(
-    //             //       Icons.update,
-    //             //     ),
-    //             //     onPressed: () {
-    //             //       // updateNoteToLocal();
-    //             //
-    //             //       Navigator.of(context).pop('RELOAD_LIST');
-    //             //       //Navigator.push(context, MaterialPageRoute(builder: (context) => const ToDoPage()));
-    //             //     },
-    //             //   ),
-    //             //Icon(null)
-    //             if (widget.isEdit == false)
-    //               IconButton(
-    //                 icon: const Icon(
-    //                   Icons.check,
-    //                 ),
-    //                 onPressed: () {
-    //                   uploadNoteToFB();
-    //                   // saveNoteToLocal();
-    //                   Navigator.pop(context, true);
-    //                 },
-    //               )
-    //           ],
-    //         ),
-    //         body: Container(
-    //           padding: EdgeInsets.all(13),
-    //           child: Column(children: [
-    //             TextField(
-    //               autofocus: true,
-    //               style: const TextStyle(
-    //                   fontSize: 23, fontWeight: FontWeight.bold),
-    //               controller: _noteTitleController,
-    //               decoration: const InputDecoration(
-    //                 hintText: 'Tiêu đề ghi chú',
-    //                 hintStyle:
-    //                     TextStyle(fontStyle: FontStyle.italic, fontSize: 15),
-    //                 enabledBorder: UnderlineInputBorder(
-    //                   borderSide: BorderSide(
-    //                     width: 1,
-    //                   ),
-    //                 ),
-    //               ),
-    //               onSubmitted: (String value) {
-    //                 NoteTitle = _noteTitleController.text;
-    //                 fcnFirstTxtField.requestFocus();
-    //               },
-    //               onTapOutside: (event) {
-    //                 NoteTitle = _noteTitleController.text;
-    //               },
-    //             ),
-    //             const SizedBox(height: 10),
-    //             Container(
-    //               alignment: Alignment.topLeft,
-    //               child: Text(
-    //                 'Ngày giờ tạo: ' + currentDateTime,
-    //                 style: TextStyle(fontSize: 15, color: Colors.grey),
-    //               ),
-    //             ),
-    //             Expanded(
-    //                 child: ListView.separated(
-    //                     controller: _controller,
-    //                     itemCount: noteContentList.length,
-    //                     itemBuilder: (BuildContext context, int index) {
-    //                       if (noteContentList[index] is String || noteContentList[index] is File) {
-    //                         return buildImageWidget(context, index);
-    //                       } else {
-    //                         return noteContentList[index];
-    //                       }
-    //                     },
-    //                     separatorBuilder: (BuildContext context, int index) =>
-    //                         const Divider())),
-    //             Align(
-    //                 alignment: Alignment.bottomCenter,
-    //                 child: widget.isEdit && (isEditCompleted == true)
-    //                     ? Row(
-    //                         children: [
-    //                           Expanded(flex: 1, child: SizedBox()),
-    //                           Expanded(
-    //                             flex: 2,
-    //                             child: Row(
-    //                               children: [
-    //                                 Expanded(
-    //                                   child: ElevatedButton(
-    //                                     onPressed: () {},
-    //                                     child: const Icon(
-    //                                       Icons.share,
-    //                                       size: 20.0,
-    //                                     ),
-    //                                     style: ButtonStyle(
-    //                                       padding: MaterialStateProperty.all(
-    //                                           EdgeInsets.zero),
-    //                                       backgroundColor:
-    //                                           MaterialStateProperty.all<Color>(
-    //                                               Color.fromARGB(
-    //                                                   255, 97, 115, 239)),
-    //                                       shape: MaterialStateProperty.all<
-    //                                           RoundedRectangleBorder>(
-    //                                         RoundedRectangleBorder(
-    //                                           borderRadius:
-    //                                               BorderRadius.circular(5),
-    //                                         ),
-    //                                       ),
-    //                                     ),
-    //                                   ),
-    //                                 ),
-    //                                 SizedBox(
-    //                                   width: 5,
-    //                                 ),
-    //                                 Expanded(
-    //                                   child: ElevatedButton(
-    //                                     onPressed: () {
-    //                                       deleteNote();
-    //                                       Navigator.pop(context, true);
-    //                                     },
-    //                                     child: const Icon(
-    //                                       Icons.delete,
-    //                                       size: 20.0,
-    //                                     ),
-    //                                     style: ButtonStyle(
-    //                                       padding: MaterialStateProperty.all(
-    //                                           EdgeInsets.zero),
-    //                                       backgroundColor:
-    //                                           MaterialStateProperty.all<Color>(
-    //                                               Color.fromARGB(
-    //                                                   255, 97, 115, 239)),
-    //                                       shape: MaterialStateProperty.all<
-    //                                           RoundedRectangleBorder>(
-    //                                         RoundedRectangleBorder(
-    //                                           borderRadius:
-    //                                               BorderRadius.circular(5),
-    //                                         ),
-    //                                       ),
-    //                                     ),
-    //                                   ),
-    //                                 ),
-    //                               ],
-    //                             ),
-    //                           ),
-    //                           Expanded(flex: 1, child: SizedBox()),
-    //                         ],
-    //                       )
-    //                     : null)
-    //           ]),
-    //
-    //           //  child: Column(
-    //           //   children: <Widget>[
-    //
-    //           //     Expanded(
-    //           //       child: ListView(
-    //           //         controller: _controller,
-    //           //         children: items.toList(),
-    //           //       ),
-    //           //     ),
-    //           //   ],
-    //           // ),
-    //         ),
-    //         floatingActionButton: (isEditCompleted == false) ||
-    //                 widget.isEdit == false
-    //             ? AvatarGlow(
-    //                 animate: MicroIsListening,
-    //                 duration: const Duration(milliseconds: 2000),
-    //                 glowColor: Colors.deepOrange,
-    //                 repeat: true,
-    //                 child: GestureDetector(
-    //                   onTapDown: (details) async {
-    //                     var available = await speechToText.initialize();
-    //                     var vitri;
-    //                     if (available) {
-    //                       setState(() {
-    //                         MicroIsListening = true;
-    //                         speechToText.listen(onResult: (result) {
-    //                           setState(() {
-    //                             for (var i = 0; i < lstFocusNode.length; i++) {
-    //                               if (lstFocusNode[i].hasFocus) {
-    //                                 vitri = i;
-    //                                 break;
-    //                               }
-    //                             }
-    //                             if (result.finalResult) {
-    //                               String doanvannoi = result.recognizedWords;
-    //                               lstTxtController[vitri].text += doanvannoi;
-    //                               if (vitri == 0) {
-    //                                 firsttxtfieldcont = doanvannoi;
-    //                               }
-    //                               MicroIsListening = false;
-    //                             }
-    //                           });
-    //                         });
-    //                       });
-    //                     }
-    //                   },
-    //
-    //                   onTapUp: (details) {
-    //                     setState(() {
-    //                       MicroIsListening = false;
-    //                     });
-    //                     speechToText.stop();
-    //                   },
-    //                   // child: FloatingActionButton(
-    //                   //   onPressed: (){},
-    //                   //   tooltip: 'Nhận diện giọng nói',
-    //                   //   elevation: _isVisible ? 0.0 : null,
-    //                   //   child: const Icon(Icons.mic),
-    //                   // ),
-    //                   child: const CircleAvatar(
-    //                     backgroundColor: Colors.brown,
-    //                     radius: 30,
-    //                     child: const Icon(Icons.mic, color: Colors.white),
-    //                   ),
-    //                 ),
-    //               )
-    //             : null,
-    //         floatingActionButtonLocation: _fabLocation,
-    //         bottomNavigationBar: ClipRRect(
-    //           clipBehavior: Clip.hardEdge,
-    //           borderRadius: const BorderRadius.only(
-    //               topLeft: Radius.circular(25),
-    //               topRight: Radius.circular(25),
-    //               bottomLeft: Radius.circular(0),
-    //               bottomRight: Radius.circular(0)),
-    //           child: BottomAppBar(
-    //             height: (isEditCompleted == false) || widget.isEdit == false
-    //                 ? 70.0
-    //                 : 70.0,
-    //             color: Color.fromARGB(255, 108, 127, 244),
-    //             shape: CircularNotchedRectangle(),
-    //             elevation: _isElevated ? null : 0.0,
-    //             child: Row(
-    //               mainAxisAlignment: MainAxisAlignment.spaceAround,
-    //               children: <Widget>[
-    //                 IconButton(
-    //                     tooltip: 'Chèn hình',
-    //                     icon: const Icon(Icons.image_outlined),
-    //                     color: Colors.white,
-    //                     onPressed: () {
-    //                       getImage();
-    //                     }
-    //                     // final SnackBar snackBar = SnackBar(
-    //                     //   content: const Text('Yay! A SnackBar!'),
-    //                     //   action: SnackBarAction(
-    //                     //     label: 'Undo',
-    //                     //     onPressed: () {},
-    //                     //   ),
-    //                     // );
-    //
-    //                     // Find the ScaffoldMessenger in the widget tree
-    //                     // and use it to show a SnackBar.
-    //                     //ScaffoldMessenger.of(context).showSnackBar(snackBar);
-    //
-    //                     ),
-    //                 IconButton(
-    //                   tooltip: 'Hẹn giờ thông báo',
-    //                   color: Colors.white,
-    //                   icon: const Icon(Icons.notifications_none_outlined),
-    //                   onPressed: () {},
-    //                 ),
-    //                 IconButton(
-    //                   tooltip: 'Định dạng chữ',
-    //                   color: Colors.white,
-    //                   icon: const Icon(Icons.abc),
-    //                   onPressed: () {},
-    //                 ),
-    //                 IconButton(
-    //                   tooltip: 'Gắn thẻ',
-    //                   color: Colors.white,
-    //                   icon: const Icon(Icons.turned_in_not_outlined),
-    //                   onPressed: () {
-    //                     Navigator.of(context).pushNamed(RoutePaths.test);
-    //                   },
-    //                 ),
-    //               ],
-    //             ),
-    //           ),
-    //         ))
-    //
-    //     //  child: Column(
-    //     //   children: <Widget>[
-    //
-    //     //     Expanded(
-    //     //       child: ListView(
-    //     //         controller: _controller,
-    //     //         children: items.toList(),
-    //     //       ),
-    //     //     ),
-    //     //   ],
-    //     // ),
-    //     );
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: text_default.Text('Tạo ghi chú'),
-      ),
-      body: Column(
-        children: [
-          QuillToolbar.basic(
-            controller: _quillController,
-            customButtons: [
-              QuillCustomButton(
-                  icon: Icons.image,
-                  onTap: () {
-                    _insertImage();
-                  }),
-            ],
-          ),
-          QuillEditor.basic(controller: _quillController, readOnly: false, padding: EdgeInsets.all(8.0),),
-        ],
-      ),
-    );
+    appcontext = context;
+    return SafeArea(
+        child: Scaffold(
+            appBar: AppBar(
+              backgroundColor: const Color.fromARGB(131, 0, 0, 0),
+              elevation: 0.0,
+              title: widget.isEdit
+                  ? const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.edit_note),
+                        Text(
+                          'Sửa ghi chú',
+                        )
+                      ],
+                    )
+                  : const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.create),
+                        Text(
+                          'Tạo ghi chú',
+                        )
+                      ],
+                    ),
+              centerTitle: true,
+              actions: [
+                if (widget.isEdit && isEditCompleted)
+                  IconButton(
+                    icon: const Icon(
+                      Icons.check,
+                    ),
+                    onPressed: () {
+                      isEditCompleted = false;
+                      // return;
+                      updateNote();
+                      Navigator.pop(context, true);
+                    },
+                  ),
+                // else if (isEditCompleted == false)
+                //   IconButton(
+                //     icon: const Icon(
+                //       Icons.update,
+                //     ),
+                //     onPressed: () {
+                //       // updateNoteToLocal();
+                //
+                //       Navigator.of(context).pop('RELOAD_LIST');
+                //       //Navigator.push(context, MaterialPageRoute(builder: (context) => const ToDoPage()));
+                //     },
+                //   ),
+                //Icon(null)
+                if (widget.isEdit == false)
+                  IconButton(
+                    icon: const Icon(
+                      Icons.check,
+                    ),
+                    onPressed: () {
+                      uploadNoteToFB();
+                      // saveNoteToLocal();
+                      Navigator.pop(context, true);
+                    },
+                  )
+              ],
+            ),
+            body: Container(
+              padding: EdgeInsets.all(13),
+              child: Column(children: [
+                TextField(
+                  autofocus: true,
+                  style: const TextStyle(
+                      fontSize: 23, fontWeight: FontWeight.bold),
+                  controller: _noteTitleController,
+                  decoration: const InputDecoration(
+                    hintText: 'Tiêu đề ghi chú',
+                    hintStyle:
+                        TextStyle(fontStyle: FontStyle.italic, fontSize: 15),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                  onSubmitted: (String value) {
+                    NoteTitle = _noteTitleController.text;
+                    fcnFirstTxtField.requestFocus();
+                  },
+                  onTapOutside: (event) {
+                    NoteTitle = _noteTitleController.text;
+                  },
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  alignment: Alignment.topLeft,
+                  child: Text(
+                    'Ngày giờ tạo: ' + currentDateTime,
+                    style: TextStyle(fontSize: 15, color: Colors.grey),
+                  ),
+                ),
+                Expanded(
+                    child: ListView.separated(
+                        controller: _controller,
+                        itemCount: noteContentList.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          if (noteContentList[index] is String || noteContentList[index] is File) {
+                            return buildImageWidget(context, index);
+                          } else {
+                            return noteContentList[index];
+                          }
+                        },
+                        separatorBuilder: (BuildContext context, int index) =>
+                            const Divider())),
+                Align(
+                    alignment: Alignment.bottomCenter,
+                    child: widget.isEdit && (isEditCompleted == true)
+                        ? Row(
+                            children: [
+                              Expanded(flex: 1, child: SizedBox()),
+                              Expanded(
+                                flex: 2,
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: ElevatedButton(
+                                        onPressed: () {},
+                                        child: const Icon(
+                                          Icons.share,
+                                          size: 20.0,
+                                        ),
+                                        style: ButtonStyle(
+                                          padding: MaterialStateProperty.all(
+                                              EdgeInsets.zero),
+                                          backgroundColor:
+                                              MaterialStateProperty.all<Color>(
+                                                  Color.fromARGB(
+                                                      255, 97, 115, 239)),
+                                          shape: MaterialStateProperty.all<
+                                              RoundedRectangleBorder>(
+                                            RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(5),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: 5,
+                                    ),
+                                    Expanded(
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          deleteNote();
+                                          Navigator.pop(context, true);
+                                        },
+                                        child: const Icon(
+                                          Icons.delete,
+                                          size: 20.0,
+                                        ),
+                                        style: ButtonStyle(
+                                          padding: MaterialStateProperty.all(
+                                              EdgeInsets.zero),
+                                          backgroundColor:
+                                              MaterialStateProperty.all<Color>(
+                                                  Color.fromARGB(
+                                                      255, 97, 115, 239)),
+                                          shape: MaterialStateProperty.all<
+                                              RoundedRectangleBorder>(
+                                            RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(5),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Expanded(flex: 1, child: SizedBox()),
+                            ],
+                          )
+                        : null)
+              ]),
+
+              //  child: Column(
+              //   children: <Widget>[
+
+              //     Expanded(
+              //       child: ListView(
+              //         controller: _controller,
+              //         children: items.toList(),
+              //       ),
+              //     ),
+              //   ],
+              // ),
+            ),
+            floatingActionButton: (isEditCompleted == false) ||
+                    widget.isEdit == false
+                ? AvatarGlow(
+                    animate: MicroIsListening,
+                    duration: const Duration(milliseconds: 2000),
+                    glowColor: Colors.deepOrange,
+                    repeat: true,
+                    child: GestureDetector(
+                      onTapDown: (details) async {
+                        var available = await speechToText.initialize();
+                        var vitri;
+                        if (available) {
+                          setState(() {
+                            MicroIsListening = true;
+                            speechToText.listen(onResult: (result) {
+                              setState(() {
+                                for (var i = 0; i < lstFocusNode.length; i++) {
+                                  if (lstFocusNode[i].hasFocus) {
+                                    vitri = i;
+                                    break;
+                                  }
+                                }
+                                if (result.finalResult) {
+                                  String doanvannoi = result.recognizedWords;
+                                  lstTxtController[vitri].text += doanvannoi;
+                                  if (vitri == 0) {
+                                    firsttxtfieldcont = doanvannoi;
+                                  }
+                                  MicroIsListening = false;
+                                }
+                              });
+                            });
+                          });
+                        }
+                      },
+
+                      onTapUp: (details) {
+                        setState(() {
+                          MicroIsListening = false;
+                        });
+                        speechToText.stop();
+                      },
+                      // child: FloatingActionButton(
+                      //   onPressed: (){},
+                      //   tooltip: 'Nhận diện giọng nói',
+                      //   elevation: _isVisible ? 0.0 : null,
+                      //   child: const Icon(Icons.mic),
+                      // ),
+                      child: const CircleAvatar(
+                        backgroundColor: Colors.brown,
+                        radius: 30,
+                        child: const Icon(Icons.mic, color: Colors.white),
+                      ),
+                    ),
+                  )
+                : null,
+            floatingActionButtonLocation: _fabLocation,
+            bottomNavigationBar: ClipRRect(
+              clipBehavior: Clip.hardEdge,
+              borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(25),
+                  topRight: Radius.circular(25),
+                  bottomLeft: Radius.circular(0),
+                  bottomRight: Radius.circular(0)),
+              child: BottomAppBar(
+                height: (isEditCompleted == false) || widget.isEdit == false
+                    ? 70.0
+                    : 70.0,
+                color: Color.fromARGB(255, 108, 127, 244),
+                shape: CircularNotchedRectangle(),
+                elevation: _isElevated ? null : 0.0,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: <Widget>[
+                    IconButton(
+                        tooltip: 'Chèn hình',
+                        icon: const Icon(Icons.image_outlined),
+                        color: Colors.white,
+                        onPressed: () {
+                          getImage();
+                        }
+                        // final SnackBar snackBar = SnackBar(
+                        //   content: const Text('Yay! A SnackBar!'),
+                        //   action: SnackBarAction(
+                        //     label: 'Undo',
+                        //     onPressed: () {},
+                        //   ),
+                        // );
+
+                        // Find the ScaffoldMessenger in the widget tree
+                        // and use it to show a SnackBar.
+                        //ScaffoldMessenger.of(context).showSnackBar(snackBar);
+
+                        ),
+                    IconButton(
+                      tooltip: 'Hẹn giờ thông báo',
+                      color: Colors.white,
+                      icon: const Icon(Icons.notifications_none_outlined),
+                      onPressed: () {},
+                    ),
+                    IconButton(
+                      tooltip: 'Định dạng chữ',
+                      color: Colors.white,
+                      icon: const Icon(Icons.abc),
+                      onPressed: () {},
+                    ),
+                    IconButton(
+                      tooltip: 'Gắn thẻ',
+                      color: Colors.white,
+                      icon: const Icon(Icons.turned_in_not_outlined),
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(RoutePaths.test);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ))
+
+        //  child: Column(
+        //   children: <Widget>[
+
+        //     Expanded(
+        //       child: ListView(
+        //         controller: _controller,
+        //         children: items.toList(),
+        //       ),
+        //     ),
+        //   ],
+        // ),
+        );
+    // return Scaffold(
+    //   appBar: AppBar(
+    //     centerTitle: true,
+    //     title: text_default.Text('Tạo ghi chú'),
+    //   ),
+    //   body: Column(
+    //     children: [
+    //       QuillToolbar.basic(
+    //         controller: _quillController,
+    //         customButtons: [
+    //           QuillCustomButton(
+    //               icon: Icons.image,
+    //               onTap: () {
+    //                 _insertImage();
+    //               }),
+    //         ],
+    //       ),
+    //       QuillEditor.basic(controller: _quillController, readOnly: false, padding: EdgeInsets.all(8.0),),
+    //     ],
+    //   ),
+    // );
   }
 
   Future<String?> _pickImage() async {
@@ -1007,7 +1013,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     final imgTag = '<img src="$imageUrl" alt="image" width="350" height="250" />';
 
     // Insert the img tag into QuillEditor
-    _quillController.compose(delta..insert(imgTag, {'insert': ' '}));
+    // _quillController.compose(delta..insert(imgTag, {'insert': ' '}));
   }
 
   void getNoteById(String id) async {
