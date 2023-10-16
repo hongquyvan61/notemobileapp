@@ -644,6 +644,7 @@ class HomeScreenState extends State<HomeScreen> {
                             ),
                           );
                           reloadNoteListAtLocal(resultFromNewNote);
+
                         },
                         style: ElevatedButton.styleFrom(
                             shape: const StadiumBorder(),

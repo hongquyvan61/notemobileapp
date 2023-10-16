@@ -36,7 +36,7 @@ class PopUpMenu{
 
   List<PopupMenuEntry<dynamic>> loginPopupMenu(context){
     List<PopupMenuEntry<dynamic>> items = [
-       PopupMenuItem(child: Text('Login'), onTap: () {
+       PopupMenuItem(child: const Text('Login'), onTap: () {
         Navigator.of(context).pushNamed(RoutePaths.login);
       },),
 

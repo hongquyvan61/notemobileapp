@@ -14,6 +14,7 @@ class RoutePaths {
   static const login = 'loginscreen';
   static const signup = 'signupscreen';
   static const verifyEmail = 'verifyscreen';
+
 }
 
 class RouterCustom {
@@ -43,6 +44,7 @@ class RouterCustom {
         return MaterialPageRoute(builder: (_) => const SignUpPage());
       case RoutePaths.verifyEmail:
         return MaterialPageRoute(builder: (_) => const VerifyEmailPage());
+
 
       default:
         return MaterialPageRoute(
