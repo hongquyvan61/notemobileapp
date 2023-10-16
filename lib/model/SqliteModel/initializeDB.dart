@@ -15,8 +15,8 @@ class InitDataBase {
   Future<Database> initDB() async {
       WidgetsFlutterBinding.ensureInitialized();
       Directory dr = await getApplicationDocumentsDirectory();
-      // String dbpath = join(dr.path, 'notemobileapp.db');
-      // await deleteDatabase(dbpath);
+      String dbpath = join(dr.path, 'notemobileapp.db');
+      await deleteDatabase(dbpath);
       final database = openDatabase(
         join(dr.path, 'notemobileapp.db'),
         // When the database is first created, create a table to store dogs.

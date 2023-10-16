@@ -319,7 +319,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
 
   Future<void> uploadNoteToFB() async {
     NoteContent noteContent = NoteContent();
-    List<Map<String, dynamic>> imageText = [];
+    List<Map<String, dynamic>> CloudContents = [];
 
     // try{
 
@@ -346,7 +346,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
         // String imageName = basename(SaveNoteContentList[i].path);
         File file = File(SaveNoteContentList[i].path);
 
-        imageText.add({'image': await StorageService().uploadImage(file)});
+        CloudContents.add({'image': await StorageService().uploadImage(file)});
         //
         //     var imagefile = FirebaseStorage.instance.ref().child("userID_${widget.email}").child("${imagename}");
         //     UploadTask task = imagefile.putFile(file);
@@ -373,9 +373,8 @@ class NewNoteScreenState extends State<NewNoteScreen> {
         //     }
       } else {
         //
-        String noiDungGhiChu =
-            i == 0 ? firsttxtfieldcont : SaveNoteContentList[i].text;
-        imageText.add({'text': noiDungGhiChu});
+        String noiDungGhiChu = SaveNoteContentList[i].text;
+        CloudContents.add({'text': noiDungGhiChu});
         //     int count = await fb_notect.FB_CountTotalNoteContents();
         //
         //     int notectID = count + 1;
@@ -393,7 +392,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     }
     noteContent.timeStamp = currentDateTime;
     noteContent.title = NoteTitle;
-    noteContent.content = imageText;
+    noteContent.content = CloudContents;
     FireStorageService().saveContentNotes(noteContent);
 
     // }

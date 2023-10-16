@@ -77,7 +77,8 @@ class HomeScreenState extends State<HomeScreen> {
 
     AssignSubscription();
     InitiateListOfNote();
-    refreshNoteList();
+    //refreshNoteList();
+
     checkLogin();
   }
 
@@ -107,6 +108,8 @@ class HomeScreenState extends State<HomeScreen> {
         debugPrint("Co mang ne!!");
         listofnote.clear();
         listofTitleImage.clear();
+        foundedNote.clear();
+        listofBriefContent.clear();
 
         // fb_listofnote = await fb_noteDAL.FB_getAllNoteByUid(email);
 

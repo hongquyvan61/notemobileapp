@@ -4,9 +4,13 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:notemobileapp/test/model/note_content.dart';
 import 'package:notemobileapp/test/model/note_receive.dart';
 
+import '../model/tag.dart';
+import '../model/tag_receive.dart';
+
 class FireStorageService {
   final CollectionReference notesCollection =
       FirebaseFirestore.instance.collection('notes');
+
   final FirebaseStorage storage = FirebaseStorage.instance;
 
   String? currentUser = FirebaseAuth.instance.currentUser?.email;
@@ -15,6 +19,13 @@ class FireStorageService {
     final idNote = notesCollection.doc(currentUser).collection("note").doc();
     await idNote.set(noteContent.toMap());
   }
+
+  Future<void> saveTags(Tag tag) async{
+    final idtag = notesCollection.doc(currentUser).collection("tag").doc();
+
+    await idtag.set(tag.toMap());
+  }
+  
 
   Future<List<NoteReceive>> getAllNote() async {
 
@@ -31,6 +42,24 @@ class FireStorageService {
     });
 
     return notes;
+  }
+
+  Future<List<TagReceive>> getAllTags() async {
+
+    List<TagReceive> tags = [];
+    final tagCollection = notesCollection.doc(currentUser).collection("tag");
+    TagReceive tagReceive = TagReceive();
+
+    await tagCollection.get().then((value) {
+      for (var docSnapshot in value.docs) {
+        tags.add(TagReceive.withValue(
+            docSnapshot.get("tag_name"),
+            docSnapshot.id
+        ));
+      }
+    });
+
+    return tags;
   }
 
   Future<NoteReceive> getNoteById(String id) async {

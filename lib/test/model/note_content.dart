@@ -7,6 +7,7 @@ class NoteContent {
   late List<dynamic> _content;
   late String _timeStamp;
   late String _title;
+  late String _tagname;
 
 
   List<File> get file => _file;
@@ -15,7 +16,7 @@ class NoteContent {
     _file = value;
   }
 
-  NoteContent.withValue(this._content, this._timeStamp, this._title);
+  NoteContent.withValue(this._content, this._timeStamp, this._title, this._tagname);
   NoteContent();
 
   List<dynamic> get content => _content;
@@ -28,6 +29,7 @@ class NoteContent {
       'title': _title,
       'timestamp': _timeStamp,
       'content' : _content,
+      'tagname' : _tagname
     };
   }
 
@@ -41,5 +43,11 @@ class NoteContent {
 
   set title(String value) {
     _title = value;
+  }
+
+  String get tagname => _tagname;
+
+  set tagname(String value) {
+    _tagname = value;
   }
 }

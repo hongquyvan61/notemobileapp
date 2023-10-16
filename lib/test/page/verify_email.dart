@@ -2,10 +2,19 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:notemobileapp/DAL/NoteContentDAL.dart';
+import 'package:notemobileapp/DAL/NoteDAL.dart';
+import 'package:notemobileapp/DAL/TagDAL.dart';
 import 'package:notemobileapp/home/home.dart';
+import 'package:notemobileapp/model/SqliteModel/NoteContentModel.dart';
+import 'package:notemobileapp/model/SqliteModel/initializeDB.dart';
 import 'package:notemobileapp/test/component/toast.dart';
+import 'package:notemobileapp/test/model/note_content.dart';
 
+import '../../model/SqliteModel/NoteModel.dart';
 import '../../router.dart';
+import '../model/tag.dart';
+import '../services/firebase_firestore_service.dart';
 
 class VerifyEmailPage extends StatefulWidget {
   const VerifyEmailPage({super.key});
@@ -20,6 +29,10 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
   Timer? timer;
 
   get canResend => null;
+
+  NoteDAL noteDAL = NoteDAL();
+  NoteContentDAL ncontentDAL = NoteContentDAL();
+  TagDAL tagDAL = TagDAL();
 
   @override
   void initState() {
@@ -99,10 +112,52 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
       _isEmailVerified = FirebaseAuth.instance.currentUser!.emailVerified;
     });
     if (_isEmailVerified) {
-      Navigator.of(context).pushNamedAndRemoveUntil(
-          RoutePaths.start, (Route<dynamic> route) => false);
+      ///UPLOAD DANH SACH TAG
+      ///UPLOAD DANH SACH TAG
+      ///UPLOAD DANH SACH TAG
+      List<String> listtag = await tagDAL.getAllTagsByUserID(-1, InitDataBase.db);
+
+      if(listtag.isNotEmpty){
+        Tag tag = Tag();
+        for(int i = 0; i < listtag.length; i++){
+          tag.tagname = listtag[i];
+
+          FireStorageService().saveTags(tag);
+        }
+      }
+      
+      ///UPLOAD DANH SACH TAG
+      ///UPLOAD DANH SACH TAG
+      ///UPLOAD DANH SACH TAG
+
+      ///UPLOAD DANH SACH NOTE VA NOTE CONTENTS
+      ///UPLOAD DANH SACH NOTE VA NOTE CONTENTS
+      ///UPLOAD DANH SACH NOTE VA NOTE CONTENTS
+      List<NoteModel> NotesAtLocal = await noteDAL.getAllNotesByUserID(-1, InitDataBase.db);
+      List<Map<String, dynamic>> contents = [];
+      NoteContent note = NoteContent();
+
+      if(NotesAtLocal.isNotEmpty){
+        for(int i = 0 ; i < NotesAtLocal.length; i++){
+          contents = await ncontentDAL.getAllNoteContentsById_Cloud(InitDataBase.db, NotesAtLocal[i].note_id?.toInt() ?? 0);
+          note.content = contents;
+          note.title = NotesAtLocal[i].title;
+          note.timeStamp = NotesAtLocal[i].date_created;
+          
+          note.tagname = await tagDAL.getTagNameByID(NotesAtLocal[i].tag_id?.toInt() ?? 0, InitDataBase.db);
+          
+          FireStorageService().saveContentNotes(note);
+        }
+      }
+
+      ///UPLOAD DANH SACH NOTE VA NOTE CONTENTS
+      ///UPLOAD DANH SACH NOTE VA NOTE CONTENTS
+      ///UPLOAD DANH SACH NOTE VA NOTE CONTENTS
+      
       ToastComponent().showToast("Email của bạn đã được xác thực thành công !");
-      timer?.cancel();
+      
+      Navigator.of(context).pushNamedAndRemoveUntil(RoutePaths.start, (Route<dynamic> route) => false);
+      
     }
   }
 }

@@ -1,9 +1,13 @@
 import 'dart:io';
 
 import 'package:notemobileapp/model/SqliteModel/initializeDB.dart';
+import 'package:notemobileapp/test/services/firebase_firestore_service.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'package:notemobileapp/model/SqliteModel/NoteContentModel.dart';
+
+import '../test/model/note_content.dart';
+import '../test/services/firebase_store_service.dart';
 
 class NoteContentDAL {
   
@@ -52,6 +56,28 @@ class NoteContentDAL {
           notecontent_id: result[i]['notecontent_id']
         );
       });
+    }
+
+    Future<List<Map<String, dynamic>>> getAllNoteContentsById_Cloud(Database db, int noteid) async {
+      final List<Map> result = await db.rawQuery("select * from notecontent where note_id=?",[noteid]);
+      
+      List<Map<String, dynamic>> contents = [];
+
+      for(int i = 0; i < result.length; i++){
+
+        if(result[i]["imagecontent"] != null){
+           File imgfile = File(result[i]["imagecontent"]);
+           String imageurl = await StorageService().uploadImage(imgfile);
+
+           contents.add({"image" : imageurl});
+        }
+        else{
+          String noiDungGhiChu = result[i]["textcontent"];
+          contents.add({'text': noiDungGhiChu});
+        }
+        
+      }
+      return contents;
     }
 
 
