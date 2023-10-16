@@ -27,10 +27,10 @@ class FireStorageService {
   }
 
   Future<List<NoteReceive>> getAllNote() async {
+
     List<NoteReceive> notes = [];
     final noteCollection = notesCollection.doc(currentUser).collection("note");
     NoteReceive note = NoteReceive();
-
     await noteCollection.get().then((value) {
       for (var docSnapshot in value.docs) {
         notes.add(NoteReceive.withValue(
@@ -49,20 +49,18 @@ class FireStorageService {
     final noteDocument = notesCollection.doc(currentUser).collection("note").doc(id);
     DocumentSnapshot doc = await noteDocument.get();
     NoteReceive note = NoteReceive();
-
     note.title = doc.get('title');
     note.timeStamp = doc.get('timestamp');
     note.content = doc.get('content');
-
-
     return note;
+
   }
 
   void deleteNoteById(String id) async {
 
     final noteDocument = notesCollection.doc(currentUser).collection("note").doc(id);
-
     noteDocument.delete();
+
   }
 
   void updateNoteById(String id, NoteContent noteContent) async {
