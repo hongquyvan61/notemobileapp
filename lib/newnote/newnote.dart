@@ -694,8 +694,8 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                     ),
                     onPressed: () {
                       isEditCompleted = false;
+                      updateNote();
                       setState(() {
-                        
                       });
                       return;
 
@@ -703,7 +703,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                       ////UPDATE NOTE TREN CLOUD
                       ////UPDATE NOTE TREN CLOUD
                       
-                      // updateNote();
+
                       //saveNoteToLocal();
                       
                       //Navigator.pop(context, true);
@@ -717,7 +717,6 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                     ),
                     onPressed: () {
                       updateNoteToLocal();
-                
                       Navigator.of(context).pop('RELOAD_LIST');
                       //Navigator.push(context, MaterialPageRoute(builder: (context) => const ToDoPage()));
                     },
