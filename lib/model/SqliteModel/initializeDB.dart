@@ -15,8 +15,8 @@ class InitDataBase {
   Future<Database> initDB() async {
       WidgetsFlutterBinding.ensureInitialized();
       Directory dr = await getApplicationDocumentsDirectory();
-      String dbpath = join(dr.path, 'notemobileapp.db');
-      await deleteDatabase(dbpath);
+      // String dbpath = join(dr.path, 'notemobileapp.db');
+      // await deleteDatabase(dbpath);
       final database = openDatabase(
         join(dr.path, 'notemobileapp.db'),
         // When the database is first created, create a table to store dogs.
@@ -35,10 +35,12 @@ class InitDataBase {
           
           db.execute('CREATE TABLE notecontent(notecontent_id INTEGER PRIMARY KEY AUTOINCREMENT, textcontent TEXT, imagecontent TEXT, note_id INTEGER, ' + 
             'FOREIGN KEY (note_id) references note(note_id) ON UPDATE RESTRICT ON DELETE RESTRICT)');
-          db.execute('CREATE TABLE invite(invite_id INTEGER PRIMARY KEY AUTOINCREMENT, sender_id INTEGER, receiver_id INTEGER, note_id INTEGER, receiver_auth TEXT, ' + 
-          'FOREIGN KEY (sender_id) references users(user_id) ON UPDATE RESTRICT ON DELETE RESTRICT,' + 
-          'FOREIGN KEY (receiver_id) references users(user_id) ON UPDATE RESTRICT ON DELETE RESTRICT,' + 
-          'FOREIGN KEY (note_id) references note(note_id) ON UPDATE RESTRICT ON DELETE RESTRICT)');
+
+          db.rawInsert("insert into users(user_id, username,password, account_type) values(?,?,?,?)",[-1,"anonymous","","anonymous"]);
+          // db.execute('CREATE TABLE invite(invite_id INTEGER PRIMARY KEY AUTOINCREMENT, sender_id INTEGER, receiver_id INTEGER, note_id INTEGER, receiver_auth TEXT, ' + 
+          // 'FOREIGN KEY (sender_id) references users(user_id) ON UPDATE RESTRICT ON DELETE RESTRICT,' + 
+          // 'FOREIGN KEY (receiver_id) references users(user_id) ON UPDATE RESTRICT ON DELETE RESTRICT,' + 
+          // 'FOREIGN KEY (note_id) references note(note_id) ON UPDATE RESTRICT ON DELETE RESTRICT)');
         },
         // Set the version. This executes the onCreate function and provides a
         // path to perform database upgrades and downgrades.

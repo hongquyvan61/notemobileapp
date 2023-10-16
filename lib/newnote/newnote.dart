@@ -5,7 +5,7 @@ import 'package:avatar_glow/avatar_glow.dart';
 import 'package:flutter/src/widgets/text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_quill/flutter_quill.dart' hide Text;
+//import 'package:flutter_quill/flutter_quill.dart' hide Text;
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:image_picker/image_picker.dart';
@@ -18,6 +18,8 @@ import 'package:notemobileapp/test/model/note_content.dart';
 import 'package:notemobileapp/test/model/note_receive.dart';
 import 'package:notemobileapp/test/services/firebase_firestore_service.dart';
 import 'package:notemobileapp/test/services/firebase_store_service.dart';
+import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:notemobileapp/DAL/UserDAL.dart';
@@ -35,13 +37,13 @@ class NewNoteScreen extends StatefulWidget {
     Key? key,
     required this.noteId,
     required this.isEdit,
-    // required this.email
+    required this.email
   }) : super(key: key);
 
   final String noteId;
   final bool isEdit;
 
-  // final String email;
+  final String email;
 
   @override
   State<StatefulWidget> createState() {
@@ -61,7 +63,16 @@ class NewNoteScreenState extends State<NewNoteScreen> {
       TextEditingController();
 
   List<dynamic> noteContentList = <dynamic>[
-    textFieldWidget(firstTxtFieldController),
+    TextField(
+      keyboardType: TextInputType.multiline,
+      focusNode: fcnFirstTxtField,
+      controller: firstTxtFieldController,
+      showCursor: true,
+      autofocus: true,
+      maxLines: null,
+      style: const TextStyle(fontSize: 14),
+      decoration: const InputDecoration(border: InputBorder.none),
+    )
   ];
 
   List<FocusNode> lstFocusNode = <FocusNode>[fcnFirstTxtField];
@@ -148,12 +159,12 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     initializeDateFormatting();
     DateTime now = DateTime.now();
     currentDateTime = DateFormat.yMd('vi_VN').add_jm().format(now);
-    // if (widget.isEdit) {
-    //   loadingNoteWithIDAtLocal(
-    //       widget.email, widget.noteIdEdit, widget.isEdit);
-    // }
 
-    getNoteById(widget.noteId);
+    if (widget.isEdit) {
+      loadingNoteWithIDAtLocal(-1, widget.noteId, widget.isEdit);
+    }
+
+    //getNoteById(widget.noteId);
   }
 
   @override
@@ -165,6 +176,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     firstTxtFieldController.text = "";
     super.dispose();
   }
+
 
   Future getImage() async {
     final image = await ImagePicker().pickImage(source: ImageSource.gallery);
@@ -241,14 +253,13 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     return result ?? false;
   }
 
-  Future loadingNoteWithIDAtLocal(String email, int noteID, bool isEdit) async {
-    List<NoteModel> tmp =
-        await nDAL.getNoteByID(email, noteID, InitDataBase.db);
+  Future loadingNoteWithIDAtLocal(int userid, String noteID, bool isEdit) async {
+    List<NoteModel> tmp = await nDAL.getNoteByID(userid, int.parse(noteID), InitDataBase.db);
     if (tmp.isNotEmpty && isEdit) {
       _noteTitleController.text = tmp[0].title;
       currentDateTime = tmp[0].date_created;
       List<NoteContentModel> contents =
-          await ncontentDAL.getAllNoteContentsById(InitDataBase.db, noteID);
+          await ncontentDAL.getAllNoteContentsById(InitDataBase.db, int.parse(noteID));
       if (contents.isNotEmpty) {
         firstTxtFieldController.text = contents[0].textcontent.toString();
 
@@ -392,185 +403,188 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     // }
   }
 
-  // Future<void> saveNoteToLocal() async {
-  //   //SUA LAI USER ID O DAY
-  //   //SUA LAI USER ID O DAY
-  //   //SUA LAI USER ID O DAY
-  //   //SUA LAI USER ID O DAY
-  //   //SUA LAI USER ID O DAY
-  //   NoteModel md = NoteModel(
-  //       title: NoteTitle, date_created: CurrentDateTime, email: widget.email);
-  //   bool checkinsertnote =
-  //       await nDAL.insertNote(md, widget.email, InitDataBase.db).catchError(
-  //     (Object e, StackTrace stackTrace) {
-  //       debugPrint(e.toString());
-  //     },
-  //   );
-  //   if (checkinsertnote) {
-  //     int latestid =
-  //         await ncontentDAL.getLatestNoteID(InitDataBase.db).catchError(
-  //       (Object e, StackTrace stackTrace) {
-  //         debugPrint(e.toString());
-  //       },
-  //     );
-  //     for (int i = 0; i < SaveNoteContentList.length; i++) {
-  //       if (SaveNoteContentList[i] is File) {
-  //         // getting a directory path for saving
-  //         final Directory directory = await getApplicationDocumentsDirectory();
-  //         String path = directory.path;
-  //         String imagename = basename(SaveNoteContentList[i].path);
-  //
-  //         // copy the file to a new path
-  //         final File newImage = await File(SaveNoteContentList[i].path)
-  //             .copy('$path/image/$imagename')
-  //             .catchError(
-  //           (Object e, StackTrace stackTrace) {
-  //             debugPrint(e.toString());
-  //           },
-  //         );
-  //
-  //         NoteContentModel conmd = NoteContentModel(
-  //             notecontent_id: null,
-  //             textcontent: null,
-  //             imagecontent: '$path/image/$imagename',
-  //             note_id: latestid);
-  //
-  //         bool checkinsertnotecontent = await ncontentDAL
-  //             .insertNoteContent(conmd, InitDataBase.db)
-  //             .catchError(
-  //           (Object e, StackTrace stackTrace) {
-  //             debugPrint(e.toString());
-  //           },
-  //         );
-  //
-  //         if (checkinsertnotecontent) {
-  //           debugPrint('insert noi dung ghi chu thanh cong');
-  //         } else {
-  //           debugPrint('loi insert noi dung ghi chu');
-  //         }
-  //       } else {
-  //         String noiDungGhiChu = SaveNoteContentList[i].text;
-  //         NoteContentModel conmd = NoteContentModel(
-  //             notecontent_id: null,
-  //             textcontent: noiDungGhiChu,
-  //             imagecontent: null,
-  //             note_id: latestid);
-  //
-  //         bool checkinsertnotecontent = await ncontentDAL
-  //             .insertNoteContent(conmd, InitDataBase.db)
-  //             .catchError(
-  //           (Object e, StackTrace stackTrace) {
-  //             debugPrint(e.toString());
-  //           },
-  //         );
-  //
-  //         if (checkinsertnotecontent) {
-  //           debugPrint('insert noi dung ghi chu thanh cong');
-  //         } else {
-  //           debugPrint('loi insert noi dung ghi chu');
-  //         }
-  //       }
-  //     }
-  //   } else {
-  //     debugPrint('loi insert note');
-  //   }
-  //   //List<NoteModel> lstnotemodel = await nDAL.getAllNotes(InitDataBase.db);
-  //   //List<NoteContentModel> lstnotecontent = await ncontentDAL.getAllNoteContentsById(InitDataBase.db, 1);
-  // }
+  Future<void> saveNoteToLocal() async {
+    //SUA LAI USER ID O DAY
+    //SUA LAI USER ID O DAY
+    //SUA LAI USER ID O DAY
+    //SUA LAI USER ID O DAY
+    //SUA LAI USER ID O DAY
+    NoteModel md = NoteModel(
+        title: NoteTitle, date_created: currentDateTime, user_id: -1);
+    bool checkinsertnote =
+        await nDAL.insertNote(md, -1, InitDataBase.db).catchError(
+      (Object e, StackTrace stackTrace) {
+        debugPrint(e.toString());
+      },
+    );
+    if (checkinsertnote) {
+      int latestid = await ncontentDAL.getLatestNoteID(InitDataBase.db).catchError(
+        (Object e, StackTrace stackTrace) {
+          debugPrint(e.toString());
+        },
+      );
+      for (int i = 0; i < SaveNoteContentList.length; i++) {
+        if (SaveNoteContentList[i] is File) {
+          // getting a directory path for saving
+          final Directory directory = await getApplicationDocumentsDirectory();
+          String path = directory.path;
+          String imagename = basename(SaveNoteContentList[i].path);
+  
+          // copy the file to a new path
+          final File newImage = await File(SaveNoteContentList[i].path)
+              .copy('$path/image/$imagename')
+              .catchError(
+            (Object e, StackTrace stackTrace) {
+              debugPrint(e.toString());
+            },
+          );
+  
+          NoteContentModel conmd = NoteContentModel(
+              notecontent_id: null,
+              textcontent: null,
+              imagecontent: '$path/image/$imagename',
+              note_id: latestid);
+  
+          bool checkinsertnotecontent = await ncontentDAL
+              .insertNoteContent(conmd, InitDataBase.db)
+              .catchError(
+            (Object e, StackTrace stackTrace) {
+              debugPrint(e.toString());
+            },
+          );
+  
+          if (checkinsertnotecontent) {
+            debugPrint('insert noi dung ghi chu thanh cong');
+          } else {
+            debugPrint('loi insert noi dung ghi chu');
+          }
+        } else {
+          String noiDungGhiChu = SaveNoteContentList[i].text;
+          NoteContentModel conmd = NoteContentModel(
+              notecontent_id: null,
+              textcontent: noiDungGhiChu,
+              imagecontent: null,
+              note_id: latestid);
+  
+          bool checkinsertnotecontent = await ncontentDAL
+              .insertNoteContent(conmd, InitDataBase.db)
+              .catchError(
+            (Object e, StackTrace stackTrace) {
+              debugPrint(e.toString());
+            },
+          );
+  
+          if (checkinsertnotecontent) {
+            debugPrint('insert noi dung ghi chu thanh cong');
+          } else {
+            debugPrint('loi insert noi dung ghi chu');
+          }
+        }
+      }
+    } else {
+      debugPrint('loi insert note');
+    }
 
-  // Future<void> updateNoteToLocal() async {
-  //   bool updttitle = await nDAL.updateNoteTitle(
-  //       widget.noteIdEdit, _noteTitleController.text, InitDataBase.db);
-  //   if (updttitle) {
-  //     debugPrint("cap nhat tieu de ghi chu thanh cong");
-  //   } else {
-  //     debugPrint("xay ra loi khi cap nhat tieu de ghi chu");
-  //   }
-  //   for (int i = 0; i < lstupdatecontents.length; i++) {
-  //     if (lstupdatecontents[i].type == "update") {
-  //       if (UpdateNoteContentList[i] is File) {
-  //         String imgpath = UpdateNoteContentList[i].path;
-  //         bool isSuccess = await ncontentDAL.updateContentByID(
-  //             lstupdatecontents[i].notecontent_id?.toInt() ?? 0,
-  //             null,
-  //             imgpath,
-  //             InitDataBase.db);
-  //       } else {
-  //         String txt = UpdateNoteContentList[i].text;
-  //         bool isSuccess = await ncontentDAL.updateContentByID(
-  //             lstupdatecontents[i].notecontent_id?.toInt() ?? 0,
-  //             txt,
-  //             null,
-  //             InitDataBase.db);
-  //       }
-  //     }
-  //     if (lstupdatecontents[i].type == "insert_img") {
-  //       final Directory directory = await getApplicationDocumentsDirectory();
-  //       String drpath = directory.path;
-  //
-  //       String imgpath = UpdateNoteContentList[i].path;
-  //       String imagename = basename(imgpath);
-  //
-  //       final File newImage =
-  //           await File(imgpath).copy('$drpath/image/$imagename').catchError(
-  //         (Object e, StackTrace stackTrace) {
-  //           debugPrint(e.toString());
-  //         },
-  //       );
-  //
-  //       NoteContentModel conmd = NoteContentModel(
-  //           notecontent_id: null,
-  //           textcontent: null,
-  //           imagecontent: '$drpath/image/$imagename',
-  //           note_id: widget.noteIdEdit);
-  //
-  //       bool checkinsertimgnotecontent = await ncontentDAL
-  //           .insertNoteContent(conmd, InitDataBase.db)
-  //           .catchError(
-  //         (Object e, StackTrace stackTrace) {
-  //           debugPrint(e.toString());
-  //         },
-  //       );
-  //
-  //       if (checkinsertimgnotecontent) {
-  //         debugPrint('insert hinh moi khi edit ghi chu thanh cong');
-  //       } else {
-  //         debugPrint('loi insert hinh moi khi edit ghi chu');
-  //       }
-  //     }
-  //     if (lstupdatecontents[i].type == "insert_text") {
-  //       NoteContentModel conmd = NoteContentModel(
-  //           notecontent_id: null,
-  //           textcontent: UpdateNoteContentList[i].text,
-  //           imagecontent: null,
-  //           note_id: widget.noteIdEdit);
-  //
-  //       bool checkinsertnotecontent = await ncontentDAL
-  //           .insertNoteContent(conmd, InitDataBase.db)
-  //           .catchError(
-  //         (Object e, StackTrace stackTrace) {
-  //           debugPrint(e.toString());
-  //         },
-  //       );
-  //
-  //       if (checkinsertnotecontent) {
-  //         debugPrint('insert text moi khi edit ghi chu thanh cong');
-  //       } else {
-  //         debugPrint('loi insert text moi khi edit ghi chu');
-  //       }
-  //     }
-  //   }
-  //
-  //   for (int i = 0; i < lstdeletecontents.length; i++) {
-  //     bool checkdel = await ncontentDAL.deleteNoteContentsByID(
-  //         lstdeletecontents[i].notecontent_id?.toInt() ?? 0, InitDataBase.db);
-  //     if (checkdel) {
-  //       debugPrint("Xoa text field hoac img sau khi edit thanh cong");
-  //     } else {
-  //       debugPrint("Xoa text field hoac img sau khi edit xay ra loi!!");
-  //     }
-  //   }
-  // }
+
+    //List<NoteModel> lstnotemodel = await nDAL.getAllNotes(InitDataBase.db);
+    //List<NoteContentModel> lstnotecontent = await ncontentDAL.getAllNoteContentsById(InitDataBase.db, 1);
+  }
+
+  Future<void> updateNoteToLocal() async {
+    bool updttitle = await nDAL.updateNoteTitle(
+        int.parse(widget.noteId), _noteTitleController.text, InitDataBase.db);
+    if (updttitle) {
+      debugPrint("cap nhat tieu de ghi chu thanh cong");
+    } else {
+      debugPrint("xay ra loi khi cap nhat tieu de ghi chu");
+    }
+    for (int i = 0; i < lstupdatecontents.length; i++) {
+      if (lstupdatecontents[i].type == "update") {
+        if (UpdateNoteContentList[i] is File) {
+          String imgpath = UpdateNoteContentList[i].path;
+          bool isSuccess = await ncontentDAL.updateContentByID(
+              lstupdatecontents[i].notecontent_id?.toInt() ?? 0,
+              null,
+              imgpath,
+              InitDataBase.db);
+        } else {
+          String txt = UpdateNoteContentList[i].text;
+          bool isSuccess = await ncontentDAL.updateContentByID(
+              lstupdatecontents[i].notecontent_id?.toInt() ?? 0,
+              txt,
+              null,
+              InitDataBase.db);
+        }
+      }
+      if (lstupdatecontents[i].type == "insert_img") {
+        final Directory directory = await getApplicationDocumentsDirectory();
+        String drpath = directory.path;
+  
+        String imgpath = UpdateNoteContentList[i].path;
+        String imagename = basename(imgpath);
+  
+        final File newImage =
+            await File(imgpath).copy('$drpath/image/$imagename').catchError(
+          (Object e, StackTrace stackTrace) {
+            debugPrint(e.toString());
+          },
+        );
+  
+        NoteContentModel conmd = NoteContentModel(
+            notecontent_id: null,
+            textcontent: null,
+            imagecontent: '$drpath/image/$imagename',
+            note_id: int.parse(widget.noteId)
+        );
+  
+        bool checkinsertimgnotecontent = await ncontentDAL
+            .insertNoteContent(conmd, InitDataBase.db)
+            .catchError(
+          (Object e, StackTrace stackTrace) {
+            debugPrint(e.toString());
+          },
+        );
+  
+        if (checkinsertimgnotecontent) {
+          debugPrint('insert hinh moi khi edit ghi chu thanh cong');
+        } else {
+          debugPrint('loi insert hinh moi khi edit ghi chu');
+        }
+      }
+      if (lstupdatecontents[i].type == "insert_text") {
+        NoteContentModel conmd = NoteContentModel(
+            notecontent_id: null,
+            textcontent: UpdateNoteContentList[i].text,
+            imagecontent: null,
+            note_id: int.parse(widget.noteId)
+        );
+  
+        bool checkinsertnotecontent = await ncontentDAL
+            .insertNoteContent(conmd, InitDataBase.db)
+            .catchError(
+          (Object e, StackTrace stackTrace) {
+            debugPrint(e.toString());
+          },
+        );
+  
+        if (checkinsertnotecontent) {
+          debugPrint('insert text moi khi edit ghi chu thanh cong');
+        } else {
+          debugPrint('loi insert text moi khi edit ghi chu');
+        }
+      }
+    }
+  
+    for (int i = 0; i < lstdeletecontents.length; i++) {
+      bool checkdel = await ncontentDAL.deleteNoteContentsByID(
+          lstdeletecontents[i].notecontent_id?.toInt() ?? 0, InitDataBase.db);
+      if (checkdel) {
+        debugPrint("Xoa text field hoac img sau khi edit thanh cong");
+      } else {
+        debugPrint("Xoa text field hoac img sau khi edit xay ra loi!!");
+      }
+    }
+  }
 
   Widget buildImageWidget(BuildContext context, int index) {
     Widget imageWidget = Stack(children: [
@@ -643,7 +657,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     return imageWidget;
   }
 
-  final QuillController _quillController = QuillController.basic();
+  //final QuillController _quillController = QuillController.basic();
 
   @override
   Widget build(BuildContext context) {
@@ -677,27 +691,38 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                 if (widget.isEdit && isEditCompleted)
                   IconButton(
                     icon: const Icon(
-                      Icons.check,
+                      Icons.edit,
                     ),
                     onPressed: () {
                       isEditCompleted = false;
-                      // return;
-                      updateNote();
-                      Navigator.pop(context, true);
+                      setState(() {
+                        
+                      });
+                      return;
+
+                      ////UPDATE NOTE TREN CLOUD
+                      ////UPDATE NOTE TREN CLOUD
+                      ////UPDATE NOTE TREN CLOUD
+                      
+                      //updateNote();
+                      //saveNoteToLocal();
+                      
+                      //Navigator.pop(context, true);
+                      
+                    },
+                  )
+                else if (isEditCompleted == false)
+                  IconButton(
+                    icon: const Icon(
+                      Icons.update,
+                    ),
+                    onPressed: () {
+                      updateNoteToLocal();
+                
+                      Navigator.of(context).pop('RELOAD_LIST');
+                      //Navigator.push(context, MaterialPageRoute(builder: (context) => const ToDoPage()));
                     },
                   ),
-                // else if (isEditCompleted == false)
-                //   IconButton(
-                //     icon: const Icon(
-                //       Icons.update,
-                //     ),
-                //     onPressed: () {
-                //       // updateNoteToLocal();
-                //
-                //       Navigator.of(context).pop('RELOAD_LIST');
-                //       //Navigator.push(context, MaterialPageRoute(builder: (context) => const ToDoPage()));
-                //     },
-                //   ),
                 //Icon(null)
                 if (widget.isEdit == false)
                   IconButton(
@@ -705,9 +730,12 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                       Icons.check,
                     ),
                     onPressed: () {
-                      uploadNoteToFB();
-                      // saveNoteToLocal();
-                      Navigator.pop(context, true);
+                      //uploadNoteToFB();
+                      if(widget.email != ""){
+
+                      }
+                      saveNoteToLocal();
+                      Navigator.of(context).pop('RELOAD_LIST');
                     },
                   )
               ],
@@ -911,7 +939,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
               child: BottomAppBar(
                 height: (isEditCompleted == false) || widget.isEdit == false
                     ? 70.0
-                    : 70.0,
+                    : 0.0,
                 color: Color.fromARGB(255, 108, 127, 244),
                 shape: CircularNotchedRectangle(),
                 elevation: _isElevated ? null : 0.0,
@@ -1004,17 +1032,17 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     return pickedFile?.path;
   }
 
-  void _insertImage() async {
-    final imageUrl =
-        await _pickImage(); // Replace this with your image picking logic
-    final index = _quillController.selection.baseOffset;
-    final delta = Delta()..insert('\u200b', {'insert': ' '});
+  // void _insertImage() async {
+  //   final imageUrl =
+  //       await _pickImage(); // Replace this with your image picking logic
+  //   final index = _quillController.selection.baseOffset;
+  //   final delta = Delta()..insert('\u200b', {'insert': ' '});
 
-    final imgTag = '<img src="$imageUrl" alt="image" width="350" height="250" />';
+  //   final imgTag = '<img src="$imageUrl" alt="image" width="350" height="250" />';
 
-    // Insert the img tag into QuillEditor
-    // _quillController.compose(delta..insert(imgTag, {'insert': ' '}));
-  }
+  //   // Insert the img tag into QuillEditor
+  //   // _quillController.compose(delta..insert(imgTag, {'insert': ' '}));
+  // }
 
   void getNoteById(String id) async {
     if (widget.isEdit) {

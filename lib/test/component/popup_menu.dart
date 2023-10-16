@@ -21,14 +21,18 @@ class PopUpMenu{
 
   List<PopupMenuEntry<dynamic>> accountPopupMenu(context){
     List<PopupMenuEntry<dynamic>> items = [
-       PopupMenuItem(child: Text('User name')),
-       PopupMenuItem(child: Text('Info')),
-       PopupMenuItem(child: Text('Log out'), onTap: () {
-         _googleSignIn.signOut();
-         FirebaseAuth.instance.signOut();
-         Navigator.pushNamed(context, RoutePaths.login);
-         Navigator.defaultGenerateInitialRoutes(NavigatorState(), RoutePaths.start);
-      },),
+       const PopupMenuItem(
+        value: "username",
+        child: Text('User name')
+       ),
+       const PopupMenuItem(
+        value: "info",
+        child: Text('Info')
+       ),
+       const PopupMenuItem(
+        value: "logout",
+        child: Text('Log out')
+       ),
 
     ];
     return items;
@@ -36,9 +40,10 @@ class PopUpMenu{
 
   List<PopupMenuEntry<dynamic>> loginPopupMenu(context){
     List<PopupMenuEntry<dynamic>> items = [
-       PopupMenuItem(child: Text('Login'), onTap: () {
-        Navigator.of(context).pushNamed(RoutePaths.login);
-      },),
+       const PopupMenuItem(
+          value: "login",
+          child: Text('Login'),
+      ),
 
     ];
     return items;

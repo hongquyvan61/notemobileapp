@@ -29,8 +29,9 @@ class RouterCustom {
         //SUA NOTEID, USERID O DAY
         return MaterialPageRoute(
             builder: (_) => const NewNoteScreen(
-                  isEdit: false,
                   noteId: '',
+                  isEdit: false,
+                  email: "",
                 ));
 
       case RoutePaths.test:
