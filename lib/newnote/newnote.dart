@@ -42,7 +42,7 @@ class NewNoteScreen extends StatefulWidget {
   final String noteId;
   final bool isEdit;
 
-  final String email;
+  final String? email;
 
   @override
   State<StatefulWidget> createState() {
@@ -703,7 +703,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                       ////UPDATE NOTE TREN CLOUD
                       ////UPDATE NOTE TREN CLOUD
                       
-                      //updateNote();
+                      // updateNote();
                       //saveNoteToLocal();
                       
                       //Navigator.pop(context, true);
@@ -729,9 +729,8 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                       Icons.check,
                     ),
                     onPressed: () {
-                      //uploadNoteToFB();
                       if(widget.email != ""){
-
+                        uploadNoteToFB();
                       }
                       saveNoteToLocal();
                       Navigator.of(context).pop('RELOAD_LIST');
@@ -1025,23 +1024,6 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     // );
   }
 
-  Future<String?> _pickImage() async {
-    final pickedFile =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
-    return pickedFile?.path;
-  }
-
-  // void _insertImage() async {
-  //   final imageUrl =
-  //       await _pickImage(); // Replace this with your image picking logic
-  //   final index = _quillController.selection.baseOffset;
-  //   final delta = Delta()..insert('\u200b', {'insert': ' '});
-
-  //   final imgTag = '<img src="$imageUrl" alt="image" width="350" height="250" />';
-
-  //   // Insert the img tag into QuillEditor
-  //   // _quillController.compose(delta..insert(imgTag, {'insert': ' '}));
-  // }
 
   void getNoteById(String id) async {
     if (widget.isEdit) {

@@ -42,7 +42,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   // FB_Note fb_noteDAL = FB_Note();
   // FB_NoteContent fb_noteContentDAL = FB_NoteContent();
-  String email = '';
+  String? email = FirebaseAuth.instance.currentUser!.email;
 
   late List<NoteModel> listofnote = <NoteModel>[];
   late List<NoteModel> foundedNote = <NoteModel>[];
@@ -454,7 +454,7 @@ class HomeScreenState extends State<HomeScreen> {
                                                                   .toString() ??
                                                               0.toString()),
                                                       isEdit: true,
-                                                      email: "",
+                                                      email: email,
                                                     ),
                                                   ),
                                                 );
@@ -570,7 +570,7 @@ class HomeScreenState extends State<HomeScreen> {
                                                     context,
                                                     MaterialPageRoute(
                                                       builder: (context) => NewNoteScreen(
-                                                          email: "",
+                                                          email: email,
                                                           noteId: isConnected
                                                               ? noteList[index]
                                                                   .noteId
@@ -694,7 +694,7 @@ class HomeScreenState extends State<HomeScreen> {
                               builder: (context) => NewNoteScreen(
                                 noteId: '',
                                 isEdit: false,
-                                email: "",
+                                email: email,
                               ),
                             ),
                           );

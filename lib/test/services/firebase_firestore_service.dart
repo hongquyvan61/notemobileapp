@@ -13,17 +13,7 @@ class FireStorageService {
 
   Future<void> saveContentNotes(NoteContent noteContent) async {
     final idNote = notesCollection.doc(currentUser).collection("note").doc();
-
-    // Tạo reference trong Firebase Storage
-
-    // await idNote.set({
-    //   'content': '',
-    //   'note_id': idNote.id,
-    //   'title': "abc",
-    //   'timestamp': time,
-    // });
     await idNote.set(noteContent.toMap());
-    // await idNote.set({'content': notes}, SetOptions(merge: true));
   }
 
   Future<List<NoteReceive>> getAllNote() async {
