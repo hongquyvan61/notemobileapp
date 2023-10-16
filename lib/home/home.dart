@@ -35,10 +35,11 @@ class HomeScreen extends StatefulWidget {
 
 class HomeScreenState extends State<HomeScreen> {
   final _googleSignIn = GoogleSignIn();
-  
+
   bool loginState = false;
   NoteDAL nDAL = NoteDAL();
   NoteContentDAL noteContentDAL = NoteContentDAL();
+
   // FB_Note fb_noteDAL = FB_Note();
   // FB_NoteContent fb_noteContentDAL = FB_NoteContent();
   String email = '';
@@ -77,7 +78,7 @@ class HomeScreenState extends State<HomeScreen> {
     AssignSubscription();
     InitiateListOfNote();
     refreshNoteList();
-    //checkLogin();
+    checkLogin();
   }
 
   @override
@@ -111,7 +112,8 @@ class HomeScreenState extends State<HomeScreen> {
 
         // fb_listofimglink = await FB_generateTitleImage(fb_listofnote);
       } else {
-        listofnote = await nDAL.getAllNotesByUserID(-1, InitDataBase.db).catchError(
+        listofnote =
+            await nDAL.getAllNotesByUserID(-1, InitDataBase.db).catchError(
           (Object e, StackTrace stackTrace) {
             debugPrint(e.toString());
           },
@@ -129,7 +131,7 @@ class HomeScreenState extends State<HomeScreen> {
         status: "Đang load danh sách ghi chú...",
         maskType: EasyLoadingMaskType.none,
       );
-    
+
       //SUA USERID O DAY
       //SUA USERID O DAY
       //SUA USERID O DAY
@@ -139,15 +141,15 @@ class HomeScreenState extends State<HomeScreen> {
           debugPrint(e.toString());
         },
       );
-    
+
       foundedNote = listofnote;
-    
+
       listofTitleImage = await generateListTitleImage(listofnote);
-      
+
       ////REFRESH NOTE LIST FROM CLOUD
       ////REFRESH NOTE LIST FROM CLOUD
       ////REFRESH NOTE LIST FROM CLOUD
-      if(isConnected){
+      if (isConnected) {
         refreshNoteList();
       }
       setState(() {});
@@ -284,8 +286,6 @@ class HomeScreenState extends State<HomeScreen> {
     return listofTitleImage[index].path == '' ? 5 : 1;
   }
 
-  
-
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -316,14 +316,14 @@ class HomeScreenState extends State<HomeScreen> {
               ),
               PopupMenuButton(
                   onSelected: (value) {
-                    if(value == "login"){
-                       Navigator.pushNamed(context, RoutePaths.login);
+                    if (value == "login") {
+                      Navigator.pushNamed(context, RoutePaths.login);
                     }
-                    if(value == "logout"){
+                    if (value == "logout") {
                       _googleSignIn.signOut();
                       FirebaseAuth.instance.signOut();
+                      setState(() {});
                       Navigator.pushNamed(context, RoutePaths.login);
-                      Navigator.defaultGenerateInitialRoutes(NavigatorState(), RoutePaths.start);
                     }
                   },
                   shape: const RoundedRectangleBorder(
@@ -335,8 +335,7 @@ class HomeScreenState extends State<HomeScreen> {
                   ),
                   itemBuilder: (context) => loginState
                       ? PopUpMenu().accountPopupMenu(context)
-                      : PopUpMenu().loginPopupMenu(context)
-              )
+                      : PopUpMenu().loginPopupMenu(context))
             ],
           ),
 
@@ -394,241 +393,287 @@ class HomeScreenState extends State<HomeScreen> {
                         height: 13,
                       ),
                       Expanded(
-                        child:
-                        listState == true ?
-                            RefreshIndicator(
-                          onRefresh:() async {
-                            if(isConnected){
-                              refreshNoteList();
-                            }
-                            else{
-                              reloadNoteListAtLocal("RELOAD_LIST");
-                            }
-                          },
-                          child: ListView.separated(
-                            separatorBuilder:(
-                              BuildContext context, int index) => const Divider(height: 15),
-                            itemCount: isConnected ? noteList.length : foundedNote.length ,
-                            itemBuilder: (BuildContext context, int index) {
-                              return Container(
-                                  padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                                  decoration: BoxDecoration(
-                                    color: Color.fromARGB(255, 212, 253, 244),
-                                    //color: Color.fromARGB(255, 255, 255, 255),
-                                    //border: Border.all(width: 0.5, color: Colors.grey),
-                                    borderRadius: BorderRadius.circular(10.0),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.grey.withOpacity(0.2),
-                                        spreadRadius: 5,
-                                        blurRadius: 7,
-                                        offset: Offset(25,
-                                            10), // changes position of shadow
-                                      ),
-                                    ],
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      ListTile(
-                                        ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
-                                        ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
-                                        ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
-                                        onTap: () async {
-                                          final resultFromNewNote =
-                                              await Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  NewNoteScreen(
-                                                      noteId: isConnected ? noteList[index].noteId : (foundedNote[index].note_id?.toInt().toString() ?? 0.toString()),
-                                                      
+                        child: listState == true
+                            ? RefreshIndicator(
+                                onRefresh: () async {
+                                  if (isConnected) {
+                                    refreshNoteList();
+                                  } else {
+                                    reloadNoteListAtLocal("RELOAD_LIST");
+                                  }
+                                },
+                                child: ListView.separated(
+                                  separatorBuilder:
+                                      (BuildContext context, int index) =>
+                                          const Divider(height: 15),
+                                  itemCount: isConnected
+                                      ? noteList.length
+                                      : foundedNote.length,
+                                  itemBuilder:
+                                      (BuildContext context, int index) {
+                                    return Container(
+                                        padding:
+                                            EdgeInsets.fromLTRB(10, 0, 10, 0),
+                                        decoration: BoxDecoration(
+                                          color: Color.fromARGB(
+                                              255, 212, 253, 244),
+                                          //color: Color.fromARGB(255, 255, 255, 255),
+                                          //border: Border.all(width: 0.5, color: Colors.grey),
+                                          borderRadius:
+                                              BorderRadius.circular(10.0),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color:
+                                                  Colors.grey.withOpacity(0.2),
+                                              spreadRadius: 5,
+                                              blurRadius: 7,
+                                              offset: Offset(25,
+                                                  10), // changes position of shadow
+                                            ),
+                                          ],
+                                        ),
+                                        child: Column(
+                                          children: [
+                                            ListTile(
+                                              ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
+                                              ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
+                                              ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
+                                              onTap: () async {
+                                                final resultFromNewNote =
+                                                    await Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        NewNoteScreen(
+                                                      noteId: isConnected
+                                                          ? noteList[index]
+                                                              .noteId
+                                                          : (foundedNote[index]
+                                                                  .note_id
+                                                                  ?.toInt()
+                                                                  .toString() ??
+                                                              0.toString()),
                                                       isEdit: true,
                                                       email: "",
+                                                    ),
                                                   ),
-                                            ),
-                                          );
-                                          reloadNoteListAtLocal(resultFromNewNote);
-                                        },
-                                        leading: const CircleAvatar(
-                                          backgroundColor:
-                                              Color.fromARGB(255, 97, 115, 239),
-                                          minRadius: 10,
-                                          maxRadius: 17,
-                                          child: Icon(
-                                            Icons.turned_in_not_outlined,
-                                            color: Colors.white,
-                                            size: 20,
-                                          ),
-                                        ),
-                                        title: Text(
-                                          isConnected ? noteList[index].title : foundedNote[index].title,
-                                          style: const TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold),
-                                          overflow: TextOverflow.ellipsis,
-                                          maxLines: 1,
-                                        ),
-                                        subtitle: Text(
-                                          isConnected ? noteList[index].timeStamp : foundedNote[index].date_created,
-                                          style: const TextStyle(
-                                              fontSize: 12, color: Colors.grey),
-                                        ),
-                                      ),
-                                      Container(
-                                        margin: const EdgeInsets.fromLTRB(
-                                            3, 0, 3, 0),
-                                        child: ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(8.0),
-                                            child:
-                                                displayImagefromFBOrLocal_list(index)),
-                                      ),
-                                      Container(
-                                        margin: const EdgeInsets.all(10),
-                                        alignment: Alignment.centerLeft,
-                                        child: Text(
-                                          isConnected ? noteList[index].content[0]['text'] : listofBriefContent[index],
-                                          style: const TextStyle(fontSize: 12),
-                                          overflow: TextOverflow.ellipsis,
-                                          maxLines: 2,
-                                        ),
-                                      )
-                                    ],
-                                  ));
-                            },
-                          ),
-                        )
-                          : RefreshIndicator(
-                            onRefresh: () async {
-                               if(isConnected){
-                                  refreshNoteList();
-                                }
-                                else{
-                                  reloadNoteListAtLocal("RELOAD_LIST");
-                                }
-                            },
-                            child: GridView.builder(
-                              itemCount: isConnected ? noteList.length : foundedNote.length,
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 2,
-                                      crossAxisSpacing: 4.0,
-                                      mainAxisSpacing: 10.0),
-                              itemBuilder: (context, index) {
-                                return Container(
-                                    decoration: BoxDecoration(
-                                      color:
-                                          Color.fromARGB(255, 212, 253, 244),
-                                      //border: Border.all(width: 0.5, color: Colors.grey),
-                                      borderRadius:
-                                          BorderRadius.circular(10.0),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.grey.withOpacity(0.2),
-                                          spreadRadius: 3,
-                                          blurRadius: 7,
-                                          offset: Offset(15,
-                                              10), // changes position of shadow
-                                        ),
-                                      ],
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        Expanded(
-                                          flex: 2,
-                                          child: ListTile(
-                                            onTap: () async {
-                                              final resultfromNewNote =
-                                                  await Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) => NewNoteScreen(
-                                                      email: "",
-                                                      noteId: isConnected ? noteList[index].noteId : (foundedNote[index].note_id?.toInt().toString() ?? 0.toString()),
-                                                      isEdit: true
-                                                  ),
+                                                );
+                                                reloadNoteListAtLocal(
+                                                    resultFromNewNote);
+                                              },
+                                              leading: const CircleAvatar(
+                                                backgroundColor: Color.fromARGB(
+                                                    255, 97, 115, 239),
+                                                minRadius: 10,
+                                                maxRadius: 17,
+                                                child: Icon(
+                                                  Icons.turned_in_not_outlined,
+                                                  color: Colors.white,
+                                                  size: 20,
                                                 ),
-                                              );
-                                              reloadNoteListAtLocal(resultfromNewNote);
-                                            },
-                                            title: Text(
-                                              isConnected
-                                                  ? noteList[index].title
-                                                  : foundedNote[index].title,
-                                              style: TextStyle(
-                                                  fontSize: 13,
-                                                  fontWeight:
-                                                      FontWeight.bold),
-                                              overflow: TextOverflow.ellipsis,
-                                              maxLines: 1,
-                                            ),
-                                            // subtitle: Text(
-                                            //   foundedNote[index].date_created,
-                                            //   style: const TextStyle(
-                                            //       fontSize: 11, color: Colors.grey),
-                                            // ),
-                                            trailing: const CircleAvatar(
-                                              backgroundColor: Color.fromARGB(
-                                                  255, 97, 115, 239),
-                                              child: Icon(
-                                                Icons.turned_in_not_outlined,
-                                                color: Colors.white,
-                                                size: 20,
                                               ),
-                                              minRadius: 10,
-                                              maxRadius: 17,
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          height: 10,
-                                        ),
-                                        Expanded(
-                                          flex: settingimgflex(index),
-                                          child: ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(8.0),
-                                              child: displayImagefromFBOrLocal_grid(index)
-                                          ),
-                                        ),
-                                        Expanded(
-                                          flex:
-                                              settingBriefContentflex(index),
-                                          child: Container(
-                                            margin: EdgeInsets.only(
-                                                left: 10, top: 5, right: 10),
-                                            alignment: Alignment.topLeft,
-                                            child: Text(
-                                              listofBriefContent[index],
-                                              style: const TextStyle(
-                                                  fontSize: 11),
-                                              overflow: TextOverflow.ellipsis,
-                                              maxLines:
-                                                  settingBriefContentMaxLines(
-                                                      index),
-                                            ),
-                                          ),
-                                        ),
-                                        Expanded(
-                                            flex: 1,
-                                            child: Container(
-                                              alignment:
-                                                  Alignment.centerRight,
-                                              padding: const EdgeInsets.only(
-                                                  right: 10),
-                                              child: Text(
-                                                foundedNote[index].date_created,
+                                              title: Text(
+                                                isConnected
+                                                    ? noteList[index].title
+                                                    : foundedNote[index].title,
                                                 style: const TextStyle(
-                                                    fontSize: 11,
+                                                    fontSize: 18,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 1,
+                                              ),
+                                              subtitle: Text(
+                                                isConnected
+                                                    ? noteList[index].timeStamp
+                                                    : foundedNote[index]
+                                                        .date_created,
+                                                style: const TextStyle(
+                                                    fontSize: 12,
                                                     color: Colors.grey),
                                               ),
-                                            ))
-                                      ],
-                                    ));
-                              },
-                            ),
-                          ),
-                        
+                                            ),
+                                            Container(
+                                              margin: const EdgeInsets.fromLTRB(
+                                                  3, 0, 3, 0),
+                                              child: ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          8.0),
+                                                  child:
+                                                      displayImagefromFBOrLocal_list(
+                                                          index)),
+                                            ),
+                                            Container(
+                                              margin: const EdgeInsets.all(10),
+                                              alignment: Alignment.centerLeft,
+                                              child: Text(
+                                                isConnected
+                                                    ? noteList[index].content[0]
+                                                        ['text']
+                                                    : listofBriefContent[index],
+                                                style: const TextStyle(
+                                                    fontSize: 12),
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 2,
+                                              ),
+                                            )
+                                          ],
+                                        ));
+                                  },
+                                ),
+                              )
+                            : RefreshIndicator(
+                                onRefresh: () async {
+                                  if (isConnected) {
+                                    refreshNoteList();
+                                  } else {
+                                    reloadNoteListAtLocal("RELOAD_LIST");
+                                  }
+                                },
+                                child: GridView.builder(
+                                  itemCount: isConnected
+                                      ? noteList.length
+                                      : foundedNote.length,
+                                  gridDelegate:
+                                      const SliverGridDelegateWithFixedCrossAxisCount(
+                                          crossAxisCount: 2,
+                                          crossAxisSpacing: 4.0,
+                                          mainAxisSpacing: 10.0),
+                                  itemBuilder: (context, index) {
+                                    return Container(
+                                        decoration: BoxDecoration(
+                                          color: Color.fromARGB(
+                                              255, 212, 253, 244),
+                                          //border: Border.all(width: 0.5, color: Colors.grey),
+                                          borderRadius:
+                                              BorderRadius.circular(10.0),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color:
+                                                  Colors.grey.withOpacity(0.2),
+                                              spreadRadius: 3,
+                                              blurRadius: 7,
+                                              offset: Offset(15,
+                                                  10), // changes position of shadow
+                                            ),
+                                          ],
+                                        ),
+                                        child: Column(
+                                          children: [
+                                            Expanded(
+                                              flex: 2,
+                                              child: ListTile(
+                                                onTap: () async {
+                                                  final resultfromNewNote =
+                                                      await Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) => NewNoteScreen(
+                                                          email: "",
+                                                          noteId: isConnected
+                                                              ? noteList[index]
+                                                                  .noteId
+                                                              : (foundedNote[
+                                                                          index]
+                                                                      .note_id
+                                                                      ?.toInt()
+                                                                      .toString() ??
+                                                                  0.toString()),
+                                                          isEdit: true),
+                                                    ),
+                                                  );
+                                                  reloadNoteListAtLocal(
+                                                      resultfromNewNote);
+                                                },
+                                                title: Text(
+                                                  isConnected
+                                                      ? noteList[index].title
+                                                      : foundedNote[index]
+                                                          .title,
+                                                  style: TextStyle(
+                                                      fontSize: 13,
+                                                      fontWeight:
+                                                          FontWeight.bold),
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  maxLines: 1,
+                                                ),
+                                                // subtitle: Text(
+                                                //   foundedNote[index].date_created,
+                                                //   style: const TextStyle(
+                                                //       fontSize: 11, color: Colors.grey),
+                                                // ),
+                                                trailing: const CircleAvatar(
+                                                  backgroundColor:
+                                                      Color.fromARGB(
+                                                          255, 97, 115, 239),
+                                                  child: Icon(
+                                                    Icons
+                                                        .turned_in_not_outlined,
+                                                    color: Colors.white,
+                                                    size: 20,
+                                                  ),
+                                                  minRadius: 10,
+                                                  maxRadius: 17,
+                                                ),
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              height: 10,
+                                            ),
+                                            Expanded(
+                                              flex: settingimgflex(index),
+                                              child: ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          8.0),
+                                                  child:
+                                                      displayImagefromFBOrLocal_grid(
+                                                          index)),
+                                            ),
+                                            Expanded(
+                                              flex: settingBriefContentflex(
+                                                  index),
+                                              child: Container(
+                                                margin: EdgeInsets.only(
+                                                    left: 10,
+                                                    top: 5,
+                                                    right: 10),
+                                                alignment: Alignment.topLeft,
+                                                child: Text(
+                                                  listofBriefContent[index],
+                                                  style: const TextStyle(
+                                                      fontSize: 11),
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  maxLines:
+                                                      settingBriefContentMaxLines(
+                                                          index),
+                                                ),
+                                              ),
+                                            ),
+                                            Expanded(
+                                                flex: 1,
+                                                child: Container(
+                                                  alignment:
+                                                      Alignment.centerRight,
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          right: 10),
+                                                  child: Text(
+                                                    foundedNote[index]
+                                                        .date_created,
+                                                    style: const TextStyle(
+                                                        fontSize: 11,
+                                                        color: Colors.grey),
+                                                  ),
+                                                ))
+                                          ],
+                                        ));
+                                  },
+                                ),
+                              ),
                       ),
                     ]),
                   ),
@@ -647,14 +692,13 @@ class HomeScreenState extends State<HomeScreen> {
                             MaterialPageRoute(
                               // ignore: prefer_const_constructors
                               builder: (context) => NewNoteScreen(
-                                  noteId: '',
-                                  isEdit: false,
-                                  email: "",
+                                noteId: '',
+                                isEdit: false,
+                                email: "",
                               ),
                             ),
                           );
                           reloadNoteListAtLocal(resultFromNewNote);
-
                         },
                         style: ElevatedButton.styleFrom(
                             shape: const StadiumBorder(),
@@ -672,16 +716,12 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  checkLogin() async {
+  checkLogin() {
     FirebaseAuth.instance.authStateChanges().listen((User? user) {
       if (user != null) {
-        setState(() {
-          loginState = true;
-        });
+        loginState = true;
       } else {
-        setState(() {
-          loginState = false;
-        });
+        loginState = false;
       }
     });
   }
@@ -689,19 +729,18 @@ class HomeScreenState extends State<HomeScreen> {
   Future<void> refreshNoteList() async {
     List<dynamic> listcontents = [];
     noteList = await FireStorageService().getAllNote().whenComplete(() {
-      for(int i = 0; i < noteList.length; i++){
+      for (int i = 0; i < noteList.length; i++) {
         listcontents.add(noteList[i].content);
       }
 
-      if(listcontents.isNotEmpty){
+      if (listcontents.isNotEmpty) {
         for (var element in listcontents) {
           Map<String, dynamic> temp = element;
           if (temp.containsKey('image')) {
             listofimglink_cloud.add(temp['image']);
-          } 
+          }
         }
       }
     });
-    
   }
 }

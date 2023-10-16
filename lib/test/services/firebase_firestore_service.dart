@@ -30,7 +30,6 @@ class FireStorageService {
 
     List<NoteReceive> notes = [];
     final noteCollection = notesCollection.doc(currentUser).collection("note");
-    NoteReceive note = NoteReceive();
     await noteCollection.get().then((value) {
       for (var docSnapshot in value.docs) {
         notes.add(NoteReceive.withValue(
