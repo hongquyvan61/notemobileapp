@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
+import '../../router.dart';
+import '../component/toast.dart';
 import '../services/auth.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -196,7 +198,15 @@ class _SignUpPageState extends State<SignUpPage> {
 
     if (password.endsWith(retypePassword)) {
       // String returnstr =
-          await Auth().registerWithEmailPassword(context, email, password);
+      await Auth()
+          .registerWithEmailPassword(context, email, password)
+          .then((value) {
+        ToastComponent()
+            .showToast('Đăng ký thành công. Vui lòng xác nhận email');
+        Navigator.of(context).pushNamedAndRemoveUntil(
+            RoutePaths.verifyEmail, (Route<dynamic> route) => false);
+      });
+      ;
       // if (returnstr == "Successful") {
       //   Navigator.of(context).pushReplacement(
       //       MaterialPageRoute(builder: (context) => const AuthPage()));
@@ -207,10 +217,5 @@ class _SignUpPageState extends State<SignUpPage> {
       showToast("passwords do not match");
     }
 
-    Future.delayed(const Duration(seconds: 2), () {
-      setState(() {
-        _loading = false;
-      });
-    });
   }
 }

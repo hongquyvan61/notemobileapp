@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:notemobileapp/test/model/note_content.dart';
 import 'package:notemobileapp/test/model/note_receive.dart';
 
@@ -18,6 +19,7 @@ class FireStorageService {
   Future<void> saveContentNotes(NoteContent noteContent) async {
     final idNote = notesCollection.doc(currentUser).collection("note").doc();
     await idNote.set(noteContent.toMap());
+    debugPrint('Insert count');
   }
 
   Future<void> saveTags(Tag tag) async{

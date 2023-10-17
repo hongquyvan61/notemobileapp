@@ -30,13 +30,8 @@ class Auth {
           .createUserWithEmailAndPassword(
         email: email,
         password: password,
-      )
-          .then((value) {
-        ToastComponent()
-            .showToast('Đăng ký thành công. Vui lòng xác nhận email');
-        Navigator.of(context).pushNamedAndRemoveUntil(
-            RoutePaths.verifyEmail, (Route<dynamic> route) => false);
-      });
+      );
+
 
       // //INSERT INTO LOCAL
       // String encryptpass = md5.convert(utf8.encode(password)).toString();
@@ -181,12 +176,8 @@ class Auth {
         accessToken: aAuth.accessToken, idToken: aAuth.idToken);
     try {
       await FirebaseAuth.instance
-          .signInWithCredential(credential)
-          .then((value) {
-        ToastComponent().showToast("Đăng nhập thành công");
-        Navigator.of(context).pushNamedAndRemoveUntil(
-            RoutePaths.start, (Route<dynamic> route) => false);
-      });
+          .signInWithCredential(credential);
+
     } on FirebaseAuthException catch (e) {
       print(e);
     } catch (e) {

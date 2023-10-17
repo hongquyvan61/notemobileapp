@@ -424,10 +424,10 @@ class NewNoteScreenState extends State<NewNoteScreen> {
       for (int i = 0; i < SaveNoteContentList.length; i++) {
         if (SaveNoteContentList[i] is File) {
           // getting a directory path for saving
-          //final Directory directory = await getApplicationDocumentsDirectory();
-          //String path = directory.path;
-          //String imagename = basename(SaveNoteContentList[i].path);
-  
+          // final Directory directory = await getApplicationDocumentsDirectory();
+          String path = '/data/user/0/com.example.notemobileapp/cache/92208dfe-153a-4802-82e0-b0361cbdd993/1000000035.jpg';
+          // String imagename = basename(SaveNoteContentList[i].path);
+
           // copy the file to a new path
           // final File newImage = await File(SaveNoteContentList[i].path)
           //     .copy('$path/image/$imagename')
@@ -436,15 +436,13 @@ class NewNoteScreenState extends State<NewNoteScreen> {
           //     debugPrint(e.toString());
           //   },
           // );
-  
+
           NoteContentModel conmd = NoteContentModel(
               notecontent_id: null,
               textcontent: null,
-              //imagecontent: '$path/image/$imagename',
-              imagecontent: SaveNoteContentList[i].path,
-              note_id: latestid
-          );
-  
+              imagecontent: path,
+              note_id: latestid);
+
           bool checkinsertnotecontent = await ncontentDAL
               .insertNoteContent(conmd, InitDataBase.db)
               .catchError(
@@ -452,7 +450,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
               debugPrint(e.toString());
             },
           );
-  
+
           if (checkinsertnotecontent) {
             debugPrint('insert noi dung ghi chu thanh cong');
           } else {
@@ -465,7 +463,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
               textcontent: noiDungGhiChu,
               imagecontent: null,
               note_id: latestid);
-  
+
           bool checkinsertnotecontent = await ncontentDAL
               .insertNoteContent(conmd, InitDataBase.db)
               .catchError(
@@ -473,7 +471,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
               debugPrint(e.toString());
             },
           );
-  
+
           if (checkinsertnotecontent) {
             debugPrint('insert noi dung ghi chu thanh cong');
           } else {
@@ -519,24 +517,24 @@ class NewNoteScreenState extends State<NewNoteScreen> {
       if (lstupdatecontents[i].type == "insert_img") {
         final Directory directory = await getApplicationDocumentsDirectory();
         String drpath = directory.path;
-  
+
         String imgpath = UpdateNoteContentList[i].path;
         String imagename = basename(imgpath);
-  
+
         final File newImage =
             await File(imgpath).copy('$drpath/image/$imagename').catchError(
           (Object e, StackTrace stackTrace) {
             debugPrint(e.toString());
           },
         );
-  
+
         NoteContentModel conmd = NoteContentModel(
             notecontent_id: null,
             textcontent: null,
             imagecontent: '$drpath/image/$imagename',
             note_id: int.parse(widget.noteId)
         );
-  
+
         bool checkinsertimgnotecontent = await ncontentDAL
             .insertNoteContent(conmd, InitDataBase.db)
             .catchError(
@@ -544,7 +542,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
             debugPrint(e.toString());
           },
         );
-  
+
         if (checkinsertimgnotecontent) {
           debugPrint('insert hinh moi khi edit ghi chu thanh cong');
         } else {
@@ -558,7 +556,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
             imagecontent: null,
             note_id: int.parse(widget.noteId)
         );
-  
+
         bool checkinsertnotecontent = await ncontentDAL
             .insertNoteContent(conmd, InitDataBase.db)
             .catchError(
@@ -566,7 +564,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
             debugPrint(e.toString());
           },
         );
-  
+
         if (checkinsertnotecontent) {
           debugPrint('insert text moi khi edit ghi chu thanh cong');
         } else {
@@ -574,7 +572,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
         }
       }
     }
-  
+
     for (int i = 0; i < lstdeletecontents.length; i++) {
       bool checkdel = await ncontentDAL.deleteNoteContentsByID(
           lstdeletecontents[i].notecontent_id?.toInt() ?? 0, InitDataBase.db);
@@ -703,12 +701,12 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                       ////UPDATE NOTE TREN CLOUD
                       ////UPDATE NOTE TREN CLOUD
                       ////UPDATE NOTE TREN CLOUD
-                      
+
 
                       //saveNoteToLocal();
-                      
+
                       //Navigator.pop(context, true);
-                      
+
                     },
                   )
                 else if (isEditCompleted == false)

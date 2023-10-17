@@ -4,6 +4,7 @@ import 'package:notemobileapp/router.dart';
 
 import 'package:notemobileapp/test/page/dialog.dart';
 
+import '../component/toast.dart';
 import '../services/auth.dart';
 
 class AuthPage extends StatefulWidget {
@@ -147,7 +148,11 @@ class _AuthPageState extends State<AuthPage> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
-                    Auth().signInWithGoogle(context);
+                    Auth().signInWithGoogle(context).then((value) {
+                      ToastComponent().showToast("Đăng nhập thành công");
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                          RoutePaths.start, (Route<dynamic> route) => false);
+                    });;
                   },
                   style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
