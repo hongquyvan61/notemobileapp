@@ -39,7 +39,9 @@ class FireStorageService {
             docSnapshot.get('content'),
             docSnapshot.id,
             docSnapshot.get('timestamp'),
-            docSnapshot.get('title')));
+            docSnapshot.get('title'),
+            docSnapshot.get('tagname')
+        ));
       }
     });
 

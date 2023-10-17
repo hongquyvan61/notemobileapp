@@ -3,9 +3,10 @@ class NoteReceive{
   late String _noteId;
   late String _timeStamp;
   late String _title;
+  late String _tagname;
 
 
-  NoteReceive.withValue(this._content, this._noteId, this._timeStamp, this._title);
+  NoteReceive.withValue(this._content, this._noteId, this._timeStamp, this._title, this._tagname);
   NoteReceive();
 
   String get title => _title;
@@ -24,6 +25,12 @@ class NoteReceive{
 
   set noteId(String value) {
     _noteId = value;
+  }
+
+  String get tagname => _tagname;
+
+  set tagname(String value) {
+    _tagname = value;
   }
 
   List<dynamic> get content => _content;

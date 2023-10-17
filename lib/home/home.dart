@@ -8,7 +8,6 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:notemobileapp/DAL/FB_DAL.dart/FB_Note.dart';
 import 'package:notemobileapp/DAL/FB_DAL.dart/FB_NoteContent.dart';
 import 'package:notemobileapp/DAL/NoteContentDAL.dart';
@@ -24,6 +23,7 @@ import 'package:notemobileapp/test/services/firebase_firestore_service.dart';
 import '../model/SqliteModel/NoteModel.dart';
 import '../test/component/side_menu.dart';
 import '../test/model/note_receive.dart';
+import '../test/services/internet_connection.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -64,6 +64,9 @@ class HomeScreenState extends State<HomeScreen> {
   bool listState = true;
   late StreamSubscription subscription;
 
+  Map _source = {ConnectivityResult.none: false};
+  final NetworkConnectivity _networkConnectivity = NetworkConnectivity.instance;
+
   @override
   void initState() {
     super.initState();
@@ -76,36 +79,46 @@ class HomeScreenState extends State<HomeScreen> {
       ..indicatorType = EasyLoadingIndicatorType.chasingDots
       ..loadingStyle = EasyLoadingStyle.dark;
 
-    AssignSubscription();
+    CheckInternetConnection();
     InitiateListOfNote();
-    //refreshNoteList();
-
     checkLogin();
   }
 
   @override
   void dispose() {
+    _networkConnectivity.disposeStream();
     super.dispose();
-    subscription.cancel();
   }
 
-  AssignSubscription() {
-    subscription =
-        Connectivity().onConnectivityChanged.listen(ConnectionListener);
+  void CheckInternetConnection(){
+    _networkConnectivity.initialise();
+    _networkConnectivity.myStream.listen((source) {
+      _source = source;
+      // 1.
+      switch (_source.keys.toList()[0]) {
+        case ConnectivityResult.mobile:
+          isConnected = _source.values.toList()[0] ? true : false ;
+          break;
+        case ConnectivityResult.wifi:
+          isConnected = _source.values.toList()[0] ? true : false ;
+          break;
+        case ConnectivityResult.none:
+        default:
+          isConnected = false;
+      }
+
+      setState(() {
+        
+      });
+    });
   }
 
-  void ConnectionListener(ConnectivityResult result) async {
-    // if (result != ConnectivityResult.none) {
-    //   isOffline = await InternetConnectionChecker().hasConnection;
-    // }
-  }
 
   InitiateListOfNote() async {
-    final connectedRef = FirebaseDatabase.instance.ref(".info/connected");
-    connectedRef.onValue.listen((event) async {
-      isConnected = event.snapshot.value as bool? ?? false;
+    
 
       if (isConnected) {
+        
         debugPrint("Co mang ne!!");
         listofnote.clear();
         listofTitleImage.clear();
@@ -113,12 +126,18 @@ class HomeScreenState extends State<HomeScreen> {
         listofBriefContent.clear();
 
         email = FirebaseAuth.instance.currentUser!.email;
+        refreshNoteListFromCloud();
+
         // fb_listofnote = await fb_noteDAL.FB_getAllNoteByUid(email);
 
         // fb_listofimglink = await FB_generateTitleImage(fb_listofnote);
       } else {
-        listofnote =
-            await nDAL.getAllNotesByUserID(-1, InitDataBase.db).catchError(
+        debugPrint("Khong co mang!!!!");
+        noteList.clear();
+        listofimglink_cloud.clear();
+        listofBriefContent_cloud.clear();
+
+        listofnote = await nDAL.getAllNotesByUserID(-1, InitDataBase.db).catchError(
           (Object e, StackTrace stackTrace) {
             debugPrint(e.toString());
           },
@@ -128,7 +147,6 @@ class HomeScreenState extends State<HomeScreen> {
         email = "";
         setState(() {});
       }
-    });
   }
 
   void reloadNoteListAtLocal(Object? result) async {
@@ -155,9 +173,9 @@ class HomeScreenState extends State<HomeScreen> {
       ////REFRESH NOTE LIST FROM CLOUD
       ////REFRESH NOTE LIST FROM CLOUD
       ////REFRESH NOTE LIST FROM CLOUD
-      if (isConnected) {
-        refreshNoteList();
-      }
+      // if (isConnected) {
+      //   refreshNoteList();
+      // }
       setState(() {});
       await EasyLoading.dismiss();
     } else {
@@ -229,17 +247,15 @@ class HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
-  Widget? displayImagefromFBOrLocal_list(int index) {
-    // if (isConnected) {
-    //   return (fb_listofimglink[index]) == ''
-    //       ? null
-    //       : Image.network(
-    //           fb_listofimglink[index],
-    //           width: 290,
-    //           height: 200,
-    //           fit: BoxFit.cover,
-    //         );
-    // }
+  Widget? displayImagefromCloudOrLocal_list(int index) {
+    if (isConnected) {
+      return Image.network(
+              listofimglink_cloud[index],
+              width: 290,
+              height: 200,
+              fit: BoxFit.cover,
+            );
+    }
     return (listofTitleImage[index]).path == ''
         ? null
         : Image.file(
@@ -250,17 +266,15 @@ class HomeScreenState extends State<HomeScreen> {
           );
   }
 
-  Widget? displayImagefromFBOrLocal_grid(int index) {
-    // if (isConnected) {
-    //   return (fb_listofimglink[index]) == ''
-    //       ? null
-    //       : Image.network(
-    //           fb_listofimglink[index],
-    //           width: 140,
-    //           height: 60,
-    //           fit: BoxFit.cover,
-    //         );
-    // }
+  Widget? displayImagefromCloudOrLocal_grid(int index) {
+    if (isConnected) {
+      return Image.network(
+              listofimglink_cloud[index],
+              width: 140,
+              height: 60,
+              fit: BoxFit.cover,
+            );
+    }
     return (listofTitleImage[index]).path == ''
         ? null
         : Image.file(
@@ -272,23 +286,23 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   int settingimgflex(int index) {
-    // if (isConnected) {
-    //   return fb_listofimglink[index] == '' ? 0 : 3;
-    // }
+    if (isConnected) {
+      return listofimglink_cloud[index] == '' ? 0 : 3;
+    }
     return listofTitleImage[index].path == '' ? 0 : 3;
   }
 
   int settingBriefContentflex(int index) {
-    // if (isConnected) {
-    //   return noteList[index].content[0] == '' ? 4 : 1;
-    // }
+    if (isConnected) {
+      return listofBriefContent_cloud[index] == '' ? 4 : 1;
+    }
     return listofTitleImage[index].path == '' ? 4 : 1;
   }
 
   int settingBriefContentMaxLines(int index) {
-    // if (isConnected) {
-    //   return noteList[index].content[0] == '' ? 5 : 1;
-    // }
+    if (isConnected) {
+      return listofBriefContent_cloud[index] == '' ? 5 : 1;
+    }
     return listofTitleImage[index].path == '' ? 5 : 1;
   }
 
@@ -406,7 +420,7 @@ class HomeScreenState extends State<HomeScreen> {
                             ? RefreshIndicator(
                                 onRefresh: () async {
                                   if (isConnected) {
-                                    refreshNoteList();
+                                    refreshNoteListFromCloud();
                                   } else {
                                     reloadNoteListAtLocal("RELOAD_LIST");
                                   }
@@ -455,20 +469,19 @@ class HomeScreenState extends State<HomeScreen> {
                                                     builder: (context) =>
                                                         NewNoteScreen(
                                                       noteId: isConnected
-                                                          ? noteList[index]
-                                                              .noteId
-                                                          : (foundedNote[index]
-                                                                  .note_id
-                                                                  ?.toInt()
-                                                                  .toString() ??
-                                                              0.toString()),
+                                                          ? noteList[index].noteId
+                                                          : (foundedNote[index].note_id?.toInt().toString() ?? 0.toString()),
                                                       isEdit: true,
-                                                      email: email,
+                                                      email: isConnected ? email : "",
                                                     ),
                                                   ),
                                                 );
-                                                reloadNoteListAtLocal(
-                                                    resultFromNewNote);
+                                                if(isConnected){
+
+                                                }
+                                                else{
+                                                  reloadNoteListAtLocal(resultFromNewNote);
+                                                }
                                               },
                                               leading: const CircleAvatar(
                                                 backgroundColor: Color.fromARGB(
@@ -483,7 +496,7 @@ class HomeScreenState extends State<HomeScreen> {
                                               ),
                                               title: Text(
                                                 isConnected
-                                                    ? noteList[index].title
+                                                    ? "hihi" //noteList[index].title 
                                                     : foundedNote[index].title,
                                                 style: const TextStyle(
                                                     fontSize: 18,
@@ -510,8 +523,7 @@ class HomeScreenState extends State<HomeScreen> {
                                                       BorderRadius.circular(
                                                           8.0),
                                                   child:
-                                                      displayImagefromFBOrLocal_list(
-                                                          index)),
+                                                      displayImagefromCloudOrLocal_list(index)),
                                             ),
                                             Container(
                                               margin: const EdgeInsets.all(10),
@@ -535,7 +547,7 @@ class HomeScreenState extends State<HomeScreen> {
                             : RefreshIndicator(
                                 onRefresh: () async {
                                   if (isConnected) {
-                                    refreshNoteList();
+                                    refreshNoteListFromCloud();
                                   } else {
                                     reloadNoteListAtLocal("RELOAD_LIST");
                                   }
@@ -579,7 +591,7 @@ class HomeScreenState extends State<HomeScreen> {
                                                     context,
                                                     MaterialPageRoute(
                                                       builder: (context) => NewNoteScreen(
-                                                          email: email,
+                                                          email: isConnected ? email : "",
                                                           noteId: isConnected
                                                               ? noteList[index]
                                                                   .noteId
@@ -592,8 +604,13 @@ class HomeScreenState extends State<HomeScreen> {
                                                           isEdit: true),
                                                     ),
                                                   );
-                                                  reloadNoteListAtLocal(
-                                                      resultfromNewNote);
+                                                  if(isConnected){
+
+                                                  }
+                                                  else{
+                                                    reloadNoteListAtLocal(resultfromNewNote);
+                                                  }
+                                                  
                                                 },
                                                 title: Text(
                                                   isConnected
@@ -638,12 +655,10 @@ class HomeScreenState extends State<HomeScreen> {
                                                       BorderRadius.circular(
                                                           8.0),
                                                   child:
-                                                      displayImagefromFBOrLocal_grid(
-                                                          index)),
+                                                      displayImagefromCloudOrLocal_grid(index)),
                                             ),
                                             Expanded(
-                                              flex: settingBriefContentflex(
-                                                  index),
+                                              flex: settingBriefContentflex(index),
                                               child: Container(
                                                 margin: EdgeInsets.only(
                                                     left: 10,
@@ -651,7 +666,7 @@ class HomeScreenState extends State<HomeScreen> {
                                                     right: 10),
                                                 alignment: Alignment.topLeft,
                                                 child: Text(
-                                                  listofBriefContent[index],
+                                                  isConnected ? listofBriefContent_cloud[index] : listofBriefContent[index],
                                                   style: const TextStyle(
                                                       fontSize: 11),
                                                   overflow:
@@ -671,8 +686,7 @@ class HomeScreenState extends State<HomeScreen> {
                                                       const EdgeInsets.only(
                                                           right: 10),
                                                   child: Text(
-                                                    foundedNote[index]
-                                                        .date_created,
+                                                    isConnected ? noteList[index].timeStamp : foundedNote[index].date_created,
                                                     style: const TextStyle(
                                                         fontSize: 11,
                                                         color: Colors.grey),
@@ -703,11 +717,16 @@ class HomeScreenState extends State<HomeScreen> {
                               builder: (context) => NewNoteScreen(
                                 noteId: '',
                                 isEdit: false,
-                                email: email,
+                                email: isConnected ? email : "",
                               ),
                             ),
                           );
-                          reloadNoteListAtLocal(resultFromNewNote);
+                          if(isConnected){
+
+                          }
+                          else{
+                            reloadNoteListAtLocal(resultFromNewNote);
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                             shape: const StadiumBorder(),
@@ -735,21 +754,19 @@ class HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  Future<void> refreshNoteList() async {
-    List<dynamic> listcontents = [];
+  Future<void> refreshNoteListFromCloud() async {
+    
     noteList = await FireStorageService().getAllNote().whenComplete(() {
       for (int i = 0; i < noteList.length; i++) {
-        listcontents.add(noteList[i].content);
+        listofBriefContent_cloud.add(noteList[i].content[0]["text"].toString());
+        listofimglink_cloud.add(noteList[i].content[1]["image"].toString()); 
       }
 
-      if (listcontents.isNotEmpty) {
-        for (var element in listcontents) {
-          Map<String, dynamic> temp = element;
-          if (temp.containsKey('image')) {
-            listofimglink_cloud.add(temp['image']);
-          }
-        }
-      }
+      
+    });
+
+    setState(() {
+      
     });
   }
 }
