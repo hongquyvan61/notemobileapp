@@ -424,24 +424,26 @@ class NewNoteScreenState extends State<NewNoteScreen> {
       for (int i = 0; i < SaveNoteContentList.length; i++) {
         if (SaveNoteContentList[i] is File) {
           // getting a directory path for saving
-          final Directory directory = await getApplicationDocumentsDirectory();
-          String path = directory.path;
-          String imagename = basename(SaveNoteContentList[i].path);
+          //final Directory directory = await getApplicationDocumentsDirectory();
+          //String path = directory.path;
+          //String imagename = basename(SaveNoteContentList[i].path);
   
           // copy the file to a new path
-          final File newImage = await File(SaveNoteContentList[i].path)
-              .copy('$path/image/$imagename')
-              .catchError(
-            (Object e, StackTrace stackTrace) {
-              debugPrint(e.toString());
-            },
-          );
+          // final File newImage = await File(SaveNoteContentList[i].path)
+          //     .copy('$path/image/$imagename')
+          //     .catchError(
+          //   (Object e, StackTrace stackTrace) {
+          //     debugPrint(e.toString());
+          //   },
+          // );
   
           NoteContentModel conmd = NoteContentModel(
               notecontent_id: null,
               textcontent: null,
-              imagecontent: '$path/image/$imagename',
-              note_id: latestid);
+              //imagecontent: '$path/image/$imagename',
+              imagecontent: SaveNoteContentList[i].path,
+              note_id: latestid
+          );
   
           bool checkinsertnotecontent = await ncontentDAL
               .insertNoteContent(conmd, InitDataBase.db)

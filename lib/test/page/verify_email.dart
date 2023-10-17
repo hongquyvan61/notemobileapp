@@ -146,7 +146,7 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
           
           note.tagname = await tagDAL.getTagNameByID(NotesAtLocal[i].tag_id?.toInt() ?? 0, InitDataBase.db);
           
-          FireStorageService().saveContentNotes(note);
+          await FireStorageService().saveContentNotes(note);
         }
       }
 

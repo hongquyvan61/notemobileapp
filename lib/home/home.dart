@@ -42,7 +42,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   // FB_Note fb_noteDAL = FB_Note();
   // FB_NoteContent fb_noteContentDAL = FB_NoteContent();
-  String? email = FirebaseAuth.instance.currentUser!.email;
+  late String? email;
 
   late List<NoteModel> listofnote = <NoteModel>[];
   late List<NoteModel> foundedNote = <NoteModel>[];
@@ -111,6 +111,7 @@ class HomeScreenState extends State<HomeScreen> {
         foundedNote.clear();
         listofBriefContent.clear();
 
+        email = FirebaseAuth.instance.currentUser!.email;
         // fb_listofnote = await fb_noteDAL.FB_getAllNoteByUid(email);
 
         // fb_listofimglink = await FB_generateTitleImage(fb_listofnote);
@@ -123,6 +124,7 @@ class HomeScreenState extends State<HomeScreen> {
         );
         foundedNote = listofnote;
         listofTitleImage = await generateListTitleImage(listofnote);
+        email = "";
         setState(() {});
       }
     });
