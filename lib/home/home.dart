@@ -22,6 +22,7 @@ import 'package:notemobileapp/test/component/popup_menu.dart';
 import 'package:notemobileapp/test/services/firebase_firestore_service.dart';
 
 import '../model/SqliteModel/NoteModel.dart';
+import '../test/component/side_menu.dart';
 import '../test/model/note_receive.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -296,8 +297,11 @@ class HomeScreenState extends State<HomeScreen> {
     return SafeArea(
       child: Scaffold(
           backgroundColor: const Color.fromARGB(63, 249, 253, 255),
+          drawer: const NavBar(),
+
           appBar: AppBar(
             backgroundColor: const Color.fromARGB(0, 0, 0, 0),
+            iconTheme: const IconThemeData(color: Colors.black),
             elevation: 0.0,
             title: const Text(
               'Ghi chú của tôi',
@@ -319,28 +323,28 @@ class HomeScreenState extends State<HomeScreen> {
                     : const Icon(Icons.grid_view),
                 color: Colors.black,
               ),
-              PopupMenuButton(
-                  onSelected: (value) {
-                    if (value == "login") {
-                      Navigator.pushNamed(context, RoutePaths.login);
-                    }
-                    if (value == "logout") {
-                      _googleSignIn.signOut();
-                      FirebaseAuth.instance.signOut();
-                      setState(() {});
-                      Navigator.pushNamed(context, RoutePaths.login);
-                    }
-                  },
-                  shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(6))),
-                  offset: const Offset(0, 50),
-                  icon: Icon(
-                    loginState ? Icons.manage_accounts : Icons.account_circle,
-                    color: Colors.black,
-                  ),
-                  itemBuilder: (context) => loginState
-                      ? PopUpMenu().accountPopupMenu(context)
-                      : PopUpMenu().loginPopupMenu(context))
+              // PopupMenuButton(
+              //     onSelected: (value) {
+              //       if (value == "login") {
+              //         Navigator.pushNamed(context, RoutePaths.login);
+              //       }
+              //       if (value == "logout") {
+              //         _googleSignIn.signOut();
+              //         FirebaseAuth.instance.signOut();
+              //         setState(() {});
+              //         Navigator.pushNamed(context, RoutePaths.login);
+              //       }
+              //     },
+              //     shape: const RoundedRectangleBorder(
+              //         borderRadius: BorderRadius.all(Radius.circular(6))),
+              //     offset: const Offset(0, 50),
+              //     icon: Icon(
+              //       loginState ? Icons.manage_accounts : Icons.account_circle,
+              //       color: Colors.black,
+              //     ),
+              //     itemBuilder: (context) => loginState
+              //         ? PopUpMenu().accountPopupMenu(context)
+              //         : PopUpMenu().loginPopupMenu(context))
             ],
           ),
 
