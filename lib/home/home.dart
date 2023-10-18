@@ -80,7 +80,6 @@ class HomeScreenState extends State<HomeScreen> {
       ..loadingStyle = EasyLoadingStyle.dark;
 
     CheckInternetConnection();
-    InitiateListOfNote();
     checkLogin();
   }
 
@@ -90,7 +89,7 @@ class HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  void CheckInternetConnection(){
+  Future<void> CheckInternetConnection() async {
     _networkConnectivity.initialise();
     _networkConnectivity.myStream.listen((source) {
       _source = source;
@@ -107,14 +106,12 @@ class HomeScreenState extends State<HomeScreen> {
           isConnected = false;
       }
 
-      setState(() {
-        
-      });
+      InitiateListOfNote();
     });
   }
 
 
-  InitiateListOfNote() async {
+  Future<void> InitiateListOfNote() async {
     
 
       if (isConnected) {
@@ -149,7 +146,7 @@ class HomeScreenState extends State<HomeScreen> {
       }
   }
 
-  void reloadNoteListAtLocal(Object? result) async {
+  Future<void> reloadNoteListAtLocal(Object? result) async {
     if (result.toString() == 'RELOAD_LIST') {
       await EasyLoading.show(
         status: "Đang load danh sách ghi chú...",
@@ -420,9 +417,9 @@ class HomeScreenState extends State<HomeScreen> {
                             ? RefreshIndicator(
                                 onRefresh: () async {
                                   if (isConnected) {
-                                    refreshNoteListFromCloud();
+                                    await refreshNoteListFromCloud();
                                   } else {
-                                    reloadNoteListAtLocal("RELOAD_LIST");
+                                    await reloadNoteListAtLocal("RELOAD_LIST");
                                   }
                                 },
                                 child: ListView.separated(
@@ -757,16 +754,19 @@ class HomeScreenState extends State<HomeScreen> {
   Future<void> refreshNoteListFromCloud() async {
     
     noteList = await FireStorageService().getAllNote().whenComplete(() {
-      for (int i = 0; i < noteList.length; i++) {
-        listofBriefContent_cloud.add(noteList[i].content[0]["text"].toString());
-        listofimglink_cloud.add(noteList[i].content[1]["image"].toString()); 
+      if(noteList.isNotEmpty){
+        for (int i = 0; i < noteList.length; i++) {
+          listofBriefContent_cloud.add(noteList[i].content[0]["text"].toString());
+          listofimglink_cloud.add(noteList[i].content[1]["image"].toString()); 
+        }
+
+        setState(() {
+        
+        });
       }
-
       
     });
 
-    setState(() {
-      
-    });
+    
   }
 }
