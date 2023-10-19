@@ -67,6 +67,9 @@ class HomeScreenState extends State<HomeScreen> {
   Map _source = {ConnectivityResult.none: false};
   final NetworkConnectivity _networkConnectivity = NetworkConnectivity.instance;
 
+  Timer? timer;
+  int repeatCounter = 1;
+
   @override
   void initState() {
     super.initState();
@@ -85,7 +88,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    _networkConnectivity.disposeStream();
+    //_networkConnectivity.disposeStream();
     super.dispose();
   }
 
@@ -113,6 +116,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   Future<void> InitiateListOfNote() async {
     
+      email = FirebaseAuth.instance.currentUser!.email;
 
       if (isConnected) {
 
@@ -121,10 +125,21 @@ class HomeScreenState extends State<HomeScreen> {
         listofTitleImage.clear();
         foundedNote.clear();
         listofBriefContent.clear();
+        
 
-        email = FirebaseAuth.instance.currentUser!.email;
-        refreshNoteListFromCloud();
-
+        timer = Timer.periodic(
+          const Duration(seconds: 2), (timer) {
+            if(repeatCounter <= 4){
+              
+              repeatCounter += 1;
+            }
+            else{
+              timer.cancel();
+              return;
+            }
+          },
+        );
+      
         // fb_listofnote = await fb_noteDAL.FB_getAllNoteByUid(email);
 
         // fb_listofimglink = await FB_generateTitleImage(fb_listofnote);
@@ -141,7 +156,7 @@ class HomeScreenState extends State<HomeScreen> {
         );
         foundedNote = listofnote;
         listofTitleImage = await generateListTitleImage(listofnote);
-        email = "";
+  
         setState(() {});
       }
   }
@@ -303,105 +318,9 @@ class HomeScreenState extends State<HomeScreen> {
     return listofTitleImage[index].path == '' ? 5 : 1;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-          backgroundColor: const Color.fromARGB(63, 249, 253, 255),
-          drawer: const NavBar(),
-
-          appBar: AppBar(
-            backgroundColor: const Color.fromARGB(0, 0, 0, 0),
-            iconTheme: const IconThemeData(color: Colors.black),
-            elevation: 0.0,
-            title: const Text(
-              'Ghi chú của tôi',
-              style:
-                  TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-            ),
-            actions: [
-              IconButton(
-                onPressed: () {
-                  if (listState) {
-                    listState = false;
-                  } else {
-                    listState = true;
-                  }
-                  setState(() {});
-                },
-                icon: listState == true
-                    ? const Icon(Icons.list)
-                    : const Icon(Icons.grid_view),
-                color: Colors.black,
-              ),
-
-            ],
-          ),
-
-          // body: Container(
-          //   alignment: Alignment.center,
-          //   // child: Column(
-          //   //   children: [
-          //   //      Text(
-          //   //       'Nhan giu de viet ghi chu bang giong noi!',
-          //   //       style: TextStyle(color: Colors.black54, fontWeight: FontWeight.w500),
-          //   //       ),
-
-          //   //       ElevatedButton(
-          //   //         onPressed: () {
-          //   //           print('button pressed!');
-          //   //         },
-          //   //         child: Text('Next'),
-          //   //       ),
-
-          //   //   ],
-          //   // ) ,
-          //   child: ElevatedButton(
-          //           onPressed: ()
-          //           {
-          //           print('button pressed!');
-          //           },
-          //           child: Text('ahihi'),
-          //   ),
-
-          // )
-
-          body: Container(
-            margin: const EdgeInsets.all(5),
-            child: Container(
-                padding: const EdgeInsets.all(5),
-                child: Stack(children: [
-                  Container(
-                    child: Column(children: [
-                      TextField(
-                        style: const TextStyle(
-                          fontSize: 15,
-                        ),
-                        decoration: const InputDecoration(
-                            hintText: "Tìm kiếm nè...",
-                            prefixIcon: Icon(Icons.search),
-                            filled: true,
-                            fillColor: Color.fromARGB(255, 239, 241, 243),
-                            enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                              width: 0.5,
-                            ))),
-                        onChanged: (value) => filterlist(value),
-                      ),
-                      SizedBox(
-                        height: 13,
-                      ),
-                      Expanded(
-                        child: listState == true
-                            ? RefreshIndicator(
-                                onRefresh: () async {
-                                  if (isConnected) {
-                                    await refreshNoteListFromCloud();
-                                  } else {
-                                    await reloadNoteListAtLocal("RELOAD_LIST");
-                                  }
-                                },
-                                child: ListView.separated(
+  Widget buildListView(){
+    if(noteList.isNotEmpty || foundedNote.isNotEmpty){
+      return  ListView.separated(
                                   separatorBuilder:
                                       (BuildContext context, int index) =>
                                           const Divider(height: 15),
@@ -448,15 +367,15 @@ class HomeScreenState extends State<HomeScreen> {
                                                           ? noteList[index].noteId
                                                           : (foundedNote[index].note_id?.toInt().toString() ?? 0.toString()),
                                                       isEdit: true,
-                                                      email: isConnected ? email : "",
+                                                      email: email == null ? "" : email?.toString(),
                                                     ),
                                                   ),
                                                 );
-                                                if(isConnected){
-
+                                                if(isConnected && loginState){
+                                                  await refreshNoteListFromCloud();
                                                 }
                                                 else{
-                                                  reloadNoteListAtLocal(resultFromNewNote);
+                                                  await reloadNoteListAtLocal(resultFromNewNote);
                                                 }
                                               },
                                               leading: const CircleAvatar(
@@ -472,7 +391,7 @@ class HomeScreenState extends State<HomeScreen> {
                                               ),
                                               title: Text(
                                                 isConnected
-                                                    ? "hihi" //noteList[index].title 
+                                                    ? noteList[index].title 
                                                     : foundedNote[index].title,
                                                 style: const TextStyle(
                                                     fontSize: 18,
@@ -518,17 +437,14 @@ class HomeScreenState extends State<HomeScreen> {
                                           ],
                                         ));
                                   },
-                                ),
-                              )
-                            : RefreshIndicator(
-                                onRefresh: () async {
-                                  if (isConnected) {
-                                    refreshNoteListFromCloud();
-                                  } else {
-                                    reloadNoteListAtLocal("RELOAD_LIST");
-                                  }
-                                },
-                                child: GridView.builder(
+                                );
+    }
+    return const Center(child: Text("Danh sách ghi chú trống hoặc do chưa kịp hiển thị danh sách, xin đợi chút hoặc kéo thả để tải lại danh sách!"),);
+  }
+
+  Widget buildGridView(){
+    if(noteList.isNotEmpty || foundedNote.isNotEmpty){
+      return GridView.builder(
                                   itemCount: isConnected
                                       ? noteList.length
                                       : foundedNote.length,
@@ -567,32 +483,27 @@ class HomeScreenState extends State<HomeScreen> {
                                                     context,
                                                     MaterialPageRoute(
                                                       builder: (context) => NewNoteScreen(
-                                                          email: isConnected ? email : "",
+                                                          email: email == null ? "" : email?.toString(),
                                                           noteId: isConnected
-                                                              ? noteList[index]
-                                                                  .noteId
-                                                              : (foundedNote[
-                                                                          index]
-                                                                      .note_id
-                                                                      ?.toInt()
-                                                                      .toString() ??
+                                                              ? noteList[index].noteId
+                                                              : (foundedNote[index].note_id?.toInt().toString() ??
                                                                   0.toString()),
-                                                          isEdit: true),
+                                                          isEdit: true
+                                                      ),
                                                     ),
                                                   );
-                                                  if(isConnected){
-
+                                                  if(isConnected && loginState){
+                                                    await refreshNoteListFromCloud();
                                                   }
                                                   else{
-                                                    reloadNoteListAtLocal(resultfromNewNote);
+                                                    await reloadNoteListAtLocal(resultfromNewNote);
                                                   }
                                                   
                                                 },
                                                 title: Text(
                                                   isConnected
                                                       ? noteList[index].title
-                                                      : foundedNote[index]
-                                                          .title,
+                                                      : foundedNote[index].title,
                                                   style: TextStyle(
                                                       fontSize: 13,
                                                       fontWeight:
@@ -671,7 +582,141 @@ class HomeScreenState extends State<HomeScreen> {
                                           ],
                                         ));
                                   },
-                                ),
+                                );
+    }
+    return const Center(child: Text("Danh sách ghi chú trống hoặc do chưa kịp hiển thị danh sách, xin đợi chút hoặc kéo thả để tải lại danh sách!"),);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Scaffold(
+          backgroundColor: const Color.fromARGB(63, 249, 253, 255),
+          drawer: const NavBar(),
+
+          appBar: AppBar(
+            backgroundColor: const Color.fromARGB(0, 0, 0, 0),
+            iconTheme: const IconThemeData(color: Colors.black),
+            elevation: 0.0,
+            title: const Text(
+              'Ghi chú của tôi',
+              style:
+                  TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+            ),
+            actions: [
+              IconButton(
+                onPressed: () {
+                  if (listState) {
+                    listState = false;
+                  } else {
+                    listState = true;
+                  }
+                  setState(() {});
+                },
+                icon: listState == true
+                    ? const Icon(Icons.list)
+                    : const Icon(Icons.grid_view),
+                color: Colors.black,
+              ),
+              PopupMenuButton(
+                  onSelected: (value) {
+                    if (value == "login") {
+                      Navigator.pushNamed(context, RoutePaths.login);
+                    }
+                    if (value == "logout") {
+                      _googleSignIn.signOut();
+                      FirebaseAuth.instance.signOut();
+                      setState(() {});
+                      Navigator.pushNamed(context, RoutePaths.login);
+                    }
+                  },
+                  shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(6))),
+                  offset: const Offset(0, 50),
+                  icon: Icon(
+                    loginState ? Icons.manage_accounts : Icons.account_circle,
+                    color: Colors.black,
+                  ),
+                  itemBuilder: (context) => loginState
+                      ? PopUpMenu().accountPopupMenu(context)
+                      : PopUpMenu().loginPopupMenu(context))
+            ],
+          ),
+
+          // body: Container(
+          //   alignment: Alignment.center,
+          //   // child: Column(
+          //   //   children: [
+          //   //      Text(
+          //   //       'Nhan giu de viet ghi chu bang giong noi!',
+          //   //       style: TextStyle(color: Colors.black54, fontWeight: FontWeight.w500),
+          //   //       ),
+
+          //   //       ElevatedButton(
+          //   //         onPressed: () {
+          //   //           print('button pressed!');
+          //   //         },
+          //   //         child: Text('Next'),
+          //   //       ),
+
+          //   //   ],
+          //   // ) ,
+          //   child: ElevatedButton(
+          //           onPressed: ()
+          //           {
+          //           print('button pressed!');
+          //           },
+          //           child: Text('ahihi'),
+          //   ),
+
+          // )
+
+          body: Container(
+            margin: const EdgeInsets.all(5),
+            child: Container(
+                padding: const EdgeInsets.all(5),
+                child: Stack(children: [
+                  Container(
+                    child: Column(children: [
+                      TextField(
+                        style: const TextStyle(
+                          fontSize: 15,
+                        ),
+                        decoration: const InputDecoration(
+                            hintText: "Tìm kiếm nè...",
+                            prefixIcon: Icon(Icons.search),
+                            filled: true,
+                            fillColor: Color.fromARGB(255, 239, 241, 243),
+                            enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                              width: 0.5,
+                            ))),
+                        onChanged: (value) => filterlist(value),
+                      ),
+                      SizedBox(
+                        height: 13,
+                      ),
+                      Expanded(
+                        child: listState == true
+                            ? RefreshIndicator(
+                                onRefresh: () async {
+                                  if (isConnected && loginState) {
+                                    await refreshNoteListFromCloud();
+                                  } else {
+                                    await reloadNoteListAtLocal("RELOAD_LIST");
+                                  }
+                                },
+                                child: buildListView()
+                              )
+                            : RefreshIndicator(
+                                onRefresh: () async {
+                                  if (isConnected && loginState) {
+                                    refreshNoteListFromCloud();
+                                  } else {
+                                    reloadNoteListAtLocal("RELOAD_LIST");
+                                  }
+                                },
+                                child: buildGridView()
                               ),
                       ),
                     ]),
@@ -693,15 +738,15 @@ class HomeScreenState extends State<HomeScreen> {
                               builder: (context) => NewNoteScreen(
                                 noteId: '',
                                 isEdit: false,
-                                email: isConnected ? email : "",
+                                email: email == null ? "" : email?.toString(),
                               ),
                             ),
                           );
-                          if(isConnected){
-
+                          if(isConnected && loginState){
+                            await refreshNoteListFromCloud();
                           }
                           else{
-                            reloadNoteListAtLocal(resultFromNewNote);
+                            await reloadNoteListAtLocal(resultFromNewNote);
                           }
                         },
                         style: ElevatedButton.styleFrom(
@@ -731,7 +776,7 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> refreshNoteListFromCloud() async {
-    
+    noteList.clear();
     noteList = await FireStorageService().getAllNote().whenComplete(() {
       if(noteList.isNotEmpty){
         for (int i = 0; i < noteList.length; i++) {

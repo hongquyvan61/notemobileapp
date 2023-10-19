@@ -1,7 +1,9 @@
 // ignore_for_file: prefer_const_constructors, sort_child_properties_last
 
+import 'dart:async';
 import 'dart:io';
 import 'package:avatar_glow/avatar_glow.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 //import 'package:flutter_quill/flutter_quill.dart' hide Text;
@@ -30,6 +32,7 @@ import '../model/SqliteModel/NoteContentModel.dart';
 import '../model/SqliteModel/NoteModel.dart';
 import '../model/SqliteModel/initializeDB.dart';
 import '../router.dart';
+import '../test/services/internet_connection.dart';
 
 class NewNoteScreen extends StatefulWidget {
   const NewNoteScreen({
@@ -95,6 +98,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
   bool MicroIsListening = false;
 
   bool isEditCompleted = true;
+  bool isConnected = false;
 
   int vitrihinh = 0;
 
@@ -114,6 +118,11 @@ class NewNoteScreenState extends State<NewNoteScreen> {
       : FloatingActionButtonLocation.centerFloat;
 
   NoteReceive note = NoteReceive();
+
+  late StreamSubscription subscription;
+
+  Map _source = {ConnectivityResult.none: false};
+  final NetworkConnectivity _networkConnectivity = NetworkConnectivity.instance;
 
   void _listen() {
     final ScrollDirection direction = _controller.position.userScrollDirection;
@@ -159,11 +168,20 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     DateTime now = DateTime.now();
     currentDateTime = DateFormat.yMd('vi_VN').add_jm().format(now);
 
-    if (widget.isEdit) {
+    if (widget.isEdit && widget.email == "") {
       loadingNoteWithIDAtLocal(-1, widget.noteId, widget.isEdit);
     }
+    if(widget.isEdit && widget.email != ""){
+      var temp = int.tryParse(widget.noteId);
+      if(temp != null){
+        loadingNoteWithIDAtLocal(-1, widget.noteId, widget.isEdit);
+      }
+      else{
+        getNoteById(widget.noteId);
+      }
+    }
 
-    //getNoteById(widget.noteId);
+    //CheckInternetConnection();
   }
 
   @override
@@ -174,6 +192,26 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     _notecontentcontroller.dispose();
     firstTxtFieldController.text = "";
     super.dispose();
+  }
+
+  Future<void> CheckInternetConnection() async {
+    _networkConnectivity.initialise();
+    _networkConnectivity.myStream.listen((source) {
+      _source = source;
+      // 1.
+      switch (_source.keys.toList()[0]) {
+        case ConnectivityResult.mobile:
+          isConnected = _source.values.toList()[0] ? true : false ;
+          break;
+        case ConnectivityResult.wifi:
+          isConnected = _source.values.toList()[0] ? true : false ;
+          break;
+        case ConnectivityResult.none:
+        default:
+          isConnected = false;
+      }
+
+    });
   }
 
 
@@ -317,88 +355,33 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     }
   }
 
-  Future<void> uploadNoteToFB() async {
+  Future<void> uploadNoteToCloud() async {
     NoteContent noteContent = NoteContent();
     List<Map<String, dynamic>> CloudContents = [];
 
-    // try{
-
     firsttxtfieldcont = SaveNoteContentList[0].text;
 
-    // int totalnote = await fb_note.FB_CountTotalNote();
-    //
-    // int noteID = totalnote + 1;
-
-    // FBNoteModel fbnote = FBNoteModel(
-    //     title: NoteTitle,
-    //     date_created: CurrentDateTime,
-    //     email: widget.email,
-    //     tag_id: -1,
-    //     note_id: -1,
-    // );
-
-    // fb_note.FB_insertNotetoFB(widget.email, noteID, fbnote);
-    //
-    //
     for (int i = 0; i < SaveNoteContentList.length; i++) {
       if (SaveNoteContentList[i] is File) {
-        //
         // String imageName = basename(SaveNoteContentList[i].path);
         File file = File(SaveNoteContentList[i].path);
 
         CloudContents.add({'image': await StorageService().uploadImage(file)});
-        //
-        //     var imagefile = FirebaseStorage.instance.ref().child("userID_${widget.email}").child("${imagename}");
-        //     UploadTask task = imagefile.putFile(file);
-        //     TaskSnapshot snapshot = await task;
-        //
-        //     String url = await snapshot.ref.getDownloadURL();
-        //
-        //     if(url != null){
-        //
-        //
-        //       int count = await fb_notect.FB_CountTotalNoteContents();
-        //
-        //       int notectID = count + 1;
-        //
-        //       FBNoteContentModel fbnotecontent = FBNoteContentModel(
-        //           textcontent: "",
-        //           imagecontent: url,
-        //           note_id: noteID,
-        //           notecontent_id: notectID
-        //       );
-        //
-        //       await fb_notect.FB_insertNoteContent(noteID, notectID, fbnotecontent);
-        //
-        //     }
+        
       } else {
-        //
+        
         String noiDungGhiChu = SaveNoteContentList[i].text;
         CloudContents.add({'text': noiDungGhiChu});
-        //     int count = await fb_notect.FB_CountTotalNoteContents();
-        //
-        //     int notectID = count + 1;
-        //
-        //     FBNoteContentModel fbnotecontent = FBNoteContentModel(
-        //         textcontent: noiDungGhiChu,
-        //         imagecontent: "",
-        //         note_id: noteID,
-        //         notecontent_id: notectID
-        //     );
-        //
-        //     await fb_notect.FB_insertNoteContent(noteID, notectID, fbnotecontent);
-        //
       }
     }
     noteContent.timeStamp = currentDateTime;
     noteContent.title = NoteTitle;
     noteContent.content = CloudContents;
+    noteContent.tagname = "";                  //////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
+    //////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
+    /////////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
     FireStorageService().saveContentNotes(noteContent);
 
-    // }
-    // on Exception catch (e){
-    //   debugPrint(e.toString());
-    // }
   }
 
   Future<void> saveNoteToLocal() async {
@@ -425,7 +408,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
         if (SaveNoteContentList[i] is File) {
           // getting a directory path for saving
           // final Directory directory = await getApplicationDocumentsDirectory();
-          // String path = '/data/user/0/com.example.notemobileapp/cache/92208dfe-153a-4802-82e0-b0361cbdd993/1000000035.jpg';
+          
           // String imagename = basename(SaveNoteContentList[i].path);
 
           // copy the file to a new path
@@ -715,6 +698,9 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                       Icons.update,
                     ),
                     onPressed: () {
+                      if(widget.email != ""){
+                        updateNote();
+                      }
                       updateNoteToLocal();
                       Navigator.of(context).pop('RELOAD_LIST');
                       //Navigator.push(context, MaterialPageRoute(builder: (context) => const ToDoPage()));
@@ -728,9 +714,10 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                     ),
                     onPressed: () {
                       if(widget.email != ""){
-                        uploadNoteToFB();
+                        uploadNoteToCloud();
+                        //saveNoteToLocal();
                       }
-                      saveNoteToLocal();
+                      
                       Navigator.of(context).pop('RELOAD_LIST');
                     },
                   )
@@ -1060,6 +1047,9 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     noteContent.timeStamp = currentDateTime; //Chỉnh thành ngày update
     noteContent.title = NoteTitle;
     noteContent.content = imageText;
+    noteContent.tagname = "";                     //////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
+    //////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
+    /////////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
     FireStorageService().updateNoteById(widget.noteId, noteContent);
   }
 

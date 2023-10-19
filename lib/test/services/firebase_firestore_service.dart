@@ -9,6 +9,7 @@ import '../model/tag.dart';
 import '../model/tag_receive.dart';
 
 class FireStorageService {
+  
   final CollectionReference notesCollection =
       FirebaseFirestore.instance.collection('notes');
 
