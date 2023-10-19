@@ -99,10 +99,10 @@ class HomeScreenState extends State<HomeScreen> {
       // 1.
       switch (_source.keys.toList()[0]) {
         case ConnectivityResult.mobile:
-          isConnected = _source.values.toList()[0] ? true : false ;
+          isConnected = _source.values.toList()[0] ? true : false;
           break;
         case ConnectivityResult.wifi:
-          isConnected = _source.values.toList()[0] ? true : false ;
+          isConnected = _source.values.toList()[0] ? true : false;
           break;
         case ConnectivityResult.none:
         default:
@@ -113,52 +113,48 @@ class HomeScreenState extends State<HomeScreen> {
     });
   }
 
-
   Future<void> InitiateListOfNote() async {
-    
-      email = FirebaseAuth.instance.currentUser!.email;
+    email = FirebaseAuth.instance.currentUser!.email;
 
-      if (isConnected) {
+    if (isConnected) {
+      debugPrint("Co mang ne!!");
+      listofnote.clear();
+      listofTitleImage.clear();
+      foundedNote.clear();
+      listofBriefContent.clear();
+      refreshNoteListFromCloud();
+      // timer = Timer.periodic(
+      //   const Duration(seconds: 2),
+      //   (timer) {
+      //     if (repeatCounter <= 4) {
+      //       repeatCounter += 1;
+      //     } else {
+      //       timer.cancel();
+      //       return;
+      //     }
+      //   },
+      // );
 
-        debugPrint("Co mang ne!!");
-        listofnote.clear();
-        listofTitleImage.clear();
-        foundedNote.clear();
-        listofBriefContent.clear();
-        
+      // fb_listofnote = await fb_noteDAL.FB_getAllNoteByUid(email);
 
-        timer = Timer.periodic(
-          const Duration(seconds: 2), (timer) {
-            if(repeatCounter <= 4){
-              
-              repeatCounter += 1;
-            }
-            else{
-              timer.cancel();
-              return;
-            }
-          },
-        );
-      
-        // fb_listofnote = await fb_noteDAL.FB_getAllNoteByUid(email);
+      // fb_listofimglink = await FB_generateTitleImage(fb_listofnote);
+    } else {
+      debugPrint("Khong co mang!!!!");
+      noteList.clear();
+      listofimglink_cloud.clear();
+      listofBriefContent_cloud.clear();
 
-        // fb_listofimglink = await FB_generateTitleImage(fb_listofnote);
-      } else {
-        debugPrint("Khong co mang!!!!");
-        noteList.clear();
-        listofimglink_cloud.clear();
-        listofBriefContent_cloud.clear();
+      listofnote =
+          await nDAL.getAllNotesByUserID(-1, InitDataBase.db).catchError(
+        (Object e, StackTrace stackTrace) {
+          debugPrint(e.toString());
+        },
+      );
+      foundedNote = listofnote;
+      listofTitleImage = await generateListTitleImage(listofnote);
 
-        listofnote = await nDAL.getAllNotesByUserID(-1, InitDataBase.db).catchError(
-          (Object e, StackTrace stackTrace) {
-            debugPrint(e.toString());
-          },
-        );
-        foundedNote = listofnote;
-        listofTitleImage = await generateListTitleImage(listofnote);
-  
-        setState(() {});
-      }
+      setState(() {});
+    }
   }
 
   Future<void> reloadNoteListAtLocal(Object? result) async {
@@ -260,13 +256,13 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Widget? displayImagefromCloudOrLocal_list(int index) {
-    if (isConnected) {
+    if (isConnected && listofimglink_cloud.isNotEmpty) {
       return Image.network(
-              listofimglink_cloud[index],
-              width: 290,
-              height: 200,
-              fit: BoxFit.cover,
-            );
+        listofimglink_cloud[index],
+        width: 290,
+        height: 200,
+        fit: BoxFit.cover,
+      );
     }
     return (listofTitleImage[index]).path == ''
         ? null
@@ -281,11 +277,11 @@ class HomeScreenState extends State<HomeScreen> {
   Widget? displayImagefromCloudOrLocal_grid(int index) {
     if (isConnected) {
       return Image.network(
-              listofimglink_cloud[index],
-              width: 140,
-              height: 60,
-              fit: BoxFit.cover,
-            );
+        listofimglink_cloud[index],
+        width: 140,
+        height: 60,
+        fit: BoxFit.cover,
+      );
     }
     return (listofTitleImage[index]).path == ''
         ? null
@@ -318,273 +314,234 @@ class HomeScreenState extends State<HomeScreen> {
     return listofTitleImage[index].path == '' ? 5 : 1;
   }
 
-  Widget buildListView(){
-    if(noteList.isNotEmpty || foundedNote.isNotEmpty){
-      return  ListView.separated(
-                                  separatorBuilder:
-                                      (BuildContext context, int index) =>
-                                          const Divider(height: 15),
-                                  itemCount: isConnected
-                                      ? noteList.length
-                                      : foundedNote.length,
-                                  itemBuilder:
-                                      (BuildContext context, int index) {
-                                    return Container(
-                                        padding:
-                                            EdgeInsets.fromLTRB(10, 0, 10, 0),
-                                        decoration: BoxDecoration(
-                                          color: Color.fromARGB(
-                                              255, 212, 253, 244),
-                                          //color: Color.fromARGB(255, 255, 255, 255),
-                                          //border: Border.all(width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(10.0),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color:
-                                                  Colors.grey.withOpacity(0.2),
-                                              spreadRadius: 5,
-                                              blurRadius: 7,
-                                              offset: Offset(25,
-                                                  10), // changes position of shadow
-                                            ),
-                                          ],
-                                        ),
-                                        child: Column(
-                                          children: [
-                                            ListTile(
-                                              ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
-                                              ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
-                                              ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
-                                              onTap: () async {
-                                                final resultFromNewNote =
-                                                    await Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        NewNoteScreen(
-                                                      noteId: isConnected
-                                                          ? noteList[index].noteId
-                                                          : (foundedNote[index].note_id?.toInt().toString() ?? 0.toString()),
-                                                      isEdit: true,
-                                                      email: email == null ? "" : email?.toString(),
-                                                    ),
-                                                  ),
-                                                );
-                                                if(isConnected && loginState){
-                                                  await refreshNoteListFromCloud();
-                                                }
-                                                else{
-                                                  await reloadNoteListAtLocal(resultFromNewNote);
-                                                }
-                                              },
-                                              leading: const CircleAvatar(
-                                                backgroundColor: Color.fromARGB(
-                                                    255, 97, 115, 239),
-                                                minRadius: 10,
-                                                maxRadius: 17,
-                                                child: Icon(
-                                                  Icons.turned_in_not_outlined,
-                                                  color: Colors.white,
-                                                  size: 20,
-                                                ),
-                                              ),
-                                              title: Text(
-                                                isConnected
-                                                    ? noteList[index].title 
-                                                    : foundedNote[index].title,
-                                                style: const TextStyle(
-                                                    fontSize: 18,
-                                                    fontWeight:
-                                                        FontWeight.bold),
-                                                overflow: TextOverflow.ellipsis,
-                                                maxLines: 1,
-                                              ),
-                                              subtitle: Text(
-                                                isConnected
-                                                    ? noteList[index].timeStamp
-                                                    : foundedNote[index]
-                                                        .date_created,
-                                                style: const TextStyle(
-                                                    fontSize: 12,
-                                                    color: Colors.grey),
-                                              ),
-                                            ),
-                                            Container(
-                                              margin: const EdgeInsets.fromLTRB(
-                                                  3, 0, 3, 0),
-                                              child: ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          8.0),
-                                                  child:
-                                                      displayImagefromCloudOrLocal_list(index)),
-                                            ),
-                                            Container(
-                                              margin: const EdgeInsets.all(10),
-                                              alignment: Alignment.centerLeft,
-                                              child: Text(
-                                                isConnected
-                                                    ? noteList[index].content[0]
-                                                        ['text']
-                                                    : listofBriefContent[index],
-                                                style: const TextStyle(
-                                                    fontSize: 12),
-                                                overflow: TextOverflow.ellipsis,
-                                                maxLines: 2,
-                                              ),
-                                            )
-                                          ],
-                                        ));
-                                  },
-                                );
+  Widget buildListView() {
+    if (noteList.isNotEmpty || foundedNote.isNotEmpty) {
+      return ListView.separated(
+        separatorBuilder: (BuildContext context, int index) =>
+            const Divider(height: 15),
+        itemCount: isConnected ? noteList.length : foundedNote.length,
+        itemBuilder: (BuildContext context, int index) {
+          return Container(
+              padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+              decoration: BoxDecoration(
+                color: Color.fromARGB(255, 212, 253, 244),
+                //color: Color.fromARGB(255, 255, 255, 255),
+                //border: Border.all(width: 0.5, color: Colors.grey),
+                borderRadius: BorderRadius.circular(10.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.2),
+                    spreadRadius: 5,
+                    blurRadius: 7,
+                    offset: Offset(25, 10), // changes position of shadow
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  ListTile(
+                    ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
+                    ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
+                    ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
+                    onTap: () async {
+                      final resultFromNewNote = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => NewNoteScreen(
+                            noteId: isConnected
+                                ? noteList[index].noteId
+                                : (foundedNote[index]
+                                        .note_id
+                                        ?.toInt()
+                                        .toString() ??
+                                    0.toString()),
+                            isEdit: true,
+                            email: email == null ? "" : email?.toString(),
+                          ),
+                        ),
+                      );
+                      if (isConnected && loginState) {
+                        await refreshNoteListFromCloud();
+                      } else {
+                        await reloadNoteListAtLocal(resultFromNewNote);
+                      }
+                    },
+                    leading: const CircleAvatar(
+                      backgroundColor: Color.fromARGB(255, 97, 115, 239),
+                      minRadius: 10,
+                      maxRadius: 17,
+                      child: Icon(
+                        Icons.turned_in_not_outlined,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                    title: Text(
+                      isConnected
+                          ? noteList[index].title
+                          : foundedNote[index].title,
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                    subtitle: Text(
+                      isConnected
+                          ? noteList[index].timeStamp
+                          : foundedNote[index].date_created,
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ),
+                  listofimglink_cloud.isNotEmpty ?
+                  Container(
+                    margin: const EdgeInsets.fromLTRB(3, 0, 3, 0),
+                    child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8.0),
+                        child: displayImagefromCloudOrLocal_list(index)),
+                  ) : Text(''),
+                  Container(
+                    margin: const EdgeInsets.all(10),
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      isConnected
+                          ? noteList[index].content[0]['text']
+                          : listofBriefContent[index],
+                      style: const TextStyle(fontSize: 12),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                    ),
+                  )
+                ],
+              ));
+        },
+      );
     }
-    return const Center(child: Text("Danh sách ghi chú trống hoặc do chưa kịp hiển thị danh sách, xin đợi chút hoặc kéo thả để tải lại danh sách!"),);
+    return const Center(
+      child: Text(
+          "Danh sách ghi chú trống hoặc do chưa kịp hiển thị danh sách, xin đợi chút hoặc kéo thả để tải lại danh sách!"),
+    );
   }
 
-  Widget buildGridView(){
-    if(noteList.isNotEmpty || foundedNote.isNotEmpty){
+  Widget buildGridView() {
+    if (noteList.isNotEmpty || foundedNote.isNotEmpty) {
       return GridView.builder(
-                                  itemCount: isConnected
-                                      ? noteList.length
-                                      : foundedNote.length,
-                                  gridDelegate:
-                                      const SliverGridDelegateWithFixedCrossAxisCount(
-                                          crossAxisCount: 2,
-                                          crossAxisSpacing: 4.0,
-                                          mainAxisSpacing: 10.0),
-                                  itemBuilder: (context, index) {
-                                    return Container(
-                                        decoration: BoxDecoration(
-                                          color: Color.fromARGB(
-                                              255, 212, 253, 244),
-                                          //border: Border.all(width: 0.5, color: Colors.grey),
-                                          borderRadius:
-                                              BorderRadius.circular(10.0),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color:
-                                                  Colors.grey.withOpacity(0.2),
-                                              spreadRadius: 3,
-                                              blurRadius: 7,
-                                              offset: Offset(15,
-                                                  10), // changes position of shadow
-                                            ),
-                                          ],
-                                        ),
-                                        child: Column(
-                                          children: [
-                                            Expanded(
-                                              flex: 2,
-                                              child: ListTile(
-                                                onTap: () async {
-                                                  final resultfromNewNote =
-                                                      await Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (context) => NewNoteScreen(
-                                                          email: email == null ? "" : email?.toString(),
-                                                          noteId: isConnected
-                                                              ? noteList[index].noteId
-                                                              : (foundedNote[index].note_id?.toInt().toString() ??
-                                                                  0.toString()),
-                                                          isEdit: true
-                                                      ),
-                                                    ),
-                                                  );
-                                                  if(isConnected && loginState){
-                                                    await refreshNoteListFromCloud();
-                                                  }
-                                                  else{
-                                                    await reloadNoteListAtLocal(resultfromNewNote);
-                                                  }
-                                                  
-                                                },
-                                                title: Text(
-                                                  isConnected
-                                                      ? noteList[index].title
-                                                      : foundedNote[index].title,
-                                                  style: TextStyle(
-                                                      fontSize: 13,
-                                                      fontWeight:
-                                                          FontWeight.bold),
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  maxLines: 1,
-                                                ),
-                                                // subtitle: Text(
-                                                //   foundedNote[index].date_created,
-                                                //   style: const TextStyle(
-                                                //       fontSize: 11, color: Colors.grey),
-                                                // ),
-                                                trailing: const CircleAvatar(
-                                                  backgroundColor:
-                                                      Color.fromARGB(
-                                                          255, 97, 115, 239),
-                                                  child: Icon(
-                                                    Icons
-                                                        .turned_in_not_outlined,
-                                                    color: Colors.white,
-                                                    size: 20,
-                                                  ),
-                                                  minRadius: 10,
-                                                  maxRadius: 17,
-                                                ),
-                                              ),
-                                            ),
-                                            SizedBox(
-                                              height: 10,
-                                            ),
-                                            Expanded(
-                                              flex: settingimgflex(index),
-                                              child: ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          8.0),
-                                                  child:
-                                                      displayImagefromCloudOrLocal_grid(index)),
-                                            ),
-                                            Expanded(
-                                              flex: settingBriefContentflex(index),
-                                              child: Container(
-                                                margin: EdgeInsets.only(
-                                                    left: 10,
-                                                    top: 5,
-                                                    right: 10),
-                                                alignment: Alignment.topLeft,
-                                                child: Text(
-                                                  isConnected ? listofBriefContent_cloud[index] : listofBriefContent[index],
-                                                  style: const TextStyle(
-                                                      fontSize: 11),
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  maxLines:
-                                                      settingBriefContentMaxLines(
-                                                          index),
-                                                ),
-                                              ),
-                                            ),
-                                            Expanded(
-                                                flex: 1,
-                                                child: Container(
-                                                  alignment:
-                                                      Alignment.centerRight,
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                          right: 10),
-                                                  child: Text(
-                                                    isConnected ? noteList[index].timeStamp : foundedNote[index].date_created,
-                                                    style: const TextStyle(
-                                                        fontSize: 11,
-                                                        color: Colors.grey),
-                                                  ),
-                                                ))
-                                          ],
-                                        ));
-                                  },
-                                );
+        itemCount: isConnected ? noteList.length : foundedNote.length,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2, crossAxisSpacing: 4.0, mainAxisSpacing: 10.0),
+        itemBuilder: (context, index) {
+          return Container(
+              decoration: BoxDecoration(
+                color: Color.fromARGB(255, 212, 253, 244),
+                //border: Border.all(width: 0.5, color: Colors.grey),
+                borderRadius: BorderRadius.circular(10.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.2),
+                    spreadRadius: 3,
+                    blurRadius: 7,
+                    offset: Offset(15, 10), // changes position of shadow
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: ListTile(
+                      onTap: () async {
+                        final resultfromNewNote = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => NewNoteScreen(
+                                email: email == null ? "" : email?.toString(),
+                                noteId: isConnected
+                                    ? noteList[index].noteId
+                                    : (foundedNote[index]
+                                            .note_id
+                                            ?.toInt()
+                                            .toString() ??
+                                        0.toString()),
+                                isEdit: true),
+                          ),
+                        );
+                        if (isConnected && loginState) {
+                          await refreshNoteListFromCloud();
+                        } else {
+                          await reloadNoteListAtLocal(resultfromNewNote);
+                        }
+                      },
+                      title: Text(
+                        isConnected
+                            ? noteList[index].title
+                            : foundedNote[index].title,
+                        style: TextStyle(
+                            fontSize: 13, fontWeight: FontWeight.bold),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                      // subtitle: Text(
+                      //   foundedNote[index].date_created,
+                      //   style: const TextStyle(
+                      //       fontSize: 11, color: Colors.grey),
+                      // ),
+                      trailing: const CircleAvatar(
+                        backgroundColor: Color.fromARGB(255, 97, 115, 239),
+                        child: Icon(
+                          Icons.turned_in_not_outlined,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        minRadius: 10,
+                        maxRadius: 17,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Expanded(
+                    flex: settingimgflex(index),
+                    child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8.0),
+                        child: displayImagefromCloudOrLocal_grid(index)),
+                  ),
+                  Expanded(
+                    flex: settingBriefContentflex(index),
+                    child: Container(
+                      margin: EdgeInsets.only(left: 10, top: 5, right: 10),
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        isConnected
+                            ? listofBriefContent_cloud[index]
+                            : listofBriefContent[index],
+                        style: const TextStyle(fontSize: 11),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: settingBriefContentMaxLines(index),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                      flex: 1,
+                      child: Container(
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 10),
+                        child: Text(
+                          isConnected
+                              ? noteList[index].timeStamp
+                              : foundedNote[index].date_created,
+                          style:
+                              const TextStyle(fontSize: 11, color: Colors.grey),
+                        ),
+                      ))
+                ],
+              ));
+        },
+      );
     }
-    return const Center(child: Text("Danh sách ghi chú trống hoặc do chưa kịp hiển thị danh sách, xin đợi chút hoặc kéo thả để tải lại danh sách!"),);
+    return const Center(
+      child: Text(
+          "Danh sách ghi chú trống hoặc do chưa kịp hiển thị danh sách, xin đợi chút hoặc kéo thả để tải lại danh sách!"),
+    );
   }
 
   @override
@@ -593,7 +550,6 @@ class HomeScreenState extends State<HomeScreen> {
       child: Scaffold(
           backgroundColor: const Color.fromARGB(63, 249, 253, 255),
           drawer: const NavBar(),
-
           appBar: AppBar(
             backgroundColor: const Color.fromARGB(0, 0, 0, 0),
             iconTheme: const IconThemeData(color: Colors.black),
@@ -618,59 +574,8 @@ class HomeScreenState extends State<HomeScreen> {
                     : const Icon(Icons.grid_view),
                 color: Colors.black,
               ),
-              PopupMenuButton(
-                  onSelected: (value) {
-                    if (value == "login") {
-                      Navigator.pushNamed(context, RoutePaths.login);
-                    }
-                    if (value == "logout") {
-                      _googleSignIn.signOut();
-                      FirebaseAuth.instance.signOut();
-                      setState(() {});
-                      Navigator.pushNamed(context, RoutePaths.login);
-                    }
-                  },
-                  shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(6))),
-                  offset: const Offset(0, 50),
-                  icon: Icon(
-                    loginState ? Icons.manage_accounts : Icons.account_circle,
-                    color: Colors.black,
-                  ),
-                  itemBuilder: (context) => loginState
-                      ? PopUpMenu().accountPopupMenu(context)
-                      : PopUpMenu().loginPopupMenu(context))
             ],
           ),
-
-          // body: Container(
-          //   alignment: Alignment.center,
-          //   // child: Column(
-          //   //   children: [
-          //   //      Text(
-          //   //       'Nhan giu de viet ghi chu bang giong noi!',
-          //   //       style: TextStyle(color: Colors.black54, fontWeight: FontWeight.w500),
-          //   //       ),
-
-          //   //       ElevatedButton(
-          //   //         onPressed: () {
-          //   //           print('button pressed!');
-          //   //         },
-          //   //         child: Text('Next'),
-          //   //       ),
-
-          //   //   ],
-          //   // ) ,
-          //   child: ElevatedButton(
-          //           onPressed: ()
-          //           {
-          //           print('button pressed!');
-          //           },
-          //           child: Text('ahihi'),
-          //   ),
-
-          // )
-
           body: Container(
             margin: const EdgeInsets.all(5),
             child: Container(
@@ -693,7 +598,7 @@ class HomeScreenState extends State<HomeScreen> {
                             ))),
                         onChanged: (value) => filterlist(value),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 13,
                       ),
                       Expanded(
@@ -706,8 +611,7 @@ class HomeScreenState extends State<HomeScreen> {
                                     await reloadNoteListAtLocal("RELOAD_LIST");
                                   }
                                 },
-                                child: buildListView()
-                              )
+                                child: buildListView())
                             : RefreshIndicator(
                                 onRefresh: () async {
                                   if (isConnected && loginState) {
@@ -716,13 +620,12 @@ class HomeScreenState extends State<HomeScreen> {
                                     reloadNoteListAtLocal("RELOAD_LIST");
                                   }
                                 },
-                                child: buildGridView()
-                              ),
+                                child: buildGridView()),
                       ),
                     ]),
                   ),
                   Container(
-                    margin: EdgeInsets.only(bottom: 10.0),
+                    margin: const EdgeInsets.only(bottom: 10.0),
                     child: Align(
                       alignment: Alignment.bottomCenter,
                       child: ElevatedButton.icon(
@@ -742,10 +645,9 @@ class HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                           );
-                          if(isConnected && loginState){
+                          if (isConnected && loginState) {
                             await refreshNoteListFromCloud();
-                          }
-                          else{
+                          } else {
                             await reloadNoteListAtLocal(resultFromNewNote);
                           }
                         },
@@ -777,20 +679,24 @@ class HomeScreenState extends State<HomeScreen> {
 
   Future<void> refreshNoteListFromCloud() async {
     noteList.clear();
+    Map<String, dynamic> temp = {};
     noteList = await FireStorageService().getAllNote().whenComplete(() {
-      if(noteList.isNotEmpty){
+      if (noteList.isNotEmpty) {
         for (int i = 0; i < noteList.length; i++) {
-          listofBriefContent_cloud.add(noteList[i].content[0]["text"].toString());
-          listofimglink_cloud.add(noteList[i].content[1]["image"].toString()); 
+          temp = noteList[i].content[0];
+          if(temp.containsKey('text')){
+            listofBriefContent_cloud
+                .add(noteList[i].content[0]["text"].toString());
+          } else if(temp.containsKey('image')){
+            listofimglink_cloud.add(noteList[i].content[1]["image"].toString());
+          }
+
+
+
         }
 
-        setState(() {
-        
-        });
+        setState(() {});
       }
-      
     });
-
-    
   }
 }
