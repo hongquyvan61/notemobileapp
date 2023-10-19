@@ -120,42 +120,13 @@ class HomeScreenState extends State<HomeScreen> {
       listofTitleImage.clear();
       foundedNote.clear();
       listofBriefContent.clear();
+
       refreshNoteListFromCloud();
-      // timer = Timer.periodic(
-      //   const Duration(seconds: 2),
-      //   (timer) {
-      //     if (repeatCounter <= 4) {
-      //       repeatCounter += 1;
-      //     } else {
-      //       timer.cancel();
-      //       return;
-      //     }
-      //   },
-      // );
-
-        debugPrint("Co mang ne!!");
-        listofnote.clear();
-        listofTitleImage.clear();
-        foundedNote.clear();
-        listofBriefContent.clear();
-        
-        //noteList.clear();
-        refreshNoteListFromCloud();
-
-        // timer = Timer.periodic(
-        //   const Duration(seconds: 2), (timer) {
-        //     if(repeatCounter <= 2){
-        //       refreshNoteListFromCloud();
-        //       repeatCounter += 1;
-        //     }
-        //     else{
-        //       timer.cancel();
-        //       return;
-        //     }
-        //   },
-        // );
-      
-        // fb_listofnote = await fb_noteDAL.FB_getAllNoteByUid(email);
+    }
+    else {
+      debugPrint("Khong co mang!");
+      listofimglink_cloud.clear();
+      listofBriefContent_cloud.clear();
 
       listofnote =
           await nDAL.getAllNotesByUserID(-1, InitDataBase.db).catchError(
@@ -272,17 +243,17 @@ class HomeScreenState extends State<HomeScreen> {
     if (isConnected) {
       if(listofimglink_cloud.elementAtOrNull(index) == null || listofimglink_cloud[index] == ""){
         return null;  
-      }
-      if(listofimglink_cloud.elementAtOrNull(index) != null || listofimglink_cloud[index] != ""){
+      } 
+      
         return Image.network(
                 listofimglink_cloud[index],
                 width: 290,
                 height: 200,
                 fit: BoxFit.cover,
               );
-      }
+      
     }
-    if(listofTitleImage.elementAtOrNull(index) == null || listofTitleImage[index] == ""){
+    if(listofTitleImage[index].path == ""){
         return null;
     }
     return Image.file(
@@ -295,20 +266,19 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Widget? displayImagefromCloudOrLocal_grid(int index) {
-    if (isConnected) {
+    if(isConnected) {
       if(listofimglink_cloud.elementAtOrNull(index) == null || listofimglink_cloud[index] == ""){
         return null;  
       }
-      if(listofimglink_cloud.elementAtOrNull(index) != null || listofimglink_cloud[index] != ""){
         return Image.network(
                 listofimglink_cloud[index],
                 width: 140,
                 height: 60,
                 fit: BoxFit.cover,
               );
-      }
+    
     }
-    if(listofTitleImage.elementAtOrNull(index) == null || listofTitleImage[index] == ""){
+    if(listofTitleImage[index].path == ""){
         return null;
     }
     return Image.file(
@@ -320,14 +290,14 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   int settingimgflex(int index) {
-    if (isConnected && listofimglink_cloud.isNotEmpty) {
+    if (isConnected) {
       return listofimglink_cloud[index] == '' ? 0 : 3;
     }
     return listofTitleImage[index].path == '' ? 0 : 3;
   }
 
   int settingBriefContentflex(int index) {
-    if (isConnected && listofimglink_cloud.isNotEmpty) {
+    if (isConnected) {
       return listofBriefContent_cloud[index] == '' ? 4 : 1;
     }
     return listofTitleImage[index].path == '' ? 4 : 1;
@@ -418,14 +388,12 @@ class HomeScreenState extends State<HomeScreen> {
                       style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   ),
-                  listofimglink_cloud.isNotEmpty
-                      ? Container(
-                          margin: const EdgeInsets.fromLTRB(3, 0, 3, 0),
-                          child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8.0),
-                              child: displayImagefromCloudOrLocal_list(index)),
-                        )
-                      : Text(''),
+                  Container(
+                    margin: const EdgeInsets.fromLTRB(3, 0, 3, 0),
+                    child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8.0),
+                        child: displayImagefromCloudOrLocal_list(index)),
+                  ),
                   Container(
                     margin: const EdgeInsets.all(10),
                     alignment: Alignment.centerLeft,
@@ -526,14 +494,12 @@ class HomeScreenState extends State<HomeScreen> {
                   SizedBox(
                     height: 10,
                   ),
-                  listofimglink_cloud.isNotEmpty ?
                   Expanded(
                     flex: settingimgflex(index),
                     child: ClipRRect(
                         borderRadius: BorderRadius.circular(8.0),
                         child: displayImagefromCloudOrLocal_grid(index)),
-                  ) : Text(''),
-                  listofimglink_cloud.isNotEmpty ?
+                  ),
                   Expanded(
                     flex: settingBriefContentflex(index),
                     child: Container(
@@ -548,7 +514,7 @@ class HomeScreenState extends State<HomeScreen> {
                         maxLines: settingBriefContentMaxLines(index),
                       ),
                     ),
-                  ) : Text(''),
+                  ),
                   Expanded(
                       flex: 1,
                       child: Container(
@@ -712,11 +678,18 @@ class HomeScreenState extends State<HomeScreen> {
       if (noteList.isNotEmpty) {
         for (int i = 0; i < noteList.length; i++) {
           if(noteList[i].content.elementAtOrNull(1) != null){
-            listofBriefContent_cloud.add(noteList[i].content[0]["text"].toString());
-            listofimglink_cloud.add(noteList[i].content[1]["image"].toString()); 
+            if(noteList[i].content[1].containsKey("image")){
+              listofimglink_cloud.add(noteList[i].content[1]["image"].toString());
+            }
           }
+          else{
+            listofimglink_cloud.add("");
+          }
+          listofBriefContent_cloud.add(noteList[i].content[0]["text"].toString());
         }
+
       }
+
       setState(() {});
     });
   }
