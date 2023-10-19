@@ -2,6 +2,10 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
+import '../../router.dart';
 
 class NavBar extends StatefulWidget {
   const NavBar({super.key});
@@ -10,56 +14,165 @@ class NavBar extends StatefulWidget {
   State<NavBar> createState() => _NavBarState();
 }
 
-class _NavBarState extends State<NavBar> {
-  final String? _avatar = FirebaseAuth.instance.currentUser?.photoURL;
-  final String? _userName = FirebaseAuth.instance.currentUser?.displayName;
-  final String? _email = FirebaseAuth.instance.currentUser?.email;
+int selected = 0;
 
+class _NavBarState extends State<NavBar> {
+  String? _avatar = FirebaseAuth.instance.currentUser?.photoURL;
+  String? _userName = FirebaseAuth.instance.currentUser?.displayName;
+  String? _email = FirebaseAuth.instance.currentUser?.email;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Drawer(
-        elevation: 16,
-        child: ListView(
-          children: [
-            _avatar != null
-                ? UserAccountsDrawerHeader(
-                    accountName: Text(_userName!),
-                    accountEmail: Text(_email!),
-                    currentAccountPicture: CircleAvatar(
-                      child: ClipOval(
-                        child: Image.network(_avatar!),
-                      ),
-                    ),
-                  )
-                : UserAccountsDrawerHeader(
-                    accountName: Text('Account name'),
-                    accountEmail: Text('Account email'),
-                    currentAccountPicture: CircleAvatar(
-                      child: ClipOval(
-                        child: Icon(Icons.account_circle),
-                      ),
+      elevation: 16,
+      child: _avatar != null
+          ? ListView(
+              children: [
+                UserAccountsDrawerHeader(
+                  accountName: Text(_userName!),
+                  accountEmail: Text(_email!),
+                  currentAccountPicture: CircleAvatar(
+                    child: ClipOval(
+                      child: Image.network(_avatar!),
                     ),
                   ),
-            MouseRegion(
-              child: ListTile(
-                leading: Icon(Icons.notifications),
-                title: Text('Thông báo'),
-              ),
+                ),
+                AppDrawerTile(index: 0, onTap: updateSelected(0)),
+                AppDrawerTile(index: 1, onTap: updateSelected(1)),
+                AppDrawerTile(index: 2, onTap: updateSelected(2)),
+                AppDrawerTile(index: 3, onTap: updateSelected(3)),
+              ],
+            )
+          : ListView(
+              children: [
+                UserAccountsDrawerHeader(
+                  accountName: Text('Account name'),
+                  accountEmail: Text('Account email'),
+                  currentAccountPicture: CircleAvatar(
+                    child: ClipOval(
+                      child: Icon(Icons.account_circle),
+                    ),
+                  ),
+                ),
+                AppDrawerTile(index: 4, onTap: updateSelected(4))
+              ],
             ),
-            ListTile(
-              leading: Icon(Icons.share),
-              title: Text('Chia sẻ ghi chú'),
-            ),
-            ListTile(
-              leading: Icon(Icons.lock_reset),
-              title: Text('Đổi mật khẩu'),
-            ),
-            ListTile(
-              leading: Icon(Icons.logout),
-              title: Text('Đăng xuất'),
-            ),
-          ],
-        ));
+    );
   }
+
+  Function updateSelected(int index) {
+    return () {
+      setState(() {
+        selected = index;
+      });
+      action();
+    };
+  }
+
+  action() {
+    switch (selected) {
+      case 0:
+        print(0);
+      case 1:
+        print(1);
+      case 2:
+        print(2);
+      case 3:
+        confirmLogOut();
+      case 4:
+        Navigator.pushNamed(context, RoutePaths.login);
+    }
+  }
+
+  void confirmLogOut() {
+    final googleSignIn = GoogleSignIn();
+    AlertDialog alert = AlertDialog(
+      title: Text("Đăng xuất khỏi tài khoản này ?"),
+      content: Text(
+          "Ghi chú của bạn đã được sao lưu, bạn có thể xem khi đăng nhập trở lại!"),
+      actions: [
+        TextButton(
+          child: Text("Không"),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        TextButton(
+          child: Text("Đăng xuất"),
+          onPressed: () {
+            googleSignIn.signOut();
+            FirebaseAuth.instance.signOut();
+            setState(() {
+              _email = null;
+              _avatar = null;
+              _userName = null;
+            });
+            Navigator.pop(context);
+          },
+        )
+      ],
+    );
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return alert;
+        });
+  }
+}
+
+class AppDrawerTile extends StatelessWidget {
+  const AppDrawerTile({
+    super.key,
+    required this.index,
+    required this.onTap,
+  });
+
+  final int index;
+  final onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: ListTile(
+        onTap: onTap,
+        selected: selected == index,
+        // selectedTileColor: Defaults.drawerSelectedTileColor,
+        leading: Icon(
+          drawerItemIcon[index],
+          size: 30,
+          color: Colors.black,
+        ),
+        title: Text(
+          drawerItemText[index],
+          style: GoogleFonts.sanchez(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Colors.black,
+          ),
+        ),
+      ),
+    );
+  }
+
+  static final drawerItemIcon = [
+    Icons.notifications,
+    Icons.share,
+    Icons.lock_reset,
+    Icons.logout,
+    Icons.login,
+  ];
+  static final drawerItemText = [
+    'Thông báo',
+    'Chia sẻ ghi chú',
+    'Đổi mật khẩu',
+    'Đăng xuất',
+    'Đăng nhập',
+  ];
 }

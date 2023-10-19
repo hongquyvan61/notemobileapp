@@ -115,7 +115,7 @@ class HomeScreenState extends State<HomeScreen> {
     
 
       if (isConnected) {
-        
+
         debugPrint("Co mang ne!!");
         listofnote.clear();
         listofTitleImage.clear();
@@ -334,28 +334,7 @@ class HomeScreenState extends State<HomeScreen> {
                     : const Icon(Icons.grid_view),
                 color: Colors.black,
               ),
-              // PopupMenuButton(
-              //     onSelected: (value) {
-              //       if (value == "login") {
-              //         Navigator.pushNamed(context, RoutePaths.login);
-              //       }
-              //       if (value == "logout") {
-              //         _googleSignIn.signOut();
-              //         FirebaseAuth.instance.signOut();
-              //         setState(() {});
-              //         Navigator.pushNamed(context, RoutePaths.login);
-              //       }
-              //     },
-              //     shape: const RoundedRectangleBorder(
-              //         borderRadius: BorderRadius.all(Radius.circular(6))),
-              //     offset: const Offset(0, 50),
-              //     icon: Icon(
-              //       loginState ? Icons.manage_accounts : Icons.account_circle,
-              //       color: Colors.black,
-              //     ),
-              //     itemBuilder: (context) => loginState
-              //         ? PopUpMenu().accountPopupMenu(context)
-              //         : PopUpMenu().loginPopupMenu(context))
+
             ],
           ),
 

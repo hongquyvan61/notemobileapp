@@ -425,7 +425,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
         if (SaveNoteContentList[i] is File) {
           // getting a directory path for saving
           // final Directory directory = await getApplicationDocumentsDirectory();
-          String path = '/data/user/0/com.example.notemobileapp/cache/92208dfe-153a-4802-82e0-b0361cbdd993/1000000035.jpg';
+          // String path = '/data/user/0/com.example.notemobileapp/cache/92208dfe-153a-4802-82e0-b0361cbdd993/1000000035.jpg';
           // String imagename = basename(SaveNoteContentList[i].path);
 
           // copy the file to a new path
@@ -440,7 +440,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
           NoteContentModel conmd = NoteContentModel(
               notecontent_id: null,
               textcontent: null,
-              imagecontent: path,
+              imagecontent: SaveNoteContentList[i].path,
               note_id: latestid);
 
           bool checkinsertnotecontent = await ncontentDAL
