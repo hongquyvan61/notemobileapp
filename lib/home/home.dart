@@ -67,8 +67,6 @@ class HomeScreenState extends State<HomeScreen> {
   Map _source = {ConnectivityResult.none: false};
   final NetworkConnectivity _networkConnectivity = NetworkConnectivity.instance;
 
-  Timer? timer;
-  int repeatCounter = 1;
 
   @override
   void initState() {
@@ -126,19 +124,21 @@ class HomeScreenState extends State<HomeScreen> {
         foundedNote.clear();
         listofBriefContent.clear();
         
+        //noteList.clear();
+        refreshNoteListFromCloud();
 
-        timer = Timer.periodic(
-          const Duration(seconds: 2), (timer) {
-            if(repeatCounter <= 4){
-              
-              repeatCounter += 1;
-            }
-            else{
-              timer.cancel();
-              return;
-            }
-          },
-        );
+        // timer = Timer.periodic(
+        //   const Duration(seconds: 2), (timer) {
+        //     if(repeatCounter <= 2){
+        //       refreshNoteListFromCloud();
+        //       repeatCounter += 1;
+        //     }
+        //     else{
+        //       timer.cancel();
+        //       return;
+        //     }
+        //   },
+        // );
       
         // fb_listofnote = await fb_noteDAL.FB_getAllNoteByUid(email);
 
@@ -261,35 +261,48 @@ class HomeScreenState extends State<HomeScreen> {
 
   Widget? displayImagefromCloudOrLocal_list(int index) {
     if (isConnected) {
-      return Image.network(
-              listofimglink_cloud[index],
-              width: 290,
-              height: 200,
-              fit: BoxFit.cover,
-            );
+      if(listofimglink_cloud.elementAtOrNull(index) == null || listofimglink_cloud[index] == ""){
+        return null;  
+      }
+      if(listofimglink_cloud.elementAtOrNull(index) != null || listofimglink_cloud[index] != ""){
+        return Image.network(
+                listofimglink_cloud[index],
+                width: 290,
+                height: 200,
+                fit: BoxFit.cover,
+              );
+      }
     }
-    return (listofTitleImage[index]).path == ''
-        ? null
-        : Image.file(
+    if(listofTitleImage.elementAtOrNull(index) == null || listofTitleImage[index] == ""){
+        return null;
+    }
+    return Image.file(
             listofTitleImage[index],
             width: 290,
             height: 200,
             fit: BoxFit.cover,
           );
+    
   }
 
   Widget? displayImagefromCloudOrLocal_grid(int index) {
     if (isConnected) {
-      return Image.network(
-              listofimglink_cloud[index],
-              width: 140,
-              height: 60,
-              fit: BoxFit.cover,
-            );
+      if(listofimglink_cloud.elementAtOrNull(index) == null || listofimglink_cloud[index] == ""){
+        return null;  
+      }
+      if(listofimglink_cloud.elementAtOrNull(index) != null || listofimglink_cloud[index] != ""){
+        return Image.network(
+                listofimglink_cloud[index],
+                width: 140,
+                height: 60,
+                fit: BoxFit.cover,
+              );
+      }
     }
-    return (listofTitleImage[index]).path == ''
-        ? null
-        : Image.file(
+    if(listofTitleImage.elementAtOrNull(index) == null || listofTitleImage[index] == ""){
+        return null;
+    }
+    return Image.file(
             listofTitleImage[index],
             width: 140,
             height: 60,
@@ -776,12 +789,14 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> refreshNoteListFromCloud() async {
-    noteList.clear();
+    
     noteList = await FireStorageService().getAllNote().whenComplete(() {
       if(noteList.isNotEmpty){
         for (int i = 0; i < noteList.length; i++) {
-          listofBriefContent_cloud.add(noteList[i].content[0]["text"].toString());
-          listofimglink_cloud.add(noteList[i].content[1]["image"].toString()); 
+          if(noteList[i].content.elementAtOrNull(1) != null){
+            listofBriefContent_cloud.add(noteList[i].content[0]["text"].toString());
+            listofimglink_cloud.add(noteList[i].content[1]["image"].toString()); 
+          }
         }
 
         setState(() {
