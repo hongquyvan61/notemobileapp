@@ -380,7 +380,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     noteContent.tagname = "";                  //////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
     //////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
     /////////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
-    FireStorageService().saveContentNotes(noteContent);
+    await FireStorageService().saveContentNotes(noteContent);
 
   }
 
@@ -716,7 +716,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                       if(widget.email != ""){
                         uploadNoteToCloud();
                       }
-                      saveNoteToLocal();
+                      //saveNoteToLocal();
                       Navigator.of(context).pop('RELOAD_LIST');
                     },
                   )

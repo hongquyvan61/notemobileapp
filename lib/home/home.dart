@@ -58,8 +58,8 @@ class HomeScreenState extends State<HomeScreen> {
   late List<String> listofBriefContent = <String>[];
   late List<File> listofTitleImage = <File>[];
 
-  late List<dynamic> listofimglink_cloud = [];
-  late List<dynamic> listofBriefContent_cloud = [];
+  // late List<dynamic> listofimglink_cloud = [];
+  // late List<dynamic> listofBriefContent_cloud = [];
 
   //late List<String> fb_listofBriefContent = <String>[];
   bool isConnected = false;
@@ -127,8 +127,8 @@ class HomeScreenState extends State<HomeScreen> {
     }
     else {
       debugPrint("Khong co mang!");
-      listofimglink_cloud.clear();
-      listofBriefContent_cloud.clear();
+      // listofimglink_cloud.clear();
+      // listofBriefContent_cloud.clear();
 
       listofnote =
           await nDAL.getAllNotesByUserID(-1, InitDataBase.db).catchError(
@@ -224,90 +224,111 @@ class HomeScreenState extends State<HomeScreen> {
 
   void filterlist(String inputWord) async {
     List<NoteModel> results = [];
+
     if (inputWord.isEmpty) {
       // if the search field is empty or only contains white-space, we'll display all users
-      results = listofnote;
+      if(isConnected){
+        noteList = await FireStorageService().getAllNote();
+      }
+      else{
+        results = listofnote;
+      }
     } else {
-      results = listofnote
+      if(isConnected){
+        noteList = noteList.where((note) => note.title.toLowerCase().contains(inputWord.toLowerCase())).toList();
+      }
+      else{
+        results = listofnote
           .where((note) =>
               note.title.toLowerCase().contains(inputWord.toLowerCase()))
           .toList();
+      }
       // we use the toLowerCase() method to make it case-insensitive
     }
-
-    foundedNote = results;
-    listofTitleImage = await generateListTitleImage(foundedNote);
+    if(isConnected){
+      
+    }
+    else{
+      foundedNote = results;
+      listofTitleImage = await generateListTitleImage(foundedNote);
+    }
     // Refresh the UI
     setState(() {});
   }
 
   Widget? displayImagefromCloudOrLocal_list(int index) {
     if (isConnected) {
-      if(listofimglink_cloud.elementAtOrNull(index) == null || listofimglink_cloud[index] == ""){
+      Map? map = noteList[index].content.firstWhere((element) => element.containsKey("image"), orElse:  () => null);
+      return map == null ? 
+            null 
+            : 
+            Image.network(
+              map["image"],
+              width: 290,
+              height: 200,
+              fit: BoxFit.cover,
+            );
+    }
+    else{
+      if(listofTitleImage[index].path == ""){
         return null;
       }
-
-        return Image.network(
-                listofimglink_cloud[index],
-                width: 290,
-                height: 200,
-                fit: BoxFit.cover,
-              );
-
+      return Image.file(
+              listofTitleImage[index],
+              width: 290,
+              height: 200,
+              fit: BoxFit.cover,
+            );
     }
-    if(listofTitleImage[index].path == ""){
-        return null;
-    }
-    return Image.file(
-            listofTitleImage[index],
-            width: 290,
-            height: 200,
-            fit: BoxFit.cover,
-          );
 
   }
 
   Widget? displayImagefromCloudOrLocal_grid(int index) {
-    if(isConnected) {
-      if(listofimglink_cloud.elementAtOrNull(index) == null || listofimglink_cloud[index] == ""){
+    if (isConnected) {
+      Map? map = noteList[index].content.firstWhere((element) => element.containsKey("image"), orElse:  () => null);
+      return map == null ? 
+            null 
+            : 
+            Image.network(
+              map["image"],
+              width: 140,
+              height: 60,
+              fit: BoxFit.cover,
+            );
+    }
+    else{
+      if(listofTitleImage[index].path == ""){
         return null;
       }
-        return Image.network(
-                listofimglink_cloud[index],
-                width: 140,
-                height: 60,
-                fit: BoxFit.cover,
-              );
-
+      return Image.file(
+              listofTitleImage[index],
+              width: 140,
+              height: 60,
+              fit: BoxFit.cover,
+            );
     }
-    if(listofTitleImage[index].path == ""){
-        return null;
-    }
-    return Image.file(
-            listofTitleImage[index],
-            width: 140,
-            height: 60,
-            fit: BoxFit.cover,
-          );
   }
 
   int settingimgflex(int index) {
-    if (isConnected && listofimglink_cloud.isNotEmpty) {
-      return listofimglink_cloud[index] == '' ? 0 : 3;
+    if (isConnected) {
+      Map? map = noteList[index].content.firstWhere((element) => element.containsKey("image"), orElse: () => null);
+      return map == null ? 0 : 3;
     }
     return listofTitleImage[index].path == '' ? 0 : 3;
   }
 
   int settingBriefContentflex(int index) {
-    if (isConnected && listofimglink_cloud.isNotEmpty) {
-      return listofBriefContent_cloud[index] == '' ? 4 : 1;
+    if (isConnected) {
+      Map? map = noteList[index].content.firstWhere((element) => element.containsKey("image"), orElse: () => null);
+      return map == null ? 4 : 1;
     }
     return listofTitleImage[index].path == '' ? 4 : 1;
   }
 
   int settingBriefContentMaxLines(int index) {
     if (isConnected) {
-      return listofBriefContent_cloud[index] == '' ? 5 : 1;
+      Map? map = noteList[index].content.firstWhere((element) => element.containsKey("image"), orElse: () => null);
+      return map == null ? 5 : 1;
     }
     return listofTitleImage[index].path == '' ? 5 : 1;
   }
@@ -401,7 +422,7 @@ class HomeScreenState extends State<HomeScreen> {
                     alignment: Alignment.centerLeft,
                     child: Text(
                       isConnected
-                          ? noteList[index].content[0]['text']
+                          ? noteList[index].content.firstWhere((element) => element.containsKey("text") && element["text"] != "")['text']
                           : listofBriefContent[index],
                       style: const TextStyle(fontSize: 12),
                       overflow: TextOverflow.ellipsis,
@@ -496,14 +517,18 @@ class HomeScreenState extends State<HomeScreen> {
                   SizedBox(
                     height: 10,
                   ),
-              listofimglink_cloud.isNotEmpty ?
+                  noteList[index].content.firstWhere((element) => element.containsKey("image"), orElse: () => null) != null ? 
                   Expanded(
                     flex: settingimgflex(index),
                     child: ClipRRect(
                         borderRadius: BorderRadius.circular(8.0),
                         child: displayImagefromCloudOrLocal_grid(index)),
-                  ) : Text(''),
-              listofimglink_cloud.isNotEmpty ?
+                  )
+
+                  :
+
+                  Text(""),
+
                   Expanded(
                     flex: settingBriefContentflex(index),
                     child: Container(
@@ -511,14 +536,15 @@ class HomeScreenState extends State<HomeScreen> {
                       alignment: Alignment.topLeft,
                       child: Text(
                         isConnected
-                            ? listofBriefContent_cloud[index]
+                            ? noteList[index].content.firstWhere((element) => element.containsKey("text") && element["text"] != "")["text"]
                             : listofBriefContent[index],
                         style: const TextStyle(fontSize: 11),
                         overflow: TextOverflow.ellipsis,
                         maxLines: settingBriefContentMaxLines(index),
                       ),
                     ),
-                  ) : Text(''),
+                  ),
+                  
                   Expanded(
                       flex: 1,
                       child: Container(
@@ -680,25 +706,27 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> refreshNoteListFromCloud() async {
-
+    // listofimglink_cloud.clear();
+    // listofBriefContent_cloud.clear();
     noteList = await FireStorageService().getAllNote();
       if (noteList.isNotEmpty) {
-        for (int i = 0; i < noteList.length; i++) {
-          if(noteList[i].content.elementAtOrNull(1) != null){
-            if(noteList[i].content[1].containsKey("image")){
-              listofimglink_cloud.add(noteList[i].content[1]["image"].toString());
-            }
-          }
-          else{
-            listofimglink_cloud.add("");
-          }
-          listofBriefContent_cloud.add(noteList[i].content[0]["text"].toString());
-        }
+        // for (int i = 0; i < noteList.length; i++) {
+        //   if(noteList[i].content.elementAtOrNull(1) != null){
+        //     if(noteList[i].content[1].containsKey("image")){
+        //       listofimglink_cloud.add(noteList[i].content[1]["image"].toString());
+        //     }
+        //     else{
+        //       listofimglink_cloud.add("");
+        //     }
+        //   }
+        //   else{
+        //     listofimglink_cloud.add("");
+        //   }
+        //   listofBriefContent_cloud.add(noteList[i].content[0]["text"].toString());
+        // }
 
+        setState(() {});
       }
-      setState(() {
-
-      });
   }
 
 }
