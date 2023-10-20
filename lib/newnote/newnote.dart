@@ -715,9 +715,8 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                     onPressed: () {
                       if(widget.email != ""){
                         uploadNoteToCloud();
-                        //saveNoteToLocal();
                       }
-                      
+                      saveNoteToLocal();
                       Navigator.of(context).pop('RELOAD_LIST');
                     },
                   )

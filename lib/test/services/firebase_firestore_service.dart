@@ -33,7 +33,7 @@ class FireStorageService {
   Future<List<NoteReceive>> getAllNote() async {
 
     List<NoteReceive> notes = [];
-    final noteCollection = notesCollection.doc(currentUser).collection("note");
+    final noteCollection = notesCollection.doc(currentUser).collection("note").orderBy('timestamp', descending: true);
     await noteCollection.get().then((value) {
       for (var docSnapshot in value.docs) {
         notes.add(NoteReceive.withValue(

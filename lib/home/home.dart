@@ -19,10 +19,12 @@ import 'package:notemobileapp/newnote/newnote.dart';
 import 'package:notemobileapp/router.dart';
 import 'package:notemobileapp/test/component/popup_menu.dart';
 import 'package:notemobileapp/test/services/firebase_firestore_service.dart';
+import 'package:provider/provider.dart';
 
 import '../model/SqliteModel/NoteModel.dart';
 import '../test/component/side_menu.dart';
 import '../test/model/note_receive.dart';
+import '../test/services/count_down_state.dart';
 import '../test/services/internet_connection.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -86,7 +88,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    //_networkConnectivity.disposeStream();
+    SetTrue().setCanReset(); //Set lại canResent để user mới vào bấm được,vì bộ delay chưa xong không thể set True.
     super.dispose();
   }
 
@@ -112,7 +114,7 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> InitiateListOfNote() async {
-    email = FirebaseAuth.instance.currentUser!.email;
+    email = FirebaseAuth.instance.currentUser?.email;
 
     if (isConnected) {
       debugPrint("Co mang ne!!");
@@ -242,16 +244,16 @@ class HomeScreenState extends State<HomeScreen> {
   Widget? displayImagefromCloudOrLocal_list(int index) {
     if (isConnected) {
       if(listofimglink_cloud.elementAtOrNull(index) == null || listofimglink_cloud[index] == ""){
-        return null;  
-      } 
-      
+        return null;
+      }
+
         return Image.network(
                 listofimglink_cloud[index],
                 width: 290,
                 height: 200,
                 fit: BoxFit.cover,
               );
-      
+
     }
     if(listofTitleImage[index].path == ""){
         return null;
@@ -262,13 +264,13 @@ class HomeScreenState extends State<HomeScreen> {
             height: 200,
             fit: BoxFit.cover,
           );
-    
+
   }
 
   Widget? displayImagefromCloudOrLocal_grid(int index) {
     if(isConnected) {
       if(listofimglink_cloud.elementAtOrNull(index) == null || listofimglink_cloud[index] == ""){
-        return null;  
+        return null;
       }
         return Image.network(
                 listofimglink_cloud[index],
@@ -276,7 +278,7 @@ class HomeScreenState extends State<HomeScreen> {
                 height: 60,
                 fit: BoxFit.cover,
               );
-    
+
     }
     if(listofTitleImage[index].path == ""){
         return null;
@@ -541,124 +543,127 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-          backgroundColor: const Color.fromARGB(63, 249, 253, 255),
-          drawer: const NavBar(),
-          appBar: AppBar(
-            backgroundColor: const Color.fromARGB(0, 0, 0, 0),
-            iconTheme: const IconThemeData(color: Colors.black),
-            elevation: 0.0,
-            title: const Text(
-              'Ghi chú của tôi',
-              style:
-                  TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-            ),
-            actions: [
-              IconButton(
-                onPressed: () {
-                  if (listState) {
-                    listState = false;
-                  } else {
-                    listState = true;
-                  }
-                  setState(() {});
-                },
-                icon: listState == true
-                    ? const Icon(Icons.list)
-                    : const Icon(Icons.grid_view),
-                color: Colors.black,
+    return ChangeNotifierProvider(
+        create: (context) => CountdownState(),
+      child: SafeArea(
+        child: Scaffold(
+            backgroundColor: const Color.fromARGB(63, 249, 253, 255),
+            drawer: const NavBar(),
+            appBar: AppBar(
+              backgroundColor: const Color.fromARGB(0, 0, 0, 0),
+              iconTheme: const IconThemeData(color: Colors.black),
+              elevation: 0.0,
+              title: const Text(
+                'Ghi chú của tôi',
+                style:
+                    TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
               ),
-            ],
-          ),
-          body: Container(
-            margin: const EdgeInsets.all(5),
-            child: Container(
-                padding: const EdgeInsets.all(5),
-                child: Stack(children: [
-                  Container(
-                    child: Column(children: [
-                      TextField(
-                        style: const TextStyle(
-                          fontSize: 15,
+              actions: [
+                IconButton(
+                  onPressed: () {
+                    if (listState) {
+                      listState = false;
+                    } else {
+                      listState = true;
+                    }
+                    setState(() {});
+                  },
+                  icon: listState == true
+                      ? const Icon(Icons.list)
+                      : const Icon(Icons.grid_view),
+                  color: Colors.black,
+                ),
+              ],
+            ),
+            body: Container(
+              margin: const EdgeInsets.all(5),
+              child: Container(
+                  padding: const EdgeInsets.all(5),
+                  child: Stack(children: [
+                    Container(
+                      child: Column(children: [
+                        TextField(
+                          style: const TextStyle(
+                            fontSize: 15,
+                          ),
+                          decoration: const InputDecoration(
+                              hintText: "Tìm kiếm nè...",
+                              prefixIcon: Icon(Icons.search),
+                              filled: true,
+                              fillColor: Color.fromARGB(255, 239, 241, 243),
+                              enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                width: 0.5,
+                              ))),
+                          onChanged: (value) => filterlist(value),
                         ),
-                        decoration: const InputDecoration(
-                            hintText: "Tìm kiếm nè...",
-                            prefixIcon: Icon(Icons.search),
-                            filled: true,
-                            fillColor: Color.fromARGB(255, 239, 241, 243),
-                            enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                              width: 0.5,
-                            ))),
-                        onChanged: (value) => filterlist(value),
-                      ),
-                      const SizedBox(
-                        height: 13,
-                      ),
-                      Expanded(
-                        child: listState == true
-                            ? RefreshIndicator(
-                                onRefresh: () async {
-                                  if (isConnected && loginState) {
-                                    await refreshNoteListFromCloud();
-                                  } else {
-                                    await reloadNoteListAtLocal("RELOAD_LIST");
-                                  }
-                                },
-                                child: buildListView())
-                            : RefreshIndicator(
-                                onRefresh: () async {
-                                  if (isConnected && loginState) {
-                                    refreshNoteListFromCloud();
-                                  } else {
-                                    reloadNoteListAtLocal("RELOAD_LIST");
-                                  }
-                                },
-                                child: buildGridView()),
-                      ),
-                    ]),
-                  ),
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 10.0),
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: ElevatedButton.icon(
-                        icon: const Icon(
-                          Icons.add,
-                          size: 16.0,
+                        const SizedBox(
+                          height: 13,
                         ),
-                        onPressed: () async {
-                          final resultFromNewNote = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              // ignore: prefer_const_constructors
-                              builder: (context) => NewNoteScreen(
-                                noteId: '',
-                                isEdit: false,
-                                email: email == null ? "" : email?.toString(),
+                        Expanded(
+                          child: listState == true
+                              ? RefreshIndicator(
+                                  onRefresh: () async {
+                                    if (isConnected && loginState) {
+                                      await refreshNoteListFromCloud();
+                                    } else {
+                                      await reloadNoteListAtLocal("RELOAD_LIST");
+                                    }
+                                  },
+                                  child: buildListView())
+                              : RefreshIndicator(
+                                  onRefresh: () async {
+                                    if (isConnected && loginState) {
+                                      refreshNoteListFromCloud();
+                                    } else {
+                                      reloadNoteListAtLocal("RELOAD_LIST");
+                                    }
+                                  },
+                                  child: buildGridView()),
+                        ),
+                      ]),
+                    ),
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 10.0),
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: ElevatedButton.icon(
+                          icon: const Icon(
+                            Icons.add,
+                            size: 16.0,
+                          ),
+                          onPressed: () async {
+                            final resultFromNewNote = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                // ignore: prefer_const_constructors
+                                builder: (context) => NewNoteScreen(
+                                  noteId: '',
+                                  isEdit: false,
+                                  email: email == null ? "" : email?.toString(),
+                                ),
                               ),
-                            ),
-                          );
-                          if (isConnected && loginState) {
-                            await refreshNoteListFromCloud();
-                          } else {
-                            await reloadNoteListAtLocal(resultFromNewNote);
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                            shape: const StadiumBorder(),
-                            backgroundColor:
-                                const Color.fromARGB(255, 97, 115, 239)),
-                        label: const Text(
-                          'Tạo ghi chú',
-                          style: TextStyle(fontSize: 16),
+                            );
+                            if (isConnected && loginState) {
+                              await refreshNoteListFromCloud();
+                            } else {
+                              await reloadNoteListAtLocal(resultFromNewNote);
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                              shape: const StadiumBorder(),
+                              backgroundColor:
+                                  const Color.fromARGB(255, 97, 115, 239)),
+                          label: const Text(
+                            'Tạo ghi chú',
+                            style: TextStyle(fontSize: 16),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ])),
-          )),
+                  ])),
+            )),
+      ),
     );
   }
 
@@ -673,7 +678,7 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> refreshNoteListFromCloud() async {
-    
+
     noteList = await FireStorageService().getAllNote().whenComplete(() {
       if (noteList.isNotEmpty) {
         for (int i = 0; i < noteList.length; i++) {
@@ -689,7 +694,6 @@ class HomeScreenState extends State<HomeScreen> {
         }
 
       }
-
       setState(() {});
     });
   }

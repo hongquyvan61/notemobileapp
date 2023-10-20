@@ -6,10 +6,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:notemobileapp/test/component/toast.dart';
-import 'package:notemobileapp/test/services/auth.dart';
+import 'package:provider/provider.dart';
+
 
 import '../../router.dart';
+import '../services/auth.dart';
+import '../services/count_down_state.dart';
 
 class NavBar extends StatefulWidget {
   const NavBar({super.key});
@@ -19,16 +21,16 @@ class NavBar extends StatefulWidget {
 }
 
 int selected = 0;
-int remainingSeconds = 60;
 bool canReset = true;
 
 class _NavBarState extends State<NavBar> {
-  String? _avatar = FirebaseAuth.instance.currentUser?.photoURL;
-  String? _userName = FirebaseAuth.instance.currentUser?.displayName;
-  String? _email = FirebaseAuth.instance.currentUser?.email;
+  String? _avatar = '';
+  String? _userName = '';
+  String? _email = '';
 
   @override
   void initState() {
+    getUserInfo();
     super.initState();
   }
 
@@ -36,15 +38,16 @@ class _NavBarState extends State<NavBar> {
   Widget build(BuildContext context) {
     return Drawer(
       elevation: 16,
-      child: _avatar != null
+      child: _email != null
           ? ListView(
               children: [
                 UserAccountsDrawerHeader(
-                  accountName: Text(_userName!),
+
+                  accountName: _userName != null ? Text(_userName!) : Text(''),
                   accountEmail: Text(_email!),
                   currentAccountPicture: CircleAvatar(
                     child: ClipOval(
-                      child: Image.network(_avatar!),
+                      child: _avatar != null ? Image.network(_avatar!) : Icon(Icons.account_circle),
                     ),
                   ),
                 ),
@@ -65,7 +68,7 @@ class _NavBarState extends State<NavBar> {
                           title: Opacity(
                             opacity: 0.25,
                             child: Text(
-                              "Thử lại sau($remainingSeconds)",
+                              "Thử lại sau(${Provider.of<CountdownState>(context).remainingSeconds})",
                               style: GoogleFonts.sanchez(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
@@ -193,11 +196,12 @@ class _NavBarState extends State<NavBar> {
         ElevatedButton(
           onPressed: () async {
             // Auth().changePassword();
-            remainingSeconds = 60;
-            startCountdown();
+            Provider.of<CountdownState>(context, listen: false).startCountdown();
+            setState(() {
+            });
             canReset = false;
             Navigator.pop(context);
-            await Future.delayed(Duration(seconds: 60));
+            await Future.delayed(Duration(seconds: 60)); //số giây phải bằng số giây ở startCountdown
             canReset = true;
           },
           child: Text("Gửi email"),
@@ -212,18 +216,13 @@ class _NavBarState extends State<NavBar> {
         });
   }
 
-  void startCountdown() {
-    Timer.periodic(Duration(seconds: 1), (Timer timer) {
-      if (remainingSeconds == 0) {
-        // Hủy đếm ngược khi hết thời gian
-        timer.cancel();
-      } else {
-        // Cập nhật giao diện và giảm thời gian còn lại sau mỗi giây
-        setState(() {
-          remainingSeconds--;
-        });
-      }
-    });
+
+
+  void getUserInfo(){
+    FirebaseAuth _auth = FirebaseAuth.instance;
+    _email = _auth.currentUser?.email;
+    _userName = _auth.currentUser?.displayName;
+    _avatar = _auth.currentUser?.photoURL;
   }
 }
 
@@ -278,4 +277,10 @@ class AppDrawerTile extends StatelessWidget {
     'Đăng nhập',
 
   ];
+}
+
+class SetTrue{ //Set lại canResent sau đăng xuất khi bộ delay chưa đếm xong để user mới vào bấm được,vì bộ delay chưa xong không thể set True.
+  void setCanReset(){
+    canReset = true;
+  }
 }

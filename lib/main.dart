@@ -12,6 +12,8 @@ import 'package:notemobileapp/router.dart';
 import 'package:notemobileapp/test/notifi_service.dart';
 import 'package:notemobileapp/test/page/auth_page.dart';
 import 'package:notemobileapp/test/page/verify_email.dart';
+import 'package:notemobileapp/test/services/count_down_state.dart';
+import 'package:provider/provider.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
 void main() async {
