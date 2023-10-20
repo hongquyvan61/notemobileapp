@@ -292,14 +292,14 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   int settingimgflex(int index) {
-    if (isConnected) {
+    if (isConnected && listofimglink_cloud.isNotEmpty) {
       return listofimglink_cloud[index] == '' ? 0 : 3;
     }
     return listofTitleImage[index].path == '' ? 0 : 3;
   }
 
   int settingBriefContentflex(int index) {
-    if (isConnected) {
+    if (isConnected && listofimglink_cloud.isNotEmpty) {
       return listofBriefContent_cloud[index] == '' ? 4 : 1;
     }
     return listofTitleImage[index].path == '' ? 4 : 1;
@@ -496,12 +496,14 @@ class HomeScreenState extends State<HomeScreen> {
                   SizedBox(
                     height: 10,
                   ),
+              listofimglink_cloud.isNotEmpty ?
                   Expanded(
                     flex: settingimgflex(index),
                     child: ClipRRect(
                         borderRadius: BorderRadius.circular(8.0),
                         child: displayImagefromCloudOrLocal_grid(index)),
-                  ),
+                  ) : Text(''),
+              listofimglink_cloud.isNotEmpty ?
                   Expanded(
                     flex: settingBriefContentflex(index),
                     child: Container(
@@ -516,7 +518,7 @@ class HomeScreenState extends State<HomeScreen> {
                         maxLines: settingBriefContentMaxLines(index),
                       ),
                     ),
-                  ),
+                  ) : Text(''),
                   Expanded(
                       flex: 1,
                       child: Container(
@@ -679,7 +681,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   Future<void> refreshNoteListFromCloud() async {
 
-    noteList = await FireStorageService().getAllNote().whenComplete(() {
+    noteList = await FireStorageService().getAllNote();
       if (noteList.isNotEmpty) {
         for (int i = 0; i < noteList.length; i++) {
           if(noteList[i].content.elementAtOrNull(1) != null){
@@ -694,7 +696,9 @@ class HomeScreenState extends State<HomeScreen> {
         }
 
       }
-      setState(() {});
-    });
+      setState(() {
+
+      });
   }
+
 }
