@@ -711,7 +711,8 @@ class HomeScreenState extends State<HomeScreen> {
     // listofimglink_cloud.clear();
     // listofBriefContent_cloud.clear();
     noteList = await FireStorageService().getAllNote();
-      if (noteList.isNotEmpty) {
+    setState(() {});
+      // if (noteList.isNotEmpty) {
         // for (int i = 0; i < noteList.length; i++) {
         //   if(noteList[i].content.elementAtOrNull(1) != null){
         //     if(noteList[i].content[1].containsKey("image")){
@@ -727,8 +728,8 @@ class HomeScreenState extends State<HomeScreen> {
         //   listofBriefContent_cloud.add(noteList[i].content[0]["text"].toString());
         // }
 
-        setState(() {});
-      }
+
+      // }
   }
 
 }

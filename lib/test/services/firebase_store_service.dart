@@ -8,7 +8,9 @@ class StorageService {
   String? currentUser = FirebaseAuth.instance.currentUser?.email;
 
   Future<String> uploadImage(File file) async {
-    Reference storageReference = firebaseStorage.ref().child('images/${DateTime.now().millisecondsSinceEpoch}');
+    Reference storageReference = firebaseStorage
+        .ref()
+        .child('images/${DateTime.now().millisecondsSinceEpoch}');
     // Tải lên hình ảnh lên Firebase Storage
     UploadTask uploadTask = storageReference.putFile(file);
     TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => null);
@@ -22,12 +24,13 @@ class StorageService {
     await storageReference.delete();
   }
 
-  void deleteListImage(List<dynamic> listUrlImage)  {
+  void deleteListImage(List<dynamic> listUrlImage) {
     listUrlImage.forEach((element) async {
-      String  a = element['image'];
-      Reference storageReference = firebaseStorage.refFromURL(a);
-      await storageReference.delete();
+      Map<String, dynamic> a = element;
+      if (a.containsKey('image')) {
+        Reference storageReference = firebaseStorage.refFromURL(a['image']);
+        await storageReference.delete();
+      }
     });
-
   }
 }

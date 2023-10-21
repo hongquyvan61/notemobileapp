@@ -356,20 +356,29 @@ class NewNoteScreenState extends State<NewNoteScreen> {
   }
 
   Future<void> uploadNoteToCloud() async {
+    showDialog(
+        context: appcontext,
+        builder: (context) {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        });
     NoteContent noteContent = NoteContent();
     List<Map<String, dynamic>> CloudContents = [];
 
     firsttxtfieldcont = SaveNoteContentList[0].text;
+    File file;
+    String urlImageCloud;
 
     for (int i = 0; i < SaveNoteContentList.length; i++) {
       if (SaveNoteContentList[i] is File) {
         // String imageName = basename(SaveNoteContentList[i].path);
-        File file = File(SaveNoteContentList[i].path);
+         file = File(SaveNoteContentList[i].path);
+         urlImageCloud = await StorageService().uploadImage(file)    ;
+        CloudContents.add({'image': urlImageCloud});
 
-        CloudContents.add({'image': await StorageService().uploadImage(file)});
-        
       } else {
-        
+
         String noiDungGhiChu = SaveNoteContentList[i].text;
         CloudContents.add({'text': noiDungGhiChu});
       }
@@ -381,7 +390,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     //////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
     /////////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
     await FireStorageService().saveContentNotes(noteContent);
-
+    Navigator.pop(appcontext);
   }
 
   Future<void> saveNoteToLocal() async {
@@ -408,7 +417,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
         if (SaveNoteContentList[i] is File) {
           // getting a directory path for saving
           // final Directory directory = await getApplicationDocumentsDirectory();
-          
+
           // String imagename = basename(SaveNoteContentList[i].path);
 
           // copy the file to a new path
@@ -714,10 +723,10 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                     ),
                     onPressed: () {
                       if(widget.email != ""){
-                        uploadNoteToCloud();
+                        uploadNoteToCloud().whenComplete(() => Navigator.of(context).pop('RELOAD_LIST'));
                       }
                       //saveNoteToLocal();
-                      Navigator.of(context).pop('RELOAD_LIST');
+                      // Navigator.of(context).pop('RELOAD_LIST');
                     },
                   )
               ],
@@ -1006,6 +1015,8 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     //     ],
     //   ),
     // );
+
+
   }
 
 
@@ -1032,6 +1043,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
   }
 
   Future<void> updateNote() async {
+
     NoteContent noteContent = NoteContent();
     List<Map<String, dynamic>> imageText = [];
     for (int i = 0; i < noteContentList.length; i++) {
