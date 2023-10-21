@@ -333,6 +333,8 @@ class HomeScreenState extends State<HomeScreen> {
     return listofTitleImage[index].path == '' ? 5 : 1;
   }
 
+  ////ahihi
+
   Widget buildListView() {
     if (noteList.isNotEmpty || foundedNote.isNotEmpty) {
       return ListView.separated(
