@@ -15,6 +15,9 @@ class FireStorageService {
 
   final FirebaseStorage storage = FirebaseStorage.instance;
 
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  
+
   String? currentUser = FirebaseAuth.instance.currentUser?.email;
 
   Future<void> saveContentNotes(NoteContent noteContent) async {
@@ -79,14 +82,14 @@ class FireStorageService {
 
   }
 
-  void deleteNoteById(String id) async {
+  Future<void> deleteNoteById(String id) async {
 
     final noteDocument = notesCollection.doc(currentUser).collection("note").doc(id);
     noteDocument.delete();
 
   }
 
-  void updateNoteById(String id, NoteContent noteContent) async {
+  Future<void> updateNoteById(String id, NoteContent noteContent) async {
 
     final noteDocument = notesCollection.doc(currentUser).collection("note").doc(id);
     noteDocument.update(noteContent.toMap());

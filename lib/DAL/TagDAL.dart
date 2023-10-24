@@ -21,4 +21,8 @@ class TagDAL{
         return  result[i]["tag_name"];
       });
   }
+
+  Future<void> deleteAllTags(Database db) async {
+    await db.rawDelete("delete from tag");
+  }
 }

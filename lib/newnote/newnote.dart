@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 //import 'package:flutter_quill/flutter_quill.dart' hide Text;
@@ -99,6 +100,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
 
   bool isEditCompleted = true;
   bool isConnected = false;
+  late bool loginState;
 
   int vitrihinh = 0;
 
@@ -168,6 +170,8 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     DateTime now = DateTime.now();
     currentDateTime = DateFormat.yMd('vi_VN').add_jm().format(now);
 
+    checkLogin();
+
     if (widget.isEdit && widget.email == "") {
       loadingNoteWithIDAtLocal(-1, widget.noteId, widget.isEdit);
     }
@@ -227,7 +231,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
       noteContentList.add(_image);
       FocusNode fcnTxtField = FocusNode();
       TextEditingController txtFieldController = TextEditingController();
-      Widget nextTextField = textFieldWidget(txtFieldController);
+      Widget nextTextField = textFieldWidget(txtFieldController, fcnTxtField);
       lstFocusNode.add(fcnTxtField);
       lstTxtController.add(txtFieldController);
       noteContentList.add(nextTextField);
@@ -237,7 +241,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
       noteContentList.add(_image);
       FocusNode fcnTxtField = FocusNode();
       TextEditingController txtFieldController = TextEditingController();
-      Widget nextTextField = textFieldWidget(txtFieldController);
+      Widget nextTextField = textFieldWidget(txtFieldController, fcnTxtField);
       lstFocusNode.add(fcnTxtField);
       lstTxtController.add(txtFieldController);
       noteContentList.add(nextTextField);
@@ -257,7 +261,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     setState(() {});
   }
 
-  Future<bool> showAlertDialog(BuildContext context, String message) async {
+  Future<bool> showAlertDialog(BuildContext context, String message, String alerttitle) async {
     // set up the buttons
     Widget cancelButton = OutlinedButton(
       child: Text('Không'),
@@ -274,7 +278,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
       },
     ); // set up the AlertDialog
     AlertDialog alert = AlertDialog(
-      title: Text("Xoá hình"),
+      title: Text(alerttitle),
       content: Text(message),
       actions: [
         cancelButton,
@@ -356,13 +360,13 @@ class NewNoteScreenState extends State<NewNoteScreen> {
   }
 
   Future<void> uploadNoteToCloud() async {
-    showDialog(
-        context: appcontext,
-        builder: (context) {
-          return Center(
-            child: CircularProgressIndicator(),
-          );
-        });
+    // showDialog(
+    //     context: appcontext,
+    //     builder: (context) {
+    //       return Center(
+    //         child: CircularProgressIndicator(),
+    //       );
+    //     });
     NoteContent noteContent = NoteContent();
     List<Map<String, dynamic>> CloudContents = [];
 
@@ -376,7 +380,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
          file = File(SaveNoteContentList[i].path);
          urlImageCloud = await StorageService().uploadImage(file)    ;
         CloudContents.add({'image': urlImageCloud});
-
+        CloudContents.add({'local_image' : SaveNoteContentList[i].path});
       } else {
 
         String noiDungGhiChu = SaveNoteContentList[i].text;
@@ -390,7 +394,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     //////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
     /////////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
     await FireStorageService().saveContentNotes(noteContent);
-    Navigator.pop(appcontext);
+    //Navigator.pop(appcontext);
   }
 
   Future<void> saveNoteToLocal() async {
@@ -507,23 +511,23 @@ class NewNoteScreenState extends State<NewNoteScreen> {
         }
       }
       if (lstupdatecontents[i].type == "insert_img") {
-        final Directory directory = await getApplicationDocumentsDirectory();
-        String drpath = directory.path;
+        // final Directory directory = await getApplicationDocumentsDirectory();
+        // String drpath = directory.path;
 
         String imgpath = UpdateNoteContentList[i].path;
-        String imagename = basename(imgpath);
+        // String imagename = basename(imgpath);
 
-        final File newImage =
-            await File(imgpath).copy('$drpath/image/$imagename').catchError(
-          (Object e, StackTrace stackTrace) {
-            debugPrint(e.toString());
-          },
-        );
+        // final File newImage =
+        //     await File(imgpath).copy('$drpath/image/$imagename').catchError(
+        //   (Object e, StackTrace stackTrace) {
+        //     debugPrint(e.toString());
+        //   },
+        // );
 
         NoteContentModel conmd = NoteContentModel(
             notecontent_id: null,
             textcontent: null,
-            imagecontent: '$drpath/image/$imagename',
+            imagecontent: imgpath,
             note_id: int.parse(widget.noteId)
         );
 
@@ -576,6 +580,13 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     }
   }
 
+  Future<void> deleteNoteAtLocal() async{
+    bool isSuccess = await nDAL.deleteNote(int.parse(widget.noteId), InitDataBase.db);
+    if(isSuccess == false){
+      debugPrint("Xoa note xay ra loi!!!!!!");
+    }
+  }
+
   Widget buildImageWidget(BuildContext context, int index) {
     Widget imageWidget = Stack(children: [
       noteContentList[index] is String ?
@@ -603,41 +614,63 @@ class NewNoteScreenState extends State<NewNoteScreen> {
               ),
               onPressed: () async {
                 bool isDeleted = await showAlertDialog(
-                    appcontext, "Bạn có muốn xoá hình này?");
+                    appcontext, "Bạn có muốn xoá hình này?", "Xoá hình");
                 if (isDeleted) {
                   //XOA HINH
-                  noteContentList.removeAt(index);
-                  if (widget.isEdit == false) {
-                    SaveNoteContentList.removeAt(index);
-                  } else {
-                    UpdateNoteContentList.removeAt(index);
-
-                    UpdateNoteModel delmodel = UpdateNoteModel(
-                        notecontent_id: lstupdatecontents[index].notecontent_id,
-                        type: "delete");
-
-                    lstupdatecontents.removeAt(index);
-                    lstdeletecontents.add(delmodel);
-                  }
-                }
-                if (widget.isEdit == false) {
-                  if (SaveNoteContentList[index].text == "") {
-                    //XOA TEXT FIELD NGAY SAU HINH NEU TEXT FIELD TRONG KHI TAO GHI CHU
                     noteContentList.removeAt(index);
-                  }
-                } else {
-                  if (UpdateNoteContentList[index] is TextEditingController) {
-                    if (UpdateNoteContentList[index].text == "") {
-                      //XOA TEXT FIELD NGAY SAU HINH NEU TEXT FIELD TRONG KHI EDIT GHI CHU
+
+                    if (widget.isEdit == false) {
+                      SaveNoteContentList.removeAt(index);
+                    } else {
+                      if(loginState){
+
+                      }
+                      else{
+                        UpdateNoteContentList.removeAt(index);
+
+                        UpdateNoteModel delmodel = UpdateNoteModel(
+                            notecontent_id: lstupdatecontents[index].notecontent_id,
+                            type: "delete");
+
+                        lstupdatecontents.removeAt(index);
+                        lstdeletecontents.add(delmodel);
+                      }
+                    }
+                  
+                }
+
+                if (widget.isEdit == false) {
+                  
+                    if (SaveNoteContentList[index].text == "") {
+                    //XOA TEXT FIELD NGAY SAU HINH NEU TEXT FIELD TRONG KHI TAO GHI CHU
                       noteContentList.removeAt(index);
+                    }
+                  
+                  
+                } else {
+                  if(loginState){
+                    if (noteContentList[index] is TextField) {
+                      if (noteContentList[index].controller?.text == "") {
+                        //XOA TEXT FIELD NGAY SAU HINH NEU TEXT FIELD TRONG KHI EDIT GHI CHU
+                        noteContentList.removeAt(index);
+                      }
+                    }
+                  }
+                  else{
+                    if (UpdateNoteContentList[index] is TextEditingController) {
+                      if (UpdateNoteContentList[index].text == "") {
+                        //XOA TEXT FIELD NGAY SAU HINH NEU TEXT FIELD TRONG KHI EDIT GHI CHU
+                        
+                        noteContentList.removeAt(index);
 
-                      UpdateNoteModel delmodel = UpdateNoteModel(
-                          notecontent_id:
-                              lstupdatecontents[index].notecontent_id,
-                          type: "delete");
+                        UpdateNoteModel delmodel = UpdateNoteModel(
+                            notecontent_id:
+                                lstupdatecontents[index].notecontent_id,
+                            type: "delete");
 
-                      lstupdatecontents.removeAt(index);
-                      lstdeletecontents.add(delmodel);
+                        lstupdatecontents.removeAt(index);
+                        lstdeletecontents.add(delmodel);
+                      }
                     }
                   }
                 }
@@ -685,7 +718,6 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                     ),
                     onPressed: () {
                       isEditCompleted = false;
-                      updateNote();
                       setState(() {
                       });
                       return;
@@ -706,12 +738,16 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                     icon: const Icon(
                       Icons.update,
                     ),
-                    onPressed: () {
+                    onPressed: () async {
                       if(widget.email != ""){
-                        updateNote();
+                        await updateNote().whenComplete(() => Navigator.of(context).pop('RELOAD_LIST'));
                       }
-                      updateNoteToLocal();
-                      Navigator.of(context).pop('RELOAD_LIST');
+                      else{
+                        updateNoteToLocal();
+                        Navigator.of(context).pop('RELOAD_LIST');
+                      }
+                      //updateNoteToLocal();
+                      
                       //Navigator.push(context, MaterialPageRoute(builder: (context) => const ToDoPage()));
                     },
                   ),
@@ -724,6 +760,10 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                     onPressed: () {
                       if(widget.email != ""){
                         uploadNoteToCloud().whenComplete(() => Navigator.of(context).pop('RELOAD_LIST'));
+                      }
+                      else{
+                        saveNoteToLocal();
+                        Navigator.of(context).pop('RELOAD_LIST');
                       }
                       //saveNoteToLocal();
                       // Navigator.of(context).pop('RELOAD_LIST');
@@ -817,8 +857,25 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                                     ),
                                     Expanded(
                                       child: ElevatedButton(
-                                        onPressed: () {
-                                          deleteNote();
+                                        onPressed: () async {
+                                          if(widget.email != ""){
+                                            bool deleteornot = await showAlertDialog(context, 
+                                                                "Bạn có muốn xoá ghi chú này không?", 
+                                                                "Xoá ghi chú"
+                                            );
+                                            if(deleteornot){
+                                              await deleteNote();
+                                            }
+                                          }
+                                          else{
+                                            bool deleteornot = await showAlertDialog(context, 
+                                                                "Bạn có muốn xoá ghi chú này không?", 
+                                                                "Xoá ghi chú"
+                                            );
+                                            if(deleteornot){
+                                              deleteNoteAtLocal();
+                                            }
+                                          }
                                           Navigator.pop(context, true);
                                         },
                                         child: const Icon(
@@ -1024,25 +1081,41 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     if (widget.isEdit) {
       noteContentList.clear();
       note = await FireStorageService().getNoteById(widget.noteId);
-      setState(() {
-        _noteTitleController.text = note.title;
+      _noteTitleController.text = note.title;
         currentDateTime = note.timeStamp;
         for (var element in note.content) {
           Map<String, dynamic> temp = element;
-          if (temp.containsKey('image')) {
-            noteContentList.add(temp['image']);
-          } else {
+          if(temp.containsKey('local_image')){
+            bool exists = await File(temp["local_image"]).exists();
+            if(exists){
+               noteContentList.add(File(temp['local_image']));
+            }
+          }
+          if(temp.containsKey('text')){
             TextEditingController controller = TextEditingController();
+            FocusNode fcnode = FocusNode();
 
             controller.text = temp['text'];
-            noteContentList.add(textFieldWidget(controller));
+            noteContentList.add(textFieldWidget(controller, fcnode));
           }
         }
+      setState(() {
+        
       });
     }
   }
 
   Future<void> updateNote() async {
+    // showDialog(
+    //     context: appcontext,
+    //     builder: (context) {
+    //       return Center(
+    //         child: CircularProgressIndicator(),
+    //       );
+    //     });
+
+    note = await FireStorageService().getNoteById(widget.noteId);
+    StorageService().deleteListOnlineImage(note.content);
 
     NoteContent noteContent = NoteContent();
     List<Map<String, dynamic>> imageText = [];
@@ -1051,8 +1124,13 @@ class NewNoteScreenState extends State<NewNoteScreen> {
         TextField textField = noteContentList[i];
         imageText.add({'text': textField.controller?.text});
       } else if (noteContentList[i] is File) {
-        String temp = await StorageService().uploadImage(noteContentList[i]);
-        imageText.add({'image': temp});
+        bool exists = await File(noteContentList[i].path).exists();
+
+        if(exists){
+          String temp = await StorageService().uploadImage(noteContentList[i]);
+          imageText.add({'image': temp});
+          imageText.add({'local_image': noteContentList[i].path});
+        }
       }
     }
     noteContent.timeStamp = currentDateTime; //Chỉnh thành ngày update
@@ -1061,11 +1139,22 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     noteContent.tagname = "";                     //////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
     //////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
     /////////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
-    FireStorageService().updateNoteById(widget.noteId, noteContent);
+    await FireStorageService().updateNoteById(widget.noteId, noteContent);
+    //Navigator.pop(appcontext);
   }
 
-  void deleteNote() {
+  Future<void> deleteNote() async {
     StorageService().deleteListImage(note.content);
-    FireStorageService().deleteNoteById(widget.noteId);
+    await FireStorageService().deleteNoteById(widget.noteId);
+  }
+
+  checkLogin() {
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      if (user != null) {
+        loginState = true;
+      } else {
+        loginState = false;
+      }
+    });
   }
 }

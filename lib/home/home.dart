@@ -68,6 +68,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   Map _source = {ConnectivityResult.none: false};
   final NetworkConnectivity _networkConnectivity = NetworkConnectivity.instance;
+  
 
 
   @override
@@ -116,8 +117,8 @@ class HomeScreenState extends State<HomeScreen> {
   Future<void> InitiateListOfNote() async {
     email = FirebaseAuth.instance.currentUser?.email;
 
-    if (isConnected) {
-      debugPrint("Co mang ne!!");
+    if (loginState) {
+      debugPrint("Co dang nhap ne!!");
       listofnote.clear();
       listofTitleImage.clear();
       foundedNote.clear();
@@ -126,9 +127,7 @@ class HomeScreenState extends State<HomeScreen> {
       refreshNoteListFromCloud();
     }
     else {
-      debugPrint("Khong co mang!");
-      // listofimglink_cloud.clear();
-      // listofBriefContent_cloud.clear();
+      debugPrint("Khong co dang nhap!");
 
       listofnote =
           await nDAL.getAllNotesByUserID(-1, InitDataBase.db).catchError(
@@ -164,36 +163,13 @@ class HomeScreenState extends State<HomeScreen> {
 
       listofTitleImage = await generateListTitleImage(listofnote);
 
-      ////REFRESH NOTE LIST FROM CLOUD
-      ////REFRESH NOTE LIST FROM CLOUD
-      ////REFRESH NOTE LIST FROM CLOUD
-      // if (isConnected) {
-      //   refreshNoteList();
-      // }
+     
       setState(() {});
       await EasyLoading.dismiss();
     } else {
       debugPrint('Du lieu tra ve tu new note screen bi loi');
     }
   }
-
-  // Future<List<String>> FB_generateTitleImage(List<FBNoteModel> lst) async {
-  //   late List<String> lstimage = <String>[];
-
-  //   fb_listofBriefContent.clear();
-
-  //   for (int i = 0; i < lst.length; i++) {
-  //     int noteid = lst[i].note_id?.toInt() ?? -1;
-
-  //     String imagestr = await fb_noteContentDAL.FB_getTitleImageOfNote(noteid);
-  //     lstimage.add(imagestr);
-
-  //     String briefcontent =
-  //         await fb_noteContentDAL.FB_getBriefContentOfNote(noteid);
-  //     fb_listofBriefContent.add(briefcontent);
-  //   }
-  //   return lstimage;
-  // }
 
   Future<List<File>> generateListTitleImage(List<NoteModel> lst) async {
     late List<File> lstimage = <File>[];
@@ -227,14 +203,14 @@ class HomeScreenState extends State<HomeScreen> {
 
     if (inputWord.isEmpty) {
       // if the search field is empty or only contains white-space, we'll display all users
-      if(isConnected){
+      if(loginState){
         noteList = await FireStorageService().getAllNote();
       }
       else{
         results = listofnote;
       }
     } else {
-      if(isConnected){
+      if(loginState){
         noteList = noteList.where((note) => note.title.toLowerCase().contains(inputWord.toLowerCase())).toList();
       }
       else{
@@ -245,7 +221,7 @@ class HomeScreenState extends State<HomeScreen> {
       }
       // we use the toLowerCase() method to make it case-insensitive
     }
-    if(isConnected){
+    if(loginState){
       
     }
     else{
@@ -257,13 +233,13 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Widget? displayImagefromCloudOrLocal_list(int index) {
-    if (isConnected) {
-      Map? map = noteList[index].content.firstWhere((element) => element.containsKey("image"), orElse:  () => null);
+    if (loginState) {
+      Map? map = noteList[index].content.firstWhere((element) => element.containsKey("local_image"), orElse:  () => null);
       return map == null ? 
             null 
             : 
-            Image.network(
-              map["image"],
+            Image.file(
+              File(map["local_image"]),
               width: 290,
               height: 200,
               fit: BoxFit.cover,
@@ -284,13 +260,13 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Widget? displayImagefromCloudOrLocal_grid(int index) {
-    if (isConnected) {
-      Map? map = noteList[index].content.firstWhere((element) => element.containsKey("image"), orElse:  () => null);
+    if (loginState) {
+      Map? map = noteList[index].content.firstWhere((element) => element.containsKey("local_image"), orElse:  () => null);
       return map == null ? 
             null 
             : 
-            Image.network(
-              map["image"],
+            Image.file(
+              File(map["local_image"]),
               width: 140,
               height: 60,
               fit: BoxFit.cover,
@@ -310,24 +286,24 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   int settingimgflex(int index) {
-    if (isConnected) {
-      Map? map = noteList[index].content.firstWhere((element) => element.containsKey("image"), orElse: () => null);
+    if (loginState) {
+      Map? map = noteList[index].content.firstWhere((element) => element.containsKey("local_image"), orElse: () => null);
       return map == null ? 0 : 3;
     }
     return listofTitleImage[index].path == '' ? 0 : 3;
   }
 
   int settingBriefContentflex(int index) {
-    if (isConnected) {
-      Map? map = noteList[index].content.firstWhere((element) => element.containsKey("image"), orElse: () => null);
+    if (loginState) {
+      Map? map = noteList[index].content.firstWhere((element) => element.containsKey("local_image"), orElse: () => null);
       return map == null ? 4 : 1;
     }
     return listofTitleImage[index].path == '' ? 4 : 1;
   }
 
   int settingBriefContentMaxLines(int index) {
-    if (isConnected) {
-      Map? map = noteList[index].content.firstWhere((element) => element.containsKey("image"), orElse: () => null);
+    if (loginState) {
+      Map? map = noteList[index].content.firstWhere((element) => element.containsKey("local_image"), orElse: () => null);
       return map == null ? 5 : 1;
     }
     return listofTitleImage[index].path == '' ? 5 : 1;
@@ -340,7 +316,7 @@ class HomeScreenState extends State<HomeScreen> {
       return ListView.separated(
         separatorBuilder: (BuildContext context, int index) =>
             const Divider(height: 15),
-        itemCount: isConnected ? noteList.length : foundedNote.length,
+        itemCount: loginState ? noteList.length : foundedNote.length,
         itemBuilder: (BuildContext context, int index) {
           return Container(
               padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
@@ -369,7 +345,7 @@ class HomeScreenState extends State<HomeScreen> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => NewNoteScreen(
-                            noteId: isConnected
+                            noteId: loginState
                                 ? noteList[index].noteId
                                 : (foundedNote[index]
                                         .note_id
@@ -381,7 +357,7 @@ class HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                       );
-                      if (isConnected && loginState) {
+                      if (loginState) {
                         await refreshNoteListFromCloud();
                       } else {
                         await reloadNoteListAtLocal(resultFromNewNote);
@@ -398,7 +374,7 @@ class HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     title: Text(
-                      isConnected
+                      loginState
                           ? noteList[index].title
                           : foundedNote[index].title,
                       style: const TextStyle(
@@ -407,7 +383,7 @@ class HomeScreenState extends State<HomeScreen> {
                       maxLines: 1,
                     ),
                     subtitle: Text(
-                      isConnected
+                      loginState
                           ? noteList[index].timeStamp
                           : foundedNote[index].date_created,
                       style: const TextStyle(fontSize: 12, color: Colors.grey),
@@ -423,7 +399,7 @@ class HomeScreenState extends State<HomeScreen> {
                     margin: const EdgeInsets.all(10),
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      isConnected
+                      loginState
                           ? noteList[index].content.firstWhere((element) => element.containsKey("text") && element["text"] != "")['text']
                           : listofBriefContent[index],
                       style: const TextStyle(fontSize: 12),
@@ -445,7 +421,7 @@ class HomeScreenState extends State<HomeScreen> {
   Widget buildGridView() {
     if (noteList.isNotEmpty || foundedNote.isNotEmpty) {
       return GridView.builder(
-        itemCount: isConnected ? noteList.length : foundedNote.length,
+        itemCount: loginState ? noteList.length : foundedNote.length,
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2, crossAxisSpacing: 4.0, mainAxisSpacing: 10.0),
         itemBuilder: (context, index) {
@@ -474,7 +450,7 @@ class HomeScreenState extends State<HomeScreen> {
                           MaterialPageRoute(
                             builder: (context) => NewNoteScreen(
                                 email: email == null ? "" : email?.toString(),
-                                noteId: isConnected
+                                noteId: loginState
                                     ? noteList[index].noteId
                                     : (foundedNote[index]
                                             .note_id
@@ -484,14 +460,14 @@ class HomeScreenState extends State<HomeScreen> {
                                 isEdit: true),
                           ),
                         );
-                        if (isConnected && loginState) {
+                        if (loginState) {
                           await refreshNoteListFromCloud();
                         } else {
                           await reloadNoteListAtLocal(resultfromNewNote);
                         }
                       },
                       title: Text(
-                        isConnected
+                        loginState
                             ? noteList[index].title
                             : foundedNote[index].title,
                         style: TextStyle(
@@ -519,7 +495,7 @@ class HomeScreenState extends State<HomeScreen> {
                   SizedBox(
                     height: 10,
                   ),
-                  noteList[index].content.firstWhere((element) => element.containsKey("image"), orElse: () => null) != null ? 
+                  noteList[index].content.firstWhere((element) => element.containsKey("local_image"), orElse: () => null) != null ? 
                   Expanded(
                     flex: settingimgflex(index),
                     child: ClipRRect(
@@ -537,7 +513,7 @@ class HomeScreenState extends State<HomeScreen> {
                       margin: EdgeInsets.only(left: 10, top: 5, right: 10),
                       alignment: Alignment.topLeft,
                       child: Text(
-                        isConnected
+                        loginState
                             ? noteList[index].content.firstWhere((element) => element.containsKey("text") && element["text"] != "")["text"]
                             : listofBriefContent[index],
                         style: const TextStyle(fontSize: 11),
@@ -553,7 +529,7 @@ class HomeScreenState extends State<HomeScreen> {
                         alignment: Alignment.centerRight,
                         padding: const EdgeInsets.only(right: 10),
                         child: Text(
-                          isConnected
+                          loginState
                               ? noteList[index].timeStamp
                               : foundedNote[index].date_created,
                           style:
@@ -634,7 +610,7 @@ class HomeScreenState extends State<HomeScreen> {
                           child: listState == true
                               ? RefreshIndicator(
                                   onRefresh: () async {
-                                    if (isConnected && loginState) {
+                                    if (loginState) {
                                       await refreshNoteListFromCloud();
                                     } else {
                                       await reloadNoteListAtLocal("RELOAD_LIST");
@@ -643,7 +619,7 @@ class HomeScreenState extends State<HomeScreen> {
                                   child: buildListView())
                               : RefreshIndicator(
                                   onRefresh: () async {
-                                    if (isConnected && loginState) {
+                                    if (loginState) {
                                       refreshNoteListFromCloud();
                                     } else {
                                       reloadNoteListAtLocal("RELOAD_LIST");
@@ -666,7 +642,6 @@ class HomeScreenState extends State<HomeScreen> {
                             final resultFromNewNote = await Navigator.push(
                               context,
                               MaterialPageRoute(
-                                // ignore: prefer_const_constructors
                                 builder: (context) => NewNoteScreen(
                                   noteId: '',
                                   isEdit: false,
@@ -674,7 +649,7 @@ class HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                             );
-                            if (isConnected && loginState) {
+                            if (loginState) {
                               await refreshNoteListFromCloud();
                             } else {
                               await reloadNoteListAtLocal(resultFromNewNote);
@@ -703,7 +678,9 @@ class HomeScreenState extends State<HomeScreen> {
         loginState = true;
       } else {
         loginState = false;
+        InitiateListOfNote();
       }
+      
     });
   }
 
@@ -712,7 +689,6 @@ class HomeScreenState extends State<HomeScreen> {
     // listofBriefContent_cloud.clear();
     noteList = await FireStorageService().getAllNote();
     setState(() {});
-      // if (noteList.isNotEmpty) {
         // for (int i = 0; i < noteList.length; i++) {
         //   if(noteList[i].content.elementAtOrNull(1) != null){
         //     if(noteList[i].content[1].containsKey("image")){
@@ -727,9 +703,6 @@ class HomeScreenState extends State<HomeScreen> {
         //   }
         //   listofBriefContent_cloud.add(noteList[i].content[0]["text"].toString());
         // }
-
-
-      // }
   }
 
 }

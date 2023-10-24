@@ -49,4 +49,10 @@ class UserDAL {
       );
     });
   }
+
+  Future<bool> checkUserExists(Database db, int uid) async{
+    final List<Map<String, dynamic>> maps = await db.rawQuery("select user_id from users where user_id=?",[uid]);
+
+    return maps[0]["user_id"] != 0 ? true : false;
+  }
 }

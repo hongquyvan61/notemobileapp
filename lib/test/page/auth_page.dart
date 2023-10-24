@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:notemobileapp/router.dart';
 
 import 'package:notemobileapp/test/page/dialog.dart';
@@ -16,10 +17,15 @@ class AuthPage extends StatefulWidget {
 
 class _AuthPageState extends State<AuthPage> {
   bool _loading = false;
+
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   var _isObscure;
+
+ 
+
+  late BuildContext appcontext;
 
   @override
   void initState() {
@@ -30,6 +36,7 @@ class _AuthPageState extends State<AuthPage> {
 
   @override
   Widget build(BuildContext context) {
+    appcontext = context;
     return Scaffold(
       appBar: AppBar(
         title: Text('Đăng nhập'),
@@ -118,8 +125,8 @@ class _AuthPageState extends State<AuthPage> {
                 width: Size.infinite.width,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () {
-                    handleSubmit();
+                  onPressed: () async {
+                    await handleSubmit(appcontext);
                   },
                   style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
@@ -202,15 +209,50 @@ class _AuthPageState extends State<AuthPage> {
     );
   }
 
-  void handleSubmit() async {
+  Future<bool> showAlertDialog(BuildContext context, String message, String alerttitle) async {
+    // set up the buttons
+    Widget cancelButton = OutlinedButton(
+      child: Text('Không'),
+      onPressed: () {
+        // returnValue = false;
+        Navigator.of(context).pop(false);
+      },
+    );
+    Widget continueButton = OutlinedButton(
+      child: Text("Có"),
+      onPressed: () {
+        // returnValue = true;
+        Navigator.of(context).pop(true);
+      },
+    ); // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text(alerttitle),
+      content: Text(message),
+      actions: [
+        cancelButton,
+        continueButton,
+      ],
+    ); // show the dialog
+    final result = await showDialog<bool?>(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+    return result ?? false;
+  }
+
+  
+
+  Future<void> handleSubmit(BuildContext context) async {
     if (!_formKey.currentState!.validate()) return;
     final email = _emailController.value.text;
     final password = _passwordController.value.text;
 
-    setState(() {
+     setState(() {
       _loading = true;
     });
-
+    
     await Auth().signInWithEmailPassword(context, email, password);
     // if(uID != -1){
     //   Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => HomeScreen(userID: uID)));

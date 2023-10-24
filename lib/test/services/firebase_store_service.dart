@@ -31,6 +31,21 @@ class StorageService {
         Reference storageReference = firebaseStorage.refFromURL(a['image']);
         await storageReference.delete();
       }
+      if(a.containsKey('local_image')){
+        if(a["local_image"] != ""){
+          await File(a["local_image"]).delete();
+        }
+      }
+    });
+  }
+
+  void deleteListOnlineImage(List<dynamic> listUrlImage){
+    listUrlImage.forEach((element) async {
+      Map<String, dynamic> a = element;
+      if (a.containsKey('image')) {
+        Reference storageReference = firebaseStorage.refFromURL(a['image']);
+        await storageReference.delete();
+      }
     });
   }
 }

@@ -70,6 +70,7 @@ class NoteContentDAL {
            String imageurl = await StorageService().uploadImage(imgfile);
 
            contents.add({"image" : imageurl});
+           contents.add({"local_image" : result[i]["imagecontent"].toString()});
         }
         else{
           String noiDungGhiChu = result[i]["textcontent"];
@@ -126,5 +127,9 @@ class NoteContentDAL {
         int changenum = await db.rawUpdate(sqltext,[txt, notecontentid]);
         return changenum != 0 ? true : false;
       }
+    }
+
+    Future<void> deleteAllNoteContents(Database db) async{
+      await db.rawDelete("delete from notecontent");
     }
 }

@@ -32,10 +32,14 @@ class NoteDAL {
       if(lsthinhcanxoa.isNotEmpty){
         for(int i = 0; i < lsthinhcanxoa.length; i++){
           File imgcanxoa = File(lsthinhcanxoa[i]);
-          await imgcanxoa.delete().catchError((Object e, StackTrace stackTrace) {
+          bool exists = await File(imgcanxoa.path).exists();
+          if(exists){
+            await imgcanxoa.delete().catchError((Object e, StackTrace stackTrace) {
                 debugPrint(e.toString());
-          },);  
+            },); 
           }
+           
+        }
       }
       int checkdelcontents = await db.rawDelete("delete from notecontent where note_id=?",[noteid]);
       return checkdelcontents != 0 ? true : false;
@@ -105,4 +109,8 @@ class NoteDAL {
         return result[index]["imagecontent"];
       });
     }
+
+  Future<void> deleteAllNote(Database db) async{
+    await db.rawDelete("delete from note");
+  } 
 }
