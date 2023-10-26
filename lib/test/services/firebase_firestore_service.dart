@@ -20,10 +20,11 @@ class FireStorageService {
 
   String? currentUser = FirebaseAuth.instance.currentUser?.email;
 
-  Future<void> saveContentNotes(NoteContent noteContent) async {
+  Future<String> saveContentNotes(NoteContent noteContent) async {
     final idNote = notesCollection.doc(currentUser).collection("note").doc();
     await idNote.set(noteContent.toMap());
     debugPrint('Insert count');
+    return idNote.id;
   }
 
   Future<void> saveTags(Tag tag) async{
@@ -85,15 +86,21 @@ class FireStorageService {
   Future<void> deleteNoteById(String id) async {
 
     final noteDocument = notesCollection.doc(currentUser).collection("note").doc(id);
-    noteDocument.delete();
+    await noteDocument.delete();
 
   }
 
   Future<void> updateNoteById(String id, NoteContent noteContent) async {
 
     final noteDocument = notesCollection.doc(currentUser).collection("note").doc(id);
-    noteDocument.update(noteContent.toMap());
+    await noteDocument.update(noteContent.toMap());
 
+  }
+
+  Future<void> updateCloudImageURL(String id, List<dynamic> contents) async {
+    final noteDocument = notesCollection.doc(currentUser).collection("note").doc(id);
+    Map<Object, Object?> map = {"content" : contents};
+    noteDocument.update(map);
   }
 
 }

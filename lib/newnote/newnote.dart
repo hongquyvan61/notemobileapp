@@ -171,6 +171,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     currentDateTime = DateFormat.yMd('vi_VN').add_jm().format(now);
 
     checkLogin();
+    CheckInternetConnection();
 
     if (widget.isEdit && widget.email == "") {
       loadingNoteWithIDAtLocal(-1, widget.noteId, widget.isEdit);
@@ -368,7 +369,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     //       );
     //     });
     NoteContent noteContent = NoteContent();
-    List<Map<String, dynamic>> CloudContents = [];
+    List<dynamic> CloudContents = [];
 
     firsttxtfieldcont = SaveNoteContentList[0].text;
     File file;
@@ -377,10 +378,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     for (int i = 0; i < SaveNoteContentList.length; i++) {
       if (SaveNoteContentList[i] is File) {
         // String imageName = basename(SaveNoteContentList[i].path);
-         file = File(SaveNoteContentList[i].path);
-         urlImageCloud = await StorageService().uploadImage(file)    ;
-        CloudContents.add({'image': urlImageCloud});
-        CloudContents.add({'local_image' : SaveNoteContentList[i].path});
+         CloudContents.add({'local_image' : SaveNoteContentList[i].path});
       } else {
 
         String noiDungGhiChu = SaveNoteContentList[i].text;
@@ -393,8 +391,23 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     noteContent.tagname = "";                  //////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
     //////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
     /////////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
-    await FireStorageService().saveContentNotes(noteContent);
+
     //Navigator.pop(appcontext);
+
+    String noteid = await FireStorageService().saveContentNotes(noteContent);
+
+    if(isConnected){
+      for (int i = 0; i < SaveNoteContentList.length; i++) {
+        if (SaveNoteContentList[i] is File) {
+          file = File(SaveNoteContentList[i].path);
+          urlImageCloud = await StorageService().uploadImage(file);
+          CloudContents.insert(i + 1, {'image': urlImageCloud});
+        }
+      }
+
+      await FireStorageService().updateCloudImageURL(noteid, CloudContents);
+    }
+    
   }
 
   Future<void> saveNoteToLocal() async {
@@ -740,7 +753,8 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                     ),
                     onPressed: () async {
                       if(widget.email != ""){
-                        await updateNote().whenComplete(() => Navigator.of(context).pop('RELOAD_LIST'));
+                        updateNote();
+                        Navigator.of(context).pop('RELOAD_LIST');
                       }
                       else{
                         updateNoteToLocal();
@@ -757,9 +771,10 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                     icon: const Icon(
                       Icons.check,
                     ),
-                    onPressed: () {
+                    onPressed: () async {
                       if(widget.email != ""){
-                        uploadNoteToCloud().whenComplete(() => Navigator.of(context).pop('RELOAD_LIST'));
+                        uploadNoteToCloud();
+                        Navigator.of(context).pop('RELOAD_LIST');
                       }
                       else{
                         saveNoteToLocal();
@@ -864,7 +879,8 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                                                                 "Xoá ghi chú"
                                             );
                                             if(deleteornot){
-                                              await deleteNote();
+                                              deleteNote();
+                                              Navigator.pop(context, true);
                                             }
                                           }
                                           else{
@@ -874,9 +890,10 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                                             );
                                             if(deleteornot){
                                               deleteNoteAtLocal();
+                                              Navigator.pop(context, true);
                                             }
                                           }
-                                          Navigator.pop(context, true);
+                                          
                                         },
                                         child: const Icon(
                                           Icons.delete,
@@ -1083,8 +1100,8 @@ class NewNoteScreenState extends State<NewNoteScreen> {
       note = await FireStorageService().getNoteById(widget.noteId);
       _noteTitleController.text = note.title;
         currentDateTime = note.timeStamp;
-        for (var element in note.content) {
-          Map<String, dynamic> temp = element;
+        for (int i = 0; i < note.content.length; i++) {
+          Map<String, dynamic> temp = note.content[i];
           if(temp.containsKey('local_image')){
             bool exists = await File(temp["local_image"]).exists();
             if(exists){
@@ -1098,7 +1115,17 @@ class NewNoteScreenState extends State<NewNoteScreen> {
             controller.text = temp['text'];
             noteContentList.add(textFieldWidget(controller, fcnode));
           }
+          // if(temp.containsKey('image')){
+          //   if(temp['image'] == ""){
+          //     if(isConnected){
+          //       String urlImageCloud = await StorageService().uploadImage(File(note.content[i-1]["local_image"]));
+          //       note.content[i]['image'] = urlImageCloud;
+          //     }
+          //   }
+          // }
         }
+
+      await FireStorageService().updateCloudImageURL(id, note.content);
       setState(() {
         
       });
@@ -1113,9 +1140,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     //         child: CircularProgressIndicator(),
     //       );
     //     });
-
     note = await FireStorageService().getNoteById(widget.noteId);
-    StorageService().deleteListOnlineImage(note.content);
 
     NoteContent noteContent = NoteContent();
     List<Map<String, dynamic>> imageText = [];
@@ -1127,8 +1152,6 @@ class NewNoteScreenState extends State<NewNoteScreen> {
         bool exists = await File(noteContentList[i].path).exists();
 
         if(exists){
-          String temp = await StorageService().uploadImage(noteContentList[i]);
-          imageText.add({'image': temp});
           imageText.add({'local_image': noteContentList[i].path});
         }
       }
@@ -1139,13 +1162,37 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     noteContent.tagname = "";                     //////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
     //////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
     /////////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
+
     await FireStorageService().updateNoteById(widget.noteId, noteContent);
+
+    late int index;
+    if(isConnected){
+      
+      StorageService().deleteListOnlineImage(note.content);
+
+      for(int i = 0; i < noteContentList.length; i++){
+        if(noteContentList[i] is File){
+          String temp = await StorageService().uploadImage(noteContentList[i]);
+          index = imageText.indexWhere((element) => element["local_image"] == noteContentList[i].path);
+          imageText.insert(index + 1, {'image': temp});
+        }
+      }
+
+      noteContent.content = imageText;
+      await FireStorageService().updateNoteById(widget.noteId, noteContent);
+      
+    }
+
     //Navigator.pop(appcontext);
   }
 
   Future<void> deleteNote() async {
-    StorageService().deleteListImage(note.content);
+
     await FireStorageService().deleteNoteById(widget.noteId);
+    if(isConnected){
+      StorageService().deleteListImage(note.content);
+    }
+    
   }
 
   checkLogin() {

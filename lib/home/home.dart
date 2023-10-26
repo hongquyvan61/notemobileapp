@@ -19,6 +19,7 @@ import 'package:notemobileapp/newnote/newnote.dart';
 import 'package:notemobileapp/router.dart';
 import 'package:notemobileapp/test/component/popup_menu.dart';
 import 'package:notemobileapp/test/services/firebase_firestore_service.dart';
+import 'package:notemobileapp/test/services/firebase_store_service.dart';
 import 'package:provider/provider.dart';
 
 import '../model/SqliteModel/NoteModel.dart';
@@ -704,5 +705,4 @@ class HomeScreenState extends State<HomeScreen> {
         //   listofBriefContent_cloud.add(noteList[i].content[0]["text"].toString());
         // }
   }
-
 }
