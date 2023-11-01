@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:notemobileapp/home/home.dart';
 import 'package:notemobileapp/newnote/newnote.dart';
 import 'package:notemobileapp/test/page/auth_page.dart';
+import 'package:notemobileapp/test/page/email_rules_page.dart';
 import 'package:notemobileapp/test/page/notification_page.dart';
 import 'package:notemobileapp/test/page/share_note_page.dart';
 import 'package:notemobileapp/test/page/sign_up_page.dart';
@@ -18,6 +19,7 @@ class RoutePaths {
   static const verifyEmail = 'verifyscreen';
   static const notificationPage = 'notificationPage';
   static const shareNotePage = 'shareNotePage';
+  static const shareNoteManager = 'shareNoteManager';
 
 }
 
