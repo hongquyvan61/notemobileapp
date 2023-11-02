@@ -2,9 +2,13 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:notemobileapp/DAL/NoteContentDAL.dart';
+import 'package:notemobileapp/DAL/TagDAL.dart';
+import 'package:notemobileapp/model/SqliteModel/initializeDB.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'package:notemobileapp/model/SqliteModel/NoteModel.dart';
+
+import '../model/SqliteModel/TagModel.dart';
 
 class NoteDAL {
   
@@ -20,7 +24,7 @@ class NoteDAL {
     //   conflictAlgorithm: ConflictAlgorithm.replace,
     // );
 
-    int check = await db.rawInsert("insert into note(title,date_created,user_id) values(?,?,?)",[note.title,note.date_created,user_id]);
+    int check = await db.rawInsert("insert into note(title,date_created,user_id,tag_id) values(?,?,?,?)",[note.title,note.date_created,user_id, note.tag_id]);
     return check != 0 ? true : false;
   }
 
@@ -52,27 +56,45 @@ class NoteDAL {
     return checkupdate != 0 ? true : false;
   }
 
+  Future<bool> updateTagInNote(int noteid, TagModel? tag, Database db) async {
+    int checkupdate = -1;
+    if(tag == null){
+      checkupdate  = await db.rawUpdate("update note set tag_id=null where note_id=?",[noteid]);
+    }
+    else{
+      String tagname = await TagDAL().getTagNameByID(tag!.tag_id?.toInt() ?? -1, InitDataBase.db);
+      
+      if(tagname.isNotEmpty){
+        checkupdate  = await db.rawUpdate("update note set tag_id=? where note_id=?",[tag!.tag_id?.toInt() ?? -1,noteid]);
+      }
+    }
+    return checkupdate != 0 ? true : false;
+  }
+
   Future<List<NoteModel>> getAllNotes(Database db) async {
 
     // Query the table for all The Dogs.
     final List<Map<String, dynamic>> maps = await db.query('note');
 
     // Convert the List<Map<String, dynamic> into a List<Dog>.
-    return List.generate(maps.length, (i) {
-      return NoteModel(
+    List<NoteModel> results = [];
+    for(int i = 0; i < maps.length; i++){
+      results.add(NoteModel(
         note_id: maps[i]['note_id'],
         title: maps[i]['title'],
         date_created: maps[i]['date_created'],
         user_id: maps[i]['user_id'],
-        tag_id: maps[i]['tag_id']
-      );
-    });
+        tag_id: maps[i]['tag_id'],
+        tag_name: maps[i]['tag_id'] == null ? "" : await TagDAL().getTagNameByID(maps[i]['tag_id'], db)
+      ));
+    }
+    return results;
   }
 
   Future<List<NoteModel>> getAllNotesByUserID(int userid, Database db) async {
 
     // Query the table for all The Dogs.
-    final List<Map<String, dynamic>> maps = await db.rawQuery('select * from note where user_id=?',[userid]);
+    final List<Map<String, dynamic>> maps = await db.rawQuery('select note_id, title, date_created, note.user_id as uid, tag.tag_id as tagid, tag_name from note join tag on note.tag_id = tag.tag_id where note.user_id=?',[userid]);
 
     // Convert the List<Map<String, dynamic> into a List<Dog>.
     return List.generate(maps.length, (i) {
@@ -80,26 +102,76 @@ class NoteDAL {
         note_id: maps[i]['note_id'],
         title: maps[i]['title'],
         date_created: maps[i]['date_created'],
-        user_id: maps[i]['user_id'],
-        tag_id: maps[i]['tag_id']
+        user_id: maps[i]['uid'],
+        tag_id: maps[i]['tagid'],
+        tag_name: maps[i]['tag_name']
       );
     });
   }
 
   Future<List<NoteModel>> getNoteByID(int userid, int noteid, Database db) async{
+    late List<Map<String, dynamic>> maps;
 
-    final List<Map<String, dynamic>> maps = await db.rawQuery('select * from note where user_id=? and note_id=?',[userid, noteid]);
+    final List<Map<String, dynamic>> mapstag = await db.rawQuery('select tag_id from note where note_id=?',[noteid]);
+    if(mapstag[0]['tag_id'] == null){
+      maps = await db.rawQuery('select note_id, title, date_created, user_id from note where user_id=? and note_id=?',[userid, noteid]);
+      return List.generate(maps.length, (i) {
+        return NoteModel(
+          note_id: maps[i]['note_id'],
+          title: maps[i]['title'],
+          date_created: maps[i]['date_created'],
+          user_id: maps[i]['user_id'],
+          tag_id: null,
+          tag_name: ""
+        );
+      });
+    }
+    else{
+      maps = await db.rawQuery('select note_id, title, date_created, note.user_id as uid, tag.tag_id as tagid, tag_name from note join tag on note.tag_id = tag.tag_id where note.user_id=? and note_id=?',[userid, noteid]);
+      return List.generate(maps.length, (i) {
+        return NoteModel(
+          note_id: maps[i]['note_id'],
+          title: maps[i]['title'],
+          date_created: maps[i]['date_created'],
+          user_id: maps[i]['uid'],
+          tag_id: maps[i]['tagid'],
+          tag_name: maps[i]['tag_name']
+        );
+      });
+    }
 
     // Convert the List<Map<String, dynamic> into a List<Dog>.
+    
+  }
+
+  Future<List<NoteModel>> getNotesWithoutTag(int userid, Database db) async {
+    final List<Map<String, dynamic>> maps = await db.rawQuery('select * from note where user_id=? and tag_id is null',[userid]);
+
     return List.generate(maps.length, (i) {
       return NoteModel(
         note_id: maps[i]['note_id'],
         title: maps[i]['title'],
         date_created: maps[i]['date_created'],
         user_id: maps[i]['user_id'],
-        tag_id: maps[i]['tag_id']
+        tag_id: null,
+        tag_name: ""
       );
     });
+  }
+
+  Future<List<NoteModel>> getNotesWithTagname(int userid, String tagname, Database db) async{
+    
+    final List<Map<String, dynamic>> maps = await db.rawQuery('select note_id, title, date_created, note.user_id as uid, tag.tag_id as tagid, tag_name from note join tag on note.tag_id = tag.tag_id where note.user_id=? and tag_name=?',[userid,tagname]);
+      return List.generate(maps.length, (i) {
+        return NoteModel(
+          note_id: maps[i]['note_id'],
+          title: maps[i]['title'],
+          date_created: maps[i]['date_created'],
+          user_id: maps[i]['uid'],
+          tag_id: maps[i]['tagid'],
+          tag_name: maps[i]['tag_name']
+        );
+      });
   }
 
   Future<List<String>> getAllImageContentsByNoteID(Database db, int noteid) async{

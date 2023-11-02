@@ -150,11 +150,15 @@ class _NavBarState extends State<NavBar> {
           onPressed: () {
             googleSignIn.signOut();
             FirebaseAuth.instance.signOut();
-            setState(() {
-              _email = null;
-              _avatar = null;
-              _userName = null;
-            });
+            _email = null;
+            _avatar = null;
+            _userName = null;
+
+            if(mounted){
+              setState(() {
+              
+              });
+            }
             Navigator.pop(context);
           },
         )

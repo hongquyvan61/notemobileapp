@@ -12,6 +12,7 @@ import 'package:notemobileapp/DAL/FB_DAL.dart/FB_Note.dart';
 import 'package:notemobileapp/DAL/FB_DAL.dart/FB_NoteContent.dart';
 import 'package:notemobileapp/DAL/NoteContentDAL.dart';
 import 'package:notemobileapp/DAL/NoteDAL.dart';
+import 'package:notemobileapp/DAL/TagDAL.dart';
 import 'package:notemobileapp/model/SqliteModel/FirebaseModel/FBNoteModel.dart';
 import 'package:notemobileapp/model/SqliteModel/NoteContentModel.dart';
 import 'package:notemobileapp/model/SqliteModel/initializeDB.dart';
@@ -23,8 +24,10 @@ import 'package:notemobileapp/test/services/firebase_store_service.dart';
 import 'package:provider/provider.dart';
 
 import '../model/SqliteModel/NoteModel.dart';
+import '../model/SqliteModel/TagModel.dart';
 import '../test/component/side_menu.dart';
 import '../test/model/note_receive.dart';
+import '../test/model/tag_receive.dart';
 import '../test/services/count_down_state.dart';
 import '../test/services/internet_connection.dart';
 
@@ -44,6 +47,7 @@ class HomeScreenState extends State<HomeScreen> {
   NoteDAL nDAL = NoteDAL();
   NoteContentDAL noteContentDAL = NoteContentDAL();
 
+  TagDAL tagDAL = TagDAL();
   // FB_Note fb_noteDAL = FB_Note();
   // FB_NoteContent fb_noteContentDAL = FB_NoteContent();
   late String? email;
@@ -55,6 +59,15 @@ class HomeScreenState extends State<HomeScreen> {
   //late List<String> fb_listofimglink = <String>[];
 
   List<NoteReceive> noteList = [];
+  List<TagReceive> lsttags = [];
+  List<DropdownMenuEntry<TagReceive>> tagListEntries = [];
+
+  List<TagModel> lsttagsLocal = [];
+  List<DropdownMenuEntry<TagModel>> tagListEntriesLocal = [];
+  
+
+  TextEditingController filterTagController = TextEditingController();
+  TextEditingController filterTagLocalController = TextEditingController();
 
   late List<String> listofBriefContent = <String>[];
   late List<File> listofTitleImage = <File>[];
@@ -84,8 +97,9 @@ class HomeScreenState extends State<HomeScreen> {
       ..indicatorType = EasyLoadingIndicatorType.chasingDots
       ..loadingStyle = EasyLoadingStyle.dark;
 
-    CheckInternetConnection();
     checkLogin();
+    CheckInternetConnection();
+    
   }
 
   @override
@@ -112,6 +126,13 @@ class HomeScreenState extends State<HomeScreen> {
       }
 
       InitiateListOfNote();
+      if(loginState){
+        InitiateListOfTag();
+      }
+      else{
+        InitiateListOfTagAtLocal();
+      }
+      
     });
   }
 
@@ -131,7 +152,7 @@ class HomeScreenState extends State<HomeScreen> {
       debugPrint("Khong co dang nhap!");
 
       listofnote =
-          await nDAL.getAllNotesByUserID(-1, InitDataBase.db).catchError(
+          await nDAL.getAllNotes(InitDataBase.db).catchError(
         (Object e, StackTrace stackTrace) {
           debugPrint(e.toString());
         },
@@ -139,7 +160,10 @@ class HomeScreenState extends State<HomeScreen> {
       foundedNote = listofnote;
       listofTitleImage = await generateListTitleImage(listofnote);
 
-      setState(() {});
+      if(mounted){
+        setState(() {});
+      }
+      
     }
   }
 
@@ -154,7 +178,7 @@ class HomeScreenState extends State<HomeScreen> {
       //SUA USERID O DAY
       //SUA USERID O DAY
       listofnote =
-          await nDAL.getAllNotesByUserID(-1, InitDataBase.db).catchError(
+          await nDAL.getAllNotes(InitDataBase.db).catchError(
         (Object e, StackTrace stackTrace) {
           debugPrint(e.toString());
         },
@@ -164,7 +188,8 @@ class HomeScreenState extends State<HomeScreen> {
 
       listofTitleImage = await generateListTitleImage(listofnote);
 
-     
+      InitiateListOfTagAtLocal();
+
       setState(() {});
       await EasyLoading.dismiss();
     } else {
@@ -201,6 +226,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   void filterlist(String inputWord) async {
     List<NoteModel> results = [];
+    noteList.clear();
 
     if (inputWord.isEmpty) {
       // if the search field is empty or only contains white-space, we'll display all users
@@ -212,6 +238,8 @@ class HomeScreenState extends State<HomeScreen> {
       }
     } else {
       if(loginState){
+        noteList = await FireStorageService().getAllNote();
+        
         noteList = noteList.where((note) => note.title.toLowerCase().contains(inputWord.toLowerCase())).toList();
       }
       else{
@@ -232,6 +260,78 @@ class HomeScreenState extends State<HomeScreen> {
     // Refresh the UI
     setState(() {});
   }
+
+  void filtertag(TagReceive? selected) async {
+    if(selected!.tagid == "" || selected!.tagid == "all"){    //CHUA TAO NHAN HOAC TAT CA
+      
+        noteList = await FireStorageService().getAllNote();
+
+        setState(() {
+                                    
+        });
+        return;
+    }
+
+    if(selected.tagid == "notag"){
+      
+        noteList.clear();
+        noteList = await FireStorageService().getAllNote();
+
+        noteList = noteList.where((note) => note.tagname == "").toList();
+
+        setState(() {
+                                    
+        });
+        return;
+    }
+
+    
+      noteList.clear();
+      noteList = await FireStorageService().getAllNote();
+
+      noteList = noteList.where((note) => note.tagname == selected.tagname).toList();
+
+      setState(() {
+                                    
+      });
+  }
+
+  void filtertagAtLocal(TagModel? selected) async {
+    if(selected!.tag_id == -4 || selected!.tag_id == -3){    //CHUA TAO NHAN HOAC TAT CA
+      
+        foundedNote = await nDAL.getAllNotes(InitDataBase.db);
+
+        listofTitleImage = await generateListTitleImage(foundedNote);
+        setState(() {
+                                    
+        });
+        return;
+    }
+
+    if(selected.tag_id == -2){
+        foundedNote.clear();
+
+        foundedNote = await nDAL.getNotesWithoutTag(-1, InitDataBase.db);
+
+        listofTitleImage = await generateListTitleImage(foundedNote);
+        setState(() {
+                                    
+        });
+        return;
+    }
+
+      foundedNote.clear();
+      
+      foundedNote = await nDAL.getNotesWithTagname(-1, selected.tag_name, InitDataBase.db);
+
+      listofTitleImage = await generateListTitleImage(foundedNote);
+      setState(() {
+                                    
+      });
+      return;
+  }
+
+
 
   Widget? displayImagefromCloudOrLocal_list(int index) {
     if (loginState) {
@@ -310,7 +410,325 @@ class HomeScreenState extends State<HomeScreen> {
     return listofTitleImage[index].path == '' ? 5 : 1;
   }
 
-  ////ahihi
+  Widget buildBriefContextTextWG(int index){
+    if(loginState){
+      return Text(noteList[index].content.firstWhere((element) => element.containsKey("text") && element["text"] != "")['text'],
+                      style: const TextStyle(fontSize: 12),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                    );
+    }
+    else{
+      return Text(
+                      listofBriefContent.isNotEmpty ? listofBriefContent[index] : "",
+                      style: const TextStyle(fontSize: 12),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                    );
+    }
+    
+  }
+  Widget buildNoteLeadingIcon(int index){
+    if(loginState){
+      if(noteList[index].tagname != ""){
+        return const CircleAvatar(
+                        backgroundColor: Color.fromARGB(255, 97, 115, 239),
+                        minRadius: 10,
+                        maxRadius: 17,
+                        child: Icon(
+                          Icons.turned_in_not_outlined,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      );
+      }
+      else{
+        return const CircleAvatar(
+                        backgroundColor: Color.fromARGB(255, 251, 178, 37),
+                        minRadius: 10,
+                        maxRadius: 17,
+                        child: Icon(
+                          Icons.note_alt_outlined,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      );
+      }
+    }
+    else{
+      if(foundedNote[index].tag_name != ""){
+        return const CircleAvatar(
+                        backgroundColor: Color.fromARGB(255, 97, 115, 239),
+                        minRadius: 10,
+                        maxRadius: 17,
+                        child: Icon(
+                          Icons.turned_in_not_outlined,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      );
+      }
+      else{
+        return const CircleAvatar(
+                        backgroundColor: Color.fromARGB(255, 251, 178, 37),
+                        minRadius: 10,
+                        maxRadius: 17,
+                        child: Icon(
+                          Icons.note_alt_outlined,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      );
+      }
+    }
+
+  }
+
+  Widget buildTagName(int index){
+    if(loginState){
+      if(noteList[index].tagname != ""){
+        return Row(
+                          children: [
+                              const Icon(
+                                Icons.turned_in_outlined,
+                                size: 13,
+                                color: Color.fromARGB(255, 97, 115, 239)
+                              ), 
+
+                              const SizedBox(width: 5),
+
+                              Text(
+                                  noteList[index].tagname,
+                                  style: TextStyle(fontSize: 12, color: Color.fromARGB(255, 97, 115, 239)),
+                              ),
+                            ],
+                          );
+      }
+      else{
+        return const Text("");
+      }
+    }
+    else{
+      if(foundedNote[index].tag_name != ""){
+        return Row(
+                          children: [
+                              const Icon(
+                                Icons.turned_in_outlined,
+                                size: 13,
+                                color: Color.fromARGB(255, 97, 115, 239)
+                              ), 
+
+                              const SizedBox(width: 5),
+
+                              Text(
+                                  foundedNote[index].tag_name?.toString() ?? "",
+                                  style: TextStyle(fontSize: 12, color: Color.fromARGB(255, 97, 115, 239)),
+                              ),
+                            ],
+                          );
+      }
+      else{
+        return const Text("");
+      }
+    }
+    
+  }
+
+  Widget buildSpaceAboveNoteTitle_Grid(int index){
+    if(loginState){
+      if(noteList[index].tagname == ""){
+        return const Expanded(
+                            flex: 0,
+                            child: SizedBox()
+                          );
+      }
+      else{
+        return const SizedBox();
+      }
+    }
+    else{
+      if(foundedNote[index].tag_name == ""){
+        return const Expanded(
+                            flex: 0,
+                            child: SizedBox()
+                          );
+      }
+      else{
+        return const SizedBox();
+      }
+    }
+  }
+   
+  Widget buildNoteTitle_Grid(int index){
+    if(loginState){
+      return Expanded(
+                            flex: noteList[index].tagname == "" ? 1 : 0,
+                            child: Container(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                noteList[index].title,
+                                style: TextStyle(
+                                    fontSize: 13, fontWeight: FontWeight.bold),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ),
+                          );
+    }
+    else{
+      return Expanded(
+                            flex: foundedNote[index].tag_name == "" ? 1 : 0,
+                            child: Container(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                    foundedNote[index].title,
+                                style: TextStyle(
+                                    fontSize: 13, fontWeight: FontWeight.bold),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ),
+                          );
+    }
+  }
+                          
+  Widget buildTagName_Grid(int index){
+    if(loginState){
+      if(noteList[index].tagname != ""){
+        return Container(
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.turned_in_outlined,
+                                  size: 13,
+                                  color: Color.fromARGB(255, 97, 115, 239)
+                                ), 
+
+                                const SizedBox(width: 5),
+
+                                Text(
+                                    noteList[index].tagname,
+                                    style: TextStyle(fontSize: 12, color: Color.fromARGB(255, 97, 115, 239)),
+                                ),
+                              ],
+                            ),
+                          );
+      }
+      else{
+        return const SizedBox();
+      }
+    }
+    else{
+      if(foundedNote[index].tag_name != ""){
+        return Container(
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.turned_in_outlined,
+                                  size: 13,
+                                  color: Color.fromARGB(255, 97, 115, 239)
+                                ), 
+
+                                const SizedBox(width: 5),
+
+                                Text(
+                                    foundedNote[index].tag_name?.toString() ?? "",
+                                    style: TextStyle(fontSize: 12, color: Color.fromARGB(255, 97, 115, 239)),
+                                ),
+                              ],
+                            ),
+                          );
+      }
+      else{
+        return const SizedBox();
+      }
+    }          
+  }
+
+  Widget buildTrailingIcon_Grid(int index){
+    if(loginState){
+      if(noteList[index].tagname != ""){
+        return const CircleAvatar(
+                          backgroundColor: Color.fromARGB(255, 97, 115, 239),
+                          minRadius: 10,
+                          maxRadius: 17,
+                          child: Icon(
+                            Icons.turned_in_not_outlined,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        );
+      }
+      else{
+        return const CircleAvatar(
+                          backgroundColor: Color.fromARGB(255, 251, 178, 37),
+                          minRadius: 10,
+                          maxRadius: 17,
+                          child: Icon(
+                            Icons.note_alt_outlined,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        );
+      }
+    }
+    else{
+      if(foundedNote[index].tag_name != ""){
+        return const CircleAvatar(
+                          backgroundColor: Color.fromARGB(255, 97, 115, 239),
+                          minRadius: 10,
+                          maxRadius: 17,
+                          child: Icon(
+                            Icons.turned_in_not_outlined,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        );
+      }
+      else{
+        return const CircleAvatar(
+                          backgroundColor: Color.fromARGB(255, 251, 178, 37),
+                          minRadius: 10,
+                          maxRadius: 17,
+                          child: Icon(
+                            Icons.note_alt_outlined,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        );
+      }
+    }                
+  }
+
+  Widget buildExpandedImage_Grid(int index){
+    if(loginState){
+      return noteList[index].content.firstWhere((element) => element.containsKey("local_image"), orElse: () => null) != null ? 
+                  Expanded(
+                    flex: settingimgflex(index),
+                    child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8.0),
+                        child: displayImagefromCloudOrLocal_grid(index)),
+                  )
+
+                  :
+
+                  Text("");
+    }
+    else{
+      if(listofTitleImage[index].path != ""){
+        return Expanded(
+                    flex: settingimgflex(index),
+                    child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8.0),
+                        child: displayImagefromCloudOrLocal_grid(index)),
+                  );
+      }
+      else{
+        return const Text("");
+      }
+    }
+    
+  }
 
   Widget buildListView() {
     if (noteList.isNotEmpty || foundedNote.isNotEmpty) {
@@ -364,16 +782,8 @@ class HomeScreenState extends State<HomeScreen> {
                         await reloadNoteListAtLocal(resultFromNewNote);
                       }
                     },
-                    leading: const CircleAvatar(
-                      backgroundColor: Color.fromARGB(255, 97, 115, 239),
-                      minRadius: 10,
-                      maxRadius: 17,
-                      child: Icon(
-                        Icons.turned_in_not_outlined,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                    ),
+                    leading: buildNoteLeadingIcon(index)
+                    ,
                     title: Text(
                       loginState
                           ? noteList[index].title
@@ -383,11 +793,18 @@ class HomeScreenState extends State<HomeScreen> {
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                     ),
-                    subtitle: Text(
-                      loginState
-                          ? noteList[index].timeStamp
-                          : foundedNote[index].date_created,
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    subtitle: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          loginState
+                              ? noteList[index].timeStamp
+                              : foundedNote[index].date_created,
+                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                    
+                        buildTagName(index)
+                      ],
                     ),
                   ),
                   Container(
@@ -399,14 +816,7 @@ class HomeScreenState extends State<HomeScreen> {
                   Container(
                     margin: const EdgeInsets.all(10),
                     alignment: Alignment.centerLeft,
-                    child: Text(
-                      loginState
-                          ? noteList[index].content.firstWhere((element) => element.containsKey("text") && element["text"] != "")['text']
-                          : listofBriefContent[index],
-                      style: const TextStyle(fontSize: 12),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 2,
-                    ),
+                    child: buildBriefContextTextWG(index)
                   )
                 ],
               ));
@@ -467,46 +877,34 @@ class HomeScreenState extends State<HomeScreen> {
                           await reloadNoteListAtLocal(resultfromNewNote);
                         }
                       },
-                      title: Text(
-                        loginState
-                            ? noteList[index].title
-                            : foundedNote[index].title,
-                        style: TextStyle(
-                            fontSize: 13, fontWeight: FontWeight.bold),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
+                      title: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          buildSpaceAboveNoteTitle_Grid(index)
+                          ,
+
+                          buildNoteTitle_Grid(index)
+                          
+                          ,
+
+                          buildTagName_Grid(index)                          
+                        ],
                       ),
                       // subtitle: Text(
                       //   foundedNote[index].date_created,
                       //   style: const TextStyle(
                       //       fontSize: 11, color: Colors.grey),
                       // ),
-                      trailing: const CircleAvatar(
-                        backgroundColor: Color.fromARGB(255, 97, 115, 239),
-                        child: Icon(
-                          Icons.turned_in_not_outlined,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                        minRadius: 10,
-                        maxRadius: 17,
-                      ),
+                      trailing: buildTrailingIcon_Grid(index)
                     ),
                   ),
                   SizedBox(
                     height: 10,
                   ),
-                  noteList[index].content.firstWhere((element) => element.containsKey("local_image"), orElse: () => null) != null ? 
-                  Expanded(
-                    flex: settingimgflex(index),
-                    child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8.0),
-                        child: displayImagefromCloudOrLocal_grid(index)),
-                  )
-
-                  :
-
-                  Text(""),
+                  
+                  buildExpandedImage_Grid(index)
+                  
+                  ,
 
                   Expanded(
                     flex: settingBriefContentflex(index),
@@ -580,6 +978,7 @@ class HomeScreenState extends State<HomeScreen> {
                       : const Icon(Icons.grid_view),
                   color: Colors.black,
                 ),
+                
               ],
             ),
             body: Container(
@@ -589,22 +988,62 @@ class HomeScreenState extends State<HomeScreen> {
                   child: Stack(children: [
                     Container(
                       child: Column(children: [
-                        TextField(
-                          style: const TextStyle(
-                            fontSize: 15,
-                          ),
-                          decoration: const InputDecoration(
-                              hintText: "Tìm kiếm nè...",
-                              prefixIcon: Icon(Icons.search),
-                              filled: true,
-                              fillColor: Color.fromARGB(255, 239, 241, 243),
-                              enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                width: 0.5,
-                              ))),
-                          onChanged: (value) => filterlist(value),
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: TextField(
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                ),
+                                decoration: const InputDecoration(
+                                    hintText: "Tìm kiếm nè...",
+                                    prefixIcon: Icon(Icons.search),
+                                    filled: true,
+                                    fillColor: Color.fromARGB(255, 239, 241, 243),
+                                    enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                      width: 0.5,
+                                    ))),
+                                onChanged: (value) => filterlist(value),
+                              ),
+                            ),
+
+                            loginState ? 
+
+                            Expanded(
+                              flex: 1,
+                              child: DropdownMenu<TagReceive>(
+                                initialSelection: lsttags.isEmpty ? null : lsttags[0],
+                                controller: filterTagController,
+                                label: const Text('Nhãn'),
+                                dropdownMenuEntries: tagListEntries,
+                                onSelected: (TagReceive? tag) {
+                                  filtertag(tag);
+                            
+                                },
+                              ),
+                            )
+
+                            :
+
+                            Expanded(
+                              flex: 1,
+                              child: DropdownMenu<TagModel>(
+                                initialSelection: lsttagsLocal.isEmpty ? null : lsttagsLocal[0],
+                                controller: filterTagLocalController,
+                                label: const Text('Nhãn'),
+                                dropdownMenuEntries: tagListEntriesLocal,
+                                onSelected: (TagModel? tag) {
+                                  filtertagAtLocal(tag);
+                                  
+                                },
+                              ),
+                            )
+                          ],
                         ),
-                        const SizedBox(
+
+                        const SizedBox( 
                           height: 13,
                         ),
                         Expanded(
@@ -689,7 +1128,9 @@ class HomeScreenState extends State<HomeScreen> {
     // listofimglink_cloud.clear();
     // listofBriefContent_cloud.clear();
     noteList = await FireStorageService().getAllNote();
-    setState(() {});
+    if(mounted){
+      setState(() {});
+    }
         // for (int i = 0; i < noteList.length; i++) {
         //   if(noteList[i].content.elementAtOrNull(1) != null){
         //     if(noteList[i].content[1].containsKey("image")){
@@ -704,5 +1145,123 @@ class HomeScreenState extends State<HomeScreen> {
         //   }
         //   listofBriefContent_cloud.add(noteList[i].content[0]["text"].toString());
         // }
+  }
+
+  Future<void> InitiateListOfTag() async {
+    lsttags = await FireStorageService().getTagsForFilter();
+    tagListEntries.clear();
+
+    if(lsttags.isNotEmpty){
+      TagReceive tr = TagReceive();
+      tr.tagname = "notag";
+      tr.tagid = "notag";
+
+      tagListEntries.add(
+          DropdownMenuEntry<TagReceive>(
+            value: tr, 
+            label: "Không nhãn",
+          )
+      );
+
+      TagReceive trall = TagReceive();
+      trall.tagname = "all";
+      trall.tagid = "all";
+
+      tagListEntries.add(
+          DropdownMenuEntry<TagReceive>(
+            value: trall, 
+            label: "Tất cả",
+          )
+      );
+
+      lsttags.insert(0, tr);
+      lsttags.insert(0, trall);
+
+      for(int i = 2; i < lsttags.length; i++){
+        tagListEntries.add(
+          DropdownMenuEntry<TagReceive>(
+            value: lsttags[i], 
+            label: lsttags[i].tagname
+          )
+        );
+      }
+      
+    }
+    else{
+      TagReceive tr = TagReceive();
+      tr.tagname = "*Chưa tạo nhãn*";
+      tr.tagid = "";
+
+      tagListEntries.add(
+        DropdownMenuEntry(
+          value: tr, 
+          label: tr.tagname
+        )
+      );
+
+      lsttags.add(tr);
+    }
+
+    if(mounted){
+      setState(() {
+        
+      });
+    }
+  }
+
+  Future<void> InitiateListOfTagAtLocal() async {
+    lsttagsLocal = await tagDAL.getTagsForFilter_Local(-1, InitDataBase.db);
+    tagListEntriesLocal.clear();
+
+    if(lsttagsLocal.isNotEmpty){
+      TagModel tr = TagModel(tag_id: -2, tag_name: "notag");
+
+      tagListEntriesLocal.add(
+          DropdownMenuEntry<TagModel>(
+            value: tr, 
+            label: "Không nhãn",
+          )
+      );
+
+      TagModel trall = TagModel(tag_id: -3, tag_name: "all");
+
+      tagListEntriesLocal.add(
+          DropdownMenuEntry<TagModel>(
+            value: trall, 
+            label: "Tất cả",
+          )
+      );
+
+      lsttagsLocal.insert(0, tr);
+      lsttagsLocal.insert(0, trall);
+
+      for(int i = 2; i < lsttagsLocal.length; i++){
+        tagListEntriesLocal.add(
+          DropdownMenuEntry<TagModel>(
+            value: lsttagsLocal[i], 
+            label: lsttagsLocal[i].tag_name
+          )
+        );
+      }
+      
+    }
+    else{
+      TagModel tr = TagModel(tag_id: -4, tag_name: "*Chưa tạo nhãn*");
+
+      tagListEntriesLocal.add(
+        DropdownMenuEntry(
+          value: tr, 
+          label: tr.tag_name
+        )
+      );
+
+      lsttagsLocal.add(tr);
+    }
+
+    if(mounted){
+      setState(() {
+        
+      });
+    }
   }
 }

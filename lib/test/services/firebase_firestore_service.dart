@@ -57,7 +57,6 @@ class FireStorageService {
 
     List<TagReceive> tags = [];
     final tagCollection = notesCollection.doc(currentUser).collection("tag");
-    TagReceive tagReceive = TagReceive();
 
     await tagCollection.get().then((value) {
       for (var docSnapshot in value.docs) {
@@ -65,6 +64,63 @@ class FireStorageService {
             docSnapshot.get("tag_name"),
             docSnapshot.id
         ));
+      }
+    });
+
+    return tags;
+  }
+
+  Future<List<TagReceive>> getTagsForFilter() async {
+
+    List<TagReceive> tags = [];
+    final tagCollection = notesCollection.doc(currentUser).collection("tag").limit(7);
+
+    await tagCollection.get().then((value) {
+      for (var docSnapshot in value.docs) {
+        tags.add(TagReceive.withValue(
+            docSnapshot.get("tag_name"),
+            docSnapshot.id
+        ));
+      }
+    });
+
+    return tags;
+  }
+
+  Future<List<TagReceive>> getAllTagsForDialog() async {
+
+    List<TagReceive> tags = [];
+    final tagCollection = notesCollection.doc(currentUser).collection("tag");
+
+    await tagCollection.get().then((value) {
+      for (var docSnapshot in value.docs) {
+        tags.add(TagReceive.withValue(
+            docSnapshot.get("tag_name"),
+            docSnapshot.id
+        ));
+      }
+    });
+
+    // TagReceive emptytag = TagReceive();
+    // emptytag.tagname = "";
+    // tags.add(emptytag);
+
+    return tags;
+  }
+
+  Future<List<TagReceive>> searchTags(String tag_name) async {
+
+    List<TagReceive> tags = [];
+    final tagCollection = notesCollection.doc(currentUser).collection("tag");
+
+    await tagCollection.get().then((value) {
+      for (var docSnapshot in value.docs) {
+        if(docSnapshot.get("tag_name") == tag_name){
+          tags.add(TagReceive.withValue(
+            docSnapshot.get("tag_name"),
+            docSnapshot.id
+          ));
+        }
       }
     });
 
@@ -79,6 +135,7 @@ class FireStorageService {
     note.title = doc.get('title');
     note.timeStamp = doc.get('timestamp');
     note.content = doc.get('content');
+    note.tagname = doc.get('tagname');
     return note;
 
   }

@@ -1,9 +1,9 @@
 class TagModel {
-  late int tag_id;
+  late int? tag_id;
   late String tag_name;
 
   TagModel({
-    required this.tag_id,
+    this.tag_id,
     required this.tag_name,
   });
 

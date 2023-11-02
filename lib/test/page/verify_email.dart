@@ -12,6 +12,7 @@ import 'package:notemobileapp/test/component/toast.dart';
 import 'package:notemobileapp/test/model/note_content.dart';
 
 import '../../model/SqliteModel/NoteModel.dart';
+import '../../model/SqliteModel/TagModel.dart';
 import '../../router.dart';
 import '../model/tag.dart';
 import '../services/firebase_firestore_service.dart';
@@ -115,6 +116,7 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
     if (_isEmailVerified) {
       uploadNoteToCloud();
 
+
       ToastComponent().showToast("Email của bạn đã được xác thực thành công !");
       Navigator.of(context).pushNamedAndRemoveUntil(RoutePaths.start, (Route<dynamic> route) => false);
       timer?.cancel();
@@ -125,12 +127,12 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
     ///UPLOAD DANH SACH TAG
       ///UPLOAD DANH SACH TAG
       ///UPLOAD DANH SACH TAG
-      List<String> listtag = await tagDAL.getAllTagsByUserID(-1, InitDataBase.db);
+      List<TagModel> listtag = await tagDAL.getAllTagsByUserID(-1, InitDataBase.db);
 
       if(listtag.isNotEmpty){
         Tag tag = Tag();
         for(int i = 0; i < listtag.length; i++){
-          tag.tagname = listtag[i];
+          tag.tagname = listtag[i].tag_name;
 
           await FireStorageService().saveTags(tag);
         }
@@ -143,7 +145,7 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
       ///UPLOAD DANH SACH NOTE VA NOTE CONTENTS
       ///UPLOAD DANH SACH NOTE VA NOTE CONTENTS
       ///UPLOAD DANH SACH NOTE VA NOTE CONTENTS
-      List<NoteModel> NotesAtLocal = await noteDAL.getAllNotesByUserID(-1, InitDataBase.db);
+      List<NoteModel> NotesAtLocal = await noteDAL.getAllNotes(InitDataBase.db);
       List<Map<String, dynamic>> contents = [];
       NoteContent note = NoteContent();
 
@@ -154,8 +156,9 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
           note.title = NotesAtLocal[i].title;
           note.timeStamp = NotesAtLocal[i].date_created;
           
-          note.tagname = await tagDAL.getTagNameByID(NotesAtLocal[i].tag_id?.toInt() ?? 0, InitDataBase.db);
-          
+          //note.tagname = await tagDAL.getTagNameByID(NotesAtLocal[i].tag_id?.toInt() ?? 0, InitDataBase.db);
+          note.tagname = NotesAtLocal[i].tag_name?.toString() ?? "";
+
           await FireStorageService().saveContentNotes(note);
         }
       }
@@ -163,5 +166,15 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
       ///UPLOAD DANH SACH NOTE VA NOTE CONTENTS
       ///UPLOAD DANH SACH NOTE VA NOTE CONTENTS
       ///UPLOAD DANH SACH NOTE VA NOTE CONTENTS
+      
+      deleteDataAtLocal();
+  }
+
+  Future<void> deleteDataAtLocal() async {
+    await tagDAL.deleteAllTags(InitDataBase.db);
+
+    await ncontentDAL.deleteAllNoteContents(InitDataBase.db);
+
+    await noteDAL.deleteAllNote(InitDataBase.db);
   }
 }

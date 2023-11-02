@@ -16,6 +16,7 @@ import '../../DAL/NoteContentDAL.dart';
 import '../../DAL/NoteDAL.dart';
 import '../../DAL/TagDAL.dart';
 import '../../model/SqliteModel/NoteModel.dart';
+import '../../model/SqliteModel/TagModel.dart';
 import '../../model/SqliteModel/initializeDB.dart';
 import '../model/note_content.dart';
 import '../model/tag.dart';
@@ -137,12 +138,12 @@ class Auth {
     ///UPLOAD DANH SACH TAG
       ///UPLOAD DANH SACH TAG
       ///UPLOAD DANH SACH TAG
-      List<String> listtag = await tagDAL.getAllTagsByUserID(-1, InitDataBase.db);
+      List<TagModel> listtag = await tagDAL.getAllTagsByUserID(-1, InitDataBase.db);
 
       if(listtag.isNotEmpty){
         Tag tag = Tag();
         for(int i = 0; i < listtag.length; i++){
-          tag.tagname = listtag[i];
+          tag.tagname = listtag[i].tag_name;
 
           await FireStorageService().saveTags(tag);
         }
