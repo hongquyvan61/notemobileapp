@@ -214,4 +214,20 @@ class FireStorageService {
     await idReceive.set(receive.toMap());
     debugPrint('Insert successful');
   }
+
+  Future<List<String>> getAllEmailUser() async {
+    List<String> users = [];
+    final note = await notesCollection.get();
+    note.docs.forEach((element) {
+      users.add(element.id);
+    });
+    return users;
+  }
+
+  Future<void> insertCollection(User user) async {
+    Map<String, dynamic> temp = {};
+    await notesCollection.doc(user.email).set(temp);
+  }
+
+
 }

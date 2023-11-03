@@ -20,6 +20,7 @@ class ShareNoteUser extends StatefulWidget {
 
 class _ShareNoteUserState extends State<ShareNoteUser> {
   final scaffoldKey = GlobalKey<ScaffoldState>();
+  String? userEmail = FirebaseAuth.instance.currentUser?.email;
   List<String> emails = [];
   Map<String, dynamic> emailsMap = {};
   bool updated = false;
@@ -29,6 +30,7 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
   List<Invite> invites = [];
   int indexOfOld = 0;
   List<int> indexOfLog = [];
+  List<String> users = [];
   final List<String> items = [
     'Chỉ xem',
     'Chỉnh sửa',
@@ -36,8 +38,9 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
 
   @override
   void initState() {
-    if (emails.isEmpty) {
-      getAllEmail();
+    if (emails.isEmpty || users.isEmpty) {
+      getAllEmailInvite();
+      getAllUser();
     }
     super.initState();
   }
@@ -111,7 +114,10 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
               children: [
                 Expanded(
                   child: RefreshIndicator(
-                    onRefresh: () => getAllEmail(),
+                    onRefresh: () async {
+                      getAllEmailInvite();
+                      getAllUser();
+                    },
                     child: ListView.separated(
                         itemCount: emails.length,
                         itemBuilder: (context, index) {
@@ -206,9 +212,13 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
                     ),
                     ElevatedButton(
                         onPressed: () async {
-                          if (_textEditingController.text.isNotEmpty &&
+                          String textController = _textEditingController.text;
+                          if (textController.isNotEmpty && await checkSelfEmail(textController) &&
+                              isValidEmail(textController) &&
                               await checkDuplicate(
-                                  _textEditingController.text)) {
+                                  textController) &&
+                              await checkExistEmail(textController)) {
+                            emailsMap.addAll({textController : ''});
                             addInviteTemp();
                             _textEditingController.clear();
                             setState(() {
@@ -230,7 +240,7 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
     );
   }
 
-  Future<void> getAllEmail() async {
+  Future<void> getAllEmailInvite() async {
     emails.clear();
     dropDownValue.clear();
     InviteReceive inviteReceive = InviteReceive();
@@ -318,5 +328,73 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
         });
 
     return check;
+  }
+
+  Future<void> getAllUser() async {
+    users = await FireStorageService().getAllEmailUser();
+  }
+
+  Future<bool> checkExistEmail(String email) async {
+    for (int i = 0; i < users.length; i++) {
+      if (email == users[i]) {
+        return true;
+      }
+    }
+    return await showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Người dùng Email này không có trong hệ thống'),
+            actions: [
+              ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(false);
+                  },
+                  child: Text("Ok"))
+            ],
+          );
+        });
+  }
+
+  Future<bool> checkSelfEmail(String email) async {
+    bool check = true;
+    if(userEmail == email){
+      check = await showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('Bạn không thể tự mời chính mình, thử lại email khác'),
+              actions: [
+                ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(false);
+                    },
+                    child: Text("Ok"))
+              ],
+            );
+          });
+    }
+    return check;
+  }
+
+  bool isValidEmail(String email) {
+    RegExp regExp = RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
+    if (!regExp.hasMatch(email)) {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('Email không đúng dịnh dạng, thử lại'),
+              actions: [
+                ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: Text('Ok'))
+              ],
+            );
+          });
+    }
+    return regExp.hasMatch(email);
   }
 }

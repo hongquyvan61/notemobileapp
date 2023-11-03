@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
+
 import 'package:flutter/material.dart';
 
 class NotificationPage extends StatefulWidget {
@@ -12,6 +14,134 @@ class _NotificationPageState extends State<NotificationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Thông báo'),centerTitle: true,),
+      body: ListView(
+        children: [Padding(
+          padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 1),
+          child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  blurRadius: 0,
+                  color: Color(0xFFE0E3E7),
+                  offset: Offset(0, 1),
+                )
+              ],
+              borderRadius: BorderRadius.circular(0),
+              shape: BoxShape.rectangle,
+            ),
+            child: Padding(
+              padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  Container(
+                    width: 4,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      color: Color(0xFF4B39EF),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsetsDirectional.fromSTEB(12, 0, 0, 0),
+                      child: Text(
+                        'Check-in evaluated',
+                        // style:
+                        // FlutterFlowTheme.of(context).bodyLarge.override(
+                        //   fontFamily: 'Plus Jakarta Sans',
+                        //   color: Color(0xFF14181B),
+                        //   fontSize: 16,
+                        //   fontWeight: FontWeight.normal,
+                        // ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsetsDirectional.fromSTEB(12, 0, 0, 0),
+                    child: Text(
+                      'Mar 8, 2022',
+                      // style:
+                      // FlutterFlowTheme.of(context).labelMedium.override(
+                      //   fontFamily: 'Plus Jakarta Sans',
+                      //   color: Color(0xFF57636C),
+                      //   fontSize: 14,
+                      //   fontWeight: FontWeight.normal,
+                      // ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+          Padding(
+            padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 1),
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Color(0xFFF1F4F8),
+                boxShadow: [
+                  BoxShadow(
+                    blurRadius: 0,
+                    color: Color(0xFFE0E3E7),
+                    offset: Offset(0, 1),
+                  )
+                ],
+                borderRadius: BorderRadius.circular(0),
+                shape: BoxShape.rectangle,
+              ),
+              child: Padding(
+                padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
+                child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Container(
+                      width: 4,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: Color(0xFFE0E3E7),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsetsDirectional.fromSTEB(12, 0, 0, 0),
+                        child: Text(
+                          'New Event added to your calendar',
+                          // style: FlutterFlowTheme.of(context)
+                          //     .labelLarge
+                          //     .override(
+                          //   fontFamily: 'Plus Jakarta Sans',
+                          //   color: Color(0xFF57636C),
+                          //   fontSize: 16,
+                          //   fontWeight: FontWeight.normal,
+                          // ),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsetsDirectional.fromSTEB(12, 0, 0, 0),
+                      child: Text(
+                        'Mar 8, 2022',
+                        // style:
+                        // FlutterFlowTheme.of(context).labelMedium.override(
+                        //   fontFamily: 'Plus Jakarta Sans',
+                        //   color: Color(0xFF57636C),
+                        //   fontSize: 14,
+                        //   fontWeight: FontWeight.normal,
+                        // ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ]
+      ),
     );
   }
 }
