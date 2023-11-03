@@ -249,9 +249,12 @@ class _AuthPageState extends State<AuthPage> {
     final email = _emailController.value.text;
     final password = _passwordController.value.text;
 
-     setState(() {
-      _loading = true;
-    });
+    _loading = true;
+    if(mounted){
+      setState(() {
+      
+      });
+    }
     
     await Auth().signInWithEmailPassword(context, email, password);
     // if(uID != -1){
@@ -262,9 +265,15 @@ class _AuthPageState extends State<AuthPage> {
     // }
 
     Future.delayed(const Duration(seconds: 3), () {
-      setState(() {
-        _loading = false;
-      });
+      
     });
+
+    _loading = false;
+
+    if(mounted){
+      setState(() {
+        
+      });
+    }
   }
 }
