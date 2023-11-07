@@ -21,6 +21,9 @@ class FireStorageService {
 
   String? currentUser = FirebaseAuth.instance.currentUser?.email;
 
+
+
+
   Future<String> saveContentNotes(NoteContent noteContent) async {
     final idNote = notesCollection.doc(currentUser).collection("note").doc();
     await idNote.set(noteContent.toMap());
@@ -215,6 +218,14 @@ class FireStorageService {
     debugPrint('Insert successful');
   }
 
+  Future<void> setIsNewFalse(String idInvite) async {
+    final idReceive = notesCollection
+        .doc(currentUser)
+        .collection("receive")
+        .doc(idInvite);
+    await idReceive.update({'isNew' : false});
+  }
+
   Future<List<String>> getAllEmailUser() async {
     List<String> users = [];
     final note = await notesCollection.get();
@@ -224,9 +235,9 @@ class FireStorageService {
     return users;
   }
 
-  Future<void> insertCollection(User user) async {
+  Future<void> insertCollection() async {
     Map<String, dynamic> temp = {};
-    await notesCollection.doc(user.email).set(temp);
+    await notesCollection.doc(currentUser).set(temp);
   }
 
 

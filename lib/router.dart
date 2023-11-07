@@ -13,7 +13,6 @@ class RoutePaths {
   static const start = '/';
   static const newnote = 'newnotescreen';
   static const temp = 'tempscreen';
-  static const test = 'testscreen';
   static const login = 'loginscreen';
   static const signup = 'signupscreen';
   static const verifyEmail = 'verifyscreen';
@@ -41,10 +40,6 @@ class RouterCustom {
                   email: "",
                 ));
 
-      case RoutePaths.test:
-        // you can do things like pass arguments to screens
-        //final event = settings.arguments as Event;
-        return MaterialPageRoute(builder: (_) => const TestPage());
       case RoutePaths.login:
         return MaterialPageRoute(builder: (_) => const AuthPage());
       case RoutePaths.signup:

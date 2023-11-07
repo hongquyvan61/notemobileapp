@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -48,6 +49,7 @@ class HomeScreenState extends State<HomeScreen> {
   NoteContentDAL noteContentDAL = NoteContentDAL();
 
   TagDAL tagDAL = TagDAL();
+
   // FB_Note fb_noteDAL = FB_Note();
   // FB_NoteContent fb_noteContentDAL = FB_NoteContent();
   late String? email;
@@ -64,7 +66,6 @@ class HomeScreenState extends State<HomeScreen> {
 
   List<TagModel> lsttagsLocal = [];
   List<DropdownMenuEntry<TagModel>> tagListEntriesLocal = [];
-  
 
   TextEditingController filterTagController = TextEditingController();
   TextEditingController filterTagLocalController = TextEditingController();
@@ -82,7 +83,6 @@ class HomeScreenState extends State<HomeScreen> {
 
   Map _source = {ConnectivityResult.none: false};
   final NetworkConnectivity _networkConnectivity = NetworkConnectivity.instance;
-  
 
 
   @override
@@ -99,16 +99,18 @@ class HomeScreenState extends State<HomeScreen> {
 
     checkLogin();
     CheckInternetConnection();
-    
   }
 
   @override
   void dispose() {
-    SetTrue().setCanReset(); //Set lại canResent để user mới vào bấm được,vì bộ delay chưa xong không thể set True.
+    SetTrue()
+        .setCanReset(); //Set lại canResent để user mới vào bấm được,vì bộ delay chưa xong không thể set True.
     super.dispose();
   }
 
   Future<void> CheckInternetConnection() async {
+    final fcmToken = await FirebaseMessaging.instance.getToken();
+    final notificationSettings = await FirebaseMessaging.instance.requestPermission(provisional: true);
     _networkConnectivity.initialise();
     _networkConnectivity.myStream.listen((source) {
       _source = source;
@@ -126,13 +128,11 @@ class HomeScreenState extends State<HomeScreen> {
       }
 
       InitiateListOfNote();
-      if(loginState){
+      if (loginState) {
         InitiateListOfTag();
-      }
-      else{
+      } else {
         InitiateListOfTagAtLocal();
       }
-      
     });
   }
 
@@ -147,12 +147,10 @@ class HomeScreenState extends State<HomeScreen> {
       listofBriefContent.clear();
 
       refreshNoteListFromCloud();
-    }
-    else {
+    } else {
       debugPrint("Khong co dang nhap!");
 
-      listofnote =
-          await nDAL.getAllNotes(InitDataBase.db).catchError(
+      listofnote = await nDAL.getAllNotes(InitDataBase.db).catchError(
         (Object e, StackTrace stackTrace) {
           debugPrint(e.toString());
         },
@@ -160,10 +158,9 @@ class HomeScreenState extends State<HomeScreen> {
       foundedNote = listofnote;
       listofTitleImage = await generateListTitleImage(listofnote);
 
-      if(mounted){
+      if (mounted) {
         setState(() {});
       }
-      
     }
   }
 
@@ -177,8 +174,7 @@ class HomeScreenState extends State<HomeScreen> {
       //SUA USERID O DAY
       //SUA USERID O DAY
       //SUA USERID O DAY
-      listofnote =
-          await nDAL.getAllNotes(InitDataBase.db).catchError(
+      listofnote = await nDAL.getAllNotes(InitDataBase.db).catchError(
         (Object e, StackTrace stackTrace) {
           debugPrint(e.toString());
         },
@@ -230,30 +226,29 @@ class HomeScreenState extends State<HomeScreen> {
 
     if (inputWord.isEmpty) {
       // if the search field is empty or only contains white-space, we'll display all users
-      if(loginState){
+      if (loginState) {
         noteList = await FireStorageService().getAllNote();
-      }
-      else{
+      } else {
         results = listofnote;
       }
     } else {
-      if(loginState){
+      if (loginState) {
         noteList = await FireStorageService().getAllNote();
-        
-        noteList = noteList.where((note) => note.title.toLowerCase().contains(inputWord.toLowerCase())).toList();
-      }
-      else{
+
+        noteList = noteList
+            .where((note) =>
+                note.title.toLowerCase().contains(inputWord.toLowerCase()))
+            .toList();
+      } else {
         results = listofnote
-          .where((note) =>
-              note.title.toLowerCase().contains(inputWord.toLowerCase()))
-          .toList();
+            .where((note) =>
+                note.title.toLowerCase().contains(inputWord.toLowerCase()))
+            .toList();
       }
       // we use the toLowerCase() method to make it case-insensitive
     }
-    if(loginState){
-      
-    }
-    else{
+    if (loginState) {
+    } else {
       foundedNote = results;
       listofTitleImage = await generateListTitleImage(foundedNote);
     }
@@ -262,133 +257,122 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   void filtertag(TagReceive? selected) async {
-    if(selected!.tagid == "" || selected!.tagid == "all"){    //CHUA TAO NHAN HOAC TAT CA
-      
-        noteList = await FireStorageService().getAllNote();
+    if (selected!.tagid == "" || selected!.tagid == "all") {
+      //CHUA TAO NHAN HOAC TAT CA
 
-        setState(() {
-                                    
-        });
-        return;
+      noteList = await FireStorageService().getAllNote();
+
+      setState(() {});
+      return;
     }
 
-    if(selected.tagid == "notag"){
-      
-        noteList.clear();
-        noteList = await FireStorageService().getAllNote();
-
-        noteList = noteList.where((note) => note.tagname == "").toList();
-
-        setState(() {
-                                    
-        });
-        return;
-    }
-
-    
+    if (selected.tagid == "notag") {
       noteList.clear();
       noteList = await FireStorageService().getAllNote();
 
-      noteList = noteList.where((note) => note.tagname == selected.tagname).toList();
+      noteList = noteList.where((note) => note.tagname == "").toList();
 
-      setState(() {
-                                    
-      });
+      setState(() {});
+      return;
+    }
+
+    noteList.clear();
+    noteList = await FireStorageService().getAllNote();
+
+    noteList =
+        noteList.where((note) => note.tagname == selected.tagname).toList();
+
+    setState(() {});
   }
 
   void filtertagAtLocal(TagModel? selected) async {
-    if(selected!.tag_id == -4 || selected!.tag_id == -3){    //CHUA TAO NHAN HOAC TAT CA
-      
-        foundedNote = await nDAL.getAllNotes(InitDataBase.db);
+    if (selected!.tag_id == -4 || selected!.tag_id == -3) {
+      //CHUA TAO NHAN HOAC TAT CA
 
-        listofTitleImage = await generateListTitleImage(foundedNote);
-        setState(() {
-                                    
-        });
-        return;
-    }
-
-    if(selected.tag_id == -2){
-        foundedNote.clear();
-
-        foundedNote = await nDAL.getNotesWithoutTag(-1, InitDataBase.db);
-
-        listofTitleImage = await generateListTitleImage(foundedNote);
-        setState(() {
-                                    
-        });
-        return;
-    }
-
-      foundedNote.clear();
-      
-      foundedNote = await nDAL.getNotesWithTagname(-1, selected.tag_name, InitDataBase.db);
+      foundedNote = await nDAL.getAllNotes(InitDataBase.db);
 
       listofTitleImage = await generateListTitleImage(foundedNote);
-      setState(() {
-                                    
-      });
+      setState(() {});
       return;
+    }
+
+    if (selected.tag_id == -2) {
+      foundedNote.clear();
+
+      foundedNote = await nDAL.getNotesWithoutTag(-1, InitDataBase.db);
+
+      listofTitleImage = await generateListTitleImage(foundedNote);
+      setState(() {});
+      return;
+    }
+
+    foundedNote.clear();
+
+    foundedNote =
+        await nDAL.getNotesWithTagname(-1, selected.tag_name, InitDataBase.db);
+
+    listofTitleImage = await generateListTitleImage(foundedNote);
+    setState(() {});
+    return;
   }
-
-
 
   Widget? displayImagefromCloudOrLocal_list(int index) {
     if (loginState) {
-      Map? map = noteList[index].content.firstWhere((element) => element.containsKey("local_image"), orElse:  () => null);
-      return map == null ? 
-            null 
-            : 
-            Image.file(
+      Map? map = noteList[index].content.firstWhere(
+          (element) => element.containsKey("local_image"),
+          orElse: () => null);
+      return map == null
+          ? null
+          : Image.file(
               File(map["local_image"]),
               width: 290,
               height: 200,
               fit: BoxFit.cover,
             );
-    }
-    else{
-      if(listofTitleImage[index].path == ""){
+    } else {
+      if (listofTitleImage[index].path == "") {
         return null;
       }
       return Image.file(
-              listofTitleImage[index],
-              width: 290,
-              height: 200,
-              fit: BoxFit.cover,
-            );
+        listofTitleImage[index],
+        width: 290,
+        height: 200,
+        fit: BoxFit.cover,
+      );
     }
-
   }
 
   Widget? displayImagefromCloudOrLocal_grid(int index) {
     if (loginState) {
-      Map? map = noteList[index].content.firstWhere((element) => element.containsKey("local_image"), orElse:  () => null);
-      return map == null ? 
-            null 
-            : 
-            Image.file(
+      Map? map = noteList[index].content.firstWhere(
+          (element) => element.containsKey("local_image"),
+          orElse: () => null);
+      return map == null
+          ? null
+          : Image.file(
               File(map["local_image"]),
               width: 140,
               height: 60,
               fit: BoxFit.cover,
             );
-    }
-    else{
-      if(listofTitleImage[index].path == ""){
+    } else {
+      if (listofTitleImage[index].path == "") {
         return null;
       }
       return Image.file(
-              listofTitleImage[index],
-              width: 140,
-              height: 60,
-              fit: BoxFit.cover,
-            );
+        listofTitleImage[index],
+        width: 140,
+        height: 60,
+        fit: BoxFit.cover,
+      );
     }
   }
 
   int settingimgflex(int index) {
     if (loginState) {
-      Map? map = noteList[index].content.firstWhere((element) => element.containsKey("local_image"), orElse: () => null);
+      Map? map = noteList[index].content.firstWhere(
+          (element) => element.containsKey("local_image"),
+          orElse: () => null);
       return map == null ? 0 : 3;
     }
     return listofTitleImage[index].path == '' ? 0 : 3;
@@ -396,7 +380,9 @@ class HomeScreenState extends State<HomeScreen> {
 
   int settingBriefContentflex(int index) {
     if (loginState) {
-      Map? map = noteList[index].content.firstWhere((element) => element.containsKey("local_image"), orElse: () => null);
+      Map? map = noteList[index].content.firstWhere(
+          (element) => element.containsKey("local_image"),
+          orElse: () => null);
       return map == null ? 4 : 1;
     }
     return listofTitleImage[index].path == '' ? 4 : 1;
@@ -404,330 +390,288 @@ class HomeScreenState extends State<HomeScreen> {
 
   int settingBriefContentMaxLines(int index) {
     if (loginState) {
-      Map? map = noteList[index].content.firstWhere((element) => element.containsKey("local_image"), orElse: () => null);
+      Map? map = noteList[index].content.firstWhere(
+          (element) => element.containsKey("local_image"),
+          orElse: () => null);
       return map == null ? 5 : 1;
     }
     return listofTitleImage[index].path == '' ? 5 : 1;
   }
 
-  Widget buildBriefContextTextWG(int index){
-    if(loginState){
-      return Text(noteList[index].content.firstWhere((element) => element.containsKey("text") && element["text"] != "")['text'],
-                      style: const TextStyle(fontSize: 12),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 2,
-                    );
-    }
-    else{
+  Widget buildBriefContextTextWG(int index) {
+    if (loginState) {
       return Text(
-                      listofBriefContent.isNotEmpty ? listofBriefContent[index] : "",
-                      style: const TextStyle(fontSize: 12),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 2,
-                    );
+        noteList[index].content.firstWhere((element) =>
+            element.containsKey("text") && element["text"] != "")['text'],
+        style: const TextStyle(fontSize: 12),
+        overflow: TextOverflow.ellipsis,
+        maxLines: 2,
+      );
+    } else {
+      return Text(
+        listofBriefContent.isNotEmpty ? listofBriefContent[index] : "",
+        style: const TextStyle(fontSize: 12),
+        overflow: TextOverflow.ellipsis,
+        maxLines: 2,
+      );
     }
-    
-  }
-  Widget buildNoteLeadingIcon(int index){
-    if(loginState){
-      if(noteList[index].tagname != ""){
-        return const CircleAvatar(
-                        backgroundColor: Color.fromARGB(255, 97, 115, 239),
-                        minRadius: 10,
-                        maxRadius: 17,
-                        child: Icon(
-                          Icons.turned_in_not_outlined,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      );
-      }
-      else{
-        return const CircleAvatar(
-                        backgroundColor: Color.fromARGB(255, 251, 178, 37),
-                        minRadius: 10,
-                        maxRadius: 17,
-                        child: Icon(
-                          Icons.note_alt_outlined,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      );
-      }
-    }
-    else{
-      if(foundedNote[index].tag_name != ""){
-        return const CircleAvatar(
-                        backgroundColor: Color.fromARGB(255, 97, 115, 239),
-                        minRadius: 10,
-                        maxRadius: 17,
-                        child: Icon(
-                          Icons.turned_in_not_outlined,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      );
-      }
-      else{
-        return const CircleAvatar(
-                        backgroundColor: Color.fromARGB(255, 251, 178, 37),
-                        minRadius: 10,
-                        maxRadius: 17,
-                        child: Icon(
-                          Icons.note_alt_outlined,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      );
-      }
-    }
-
   }
 
-  Widget buildTagName(int index){
-    if(loginState){
-      if(noteList[index].tagname != ""){
+  Widget buildNoteLeadingIcon(int index) {
+    if (loginState) {
+      if (noteList[index].tagname != "") {
+        return const CircleAvatar(
+          backgroundColor: Color.fromARGB(255, 97, 115, 239),
+          minRadius: 10,
+          maxRadius: 17,
+          child: Icon(
+            Icons.turned_in_not_outlined,
+            color: Colors.white,
+            size: 20,
+          ),
+        );
+      } else {
+        return const CircleAvatar(
+          backgroundColor: Color.fromARGB(255, 251, 178, 37),
+          minRadius: 10,
+          maxRadius: 17,
+          child: Icon(
+            Icons.note_alt_outlined,
+            color: Colors.white,
+            size: 20,
+          ),
+        );
+      }
+    } else {
+      if (foundedNote[index].tag_name != "") {
+        return const CircleAvatar(
+          backgroundColor: Color.fromARGB(255, 97, 115, 239),
+          minRadius: 10,
+          maxRadius: 17,
+          child: Icon(
+            Icons.turned_in_not_outlined,
+            color: Colors.white,
+            size: 20,
+          ),
+        );
+      } else {
+        return const CircleAvatar(
+          backgroundColor: Color.fromARGB(255, 251, 178, 37),
+          minRadius: 10,
+          maxRadius: 17,
+          child: Icon(
+            Icons.note_alt_outlined,
+            color: Colors.white,
+            size: 20,
+          ),
+        );
+      }
+    }
+  }
+
+  Widget buildTagName(int index) {
+    if (loginState) {
+      if (noteList[index].tagname != "") {
         return Row(
-                          children: [
-                              const Icon(
-                                Icons.turned_in_outlined,
-                                size: 13,
-                                color: Color.fromARGB(255, 97, 115, 239)
-                              ), 
-
-                              const SizedBox(width: 5),
-
-                              Text(
-                                  noteList[index].tagname,
-                                  style: TextStyle(fontSize: 12, color: Color.fromARGB(255, 97, 115, 239)),
-                              ),
-                            ],
-                          );
+          children: [
+            const Icon(Icons.turned_in_outlined,
+                size: 13, color: Color.fromARGB(255, 97, 115, 239)),
+            const SizedBox(width: 5),
+            Text(
+              noteList[index].tagname,
+              style: TextStyle(
+                  fontSize: 12, color: Color.fromARGB(255, 97, 115, 239)),
+            ),
+          ],
+        );
+      } else {
+        return const Text("");
       }
-      else{
+    } else {
+      if (foundedNote[index].tag_name != "") {
+        return Row(
+          children: [
+            const Icon(Icons.turned_in_outlined,
+                size: 13, color: Color.fromARGB(255, 97, 115, 239)),
+            const SizedBox(width: 5),
+            Text(
+              foundedNote[index].tag_name?.toString() ?? "",
+              style: TextStyle(
+                  fontSize: 12, color: Color.fromARGB(255, 97, 115, 239)),
+            ),
+          ],
+        );
+      } else {
         return const Text("");
       }
     }
-    else{
-      if(foundedNote[index].tag_name != ""){
-        return Row(
-                          children: [
-                              const Icon(
-                                Icons.turned_in_outlined,
-                                size: 13,
-                                color: Color.fromARGB(255, 97, 115, 239)
-                              ), 
-
-                              const SizedBox(width: 5),
-
-                              Text(
-                                  foundedNote[index].tag_name?.toString() ?? "",
-                                  style: TextStyle(fontSize: 12, color: Color.fromARGB(255, 97, 115, 239)),
-                              ),
-                            ],
-                          );
-      }
-      else{
-        return const Text("");
-      }
-    }
-    
   }
 
-  Widget buildSpaceAboveNoteTitle_Grid(int index){
-    if(loginState){
-      if(noteList[index].tagname == ""){
-        return const Expanded(
-                            flex: 0,
-                            child: SizedBox()
-                          );
-      }
-      else{
+  Widget buildSpaceAboveNoteTitle_Grid(int index) {
+    if (loginState) {
+      if (noteList[index].tagname == "") {
+        return const Expanded(flex: 0, child: SizedBox());
+      } else {
         return const SizedBox();
       }
-    }
-    else{
-      if(foundedNote[index].tag_name == ""){
-        return const Expanded(
-                            flex: 0,
-                            child: SizedBox()
-                          );
-      }
-      else{
+    } else {
+      if (foundedNote[index].tag_name == "") {
+        return const Expanded(flex: 0, child: SizedBox());
+      } else {
         return const SizedBox();
       }
     }
   }
-   
-  Widget buildNoteTitle_Grid(int index){
-    if(loginState){
+
+  Widget buildNoteTitle_Grid(int index) {
+    if (loginState) {
       return Expanded(
-                            flex: noteList[index].tagname == "" ? 1 : 0,
-                            child: Container(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                noteList[index].title,
-                                style: TextStyle(
-                                    fontSize: 13, fontWeight: FontWeight.bold),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                            ),
-                          );
-    }
-    else{
+        flex: noteList[index].tagname == "" ? 1 : 0,
+        child: Container(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            noteList[index].title,
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+      );
+    } else {
       return Expanded(
-                            flex: foundedNote[index].tag_name == "" ? 1 : 0,
-                            child: Container(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                    foundedNote[index].title,
-                                style: TextStyle(
-                                    fontSize: 13, fontWeight: FontWeight.bold),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                            ),
-                          );
+        flex: foundedNote[index].tag_name == "" ? 1 : 0,
+        child: Container(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            foundedNote[index].title,
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+      );
     }
   }
-                          
-  Widget buildTagName_Grid(int index){
-    if(loginState){
-      if(noteList[index].tagname != ""){
+
+  Widget buildTagName_Grid(int index) {
+    if (loginState) {
+      if (noteList[index].tagname != "") {
         return Container(
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  Icons.turned_in_outlined,
-                                  size: 13,
-                                  color: Color.fromARGB(255, 97, 115, 239)
-                                ), 
-
-                                const SizedBox(width: 5),
-
-                                Text(
-                                    noteList[index].tagname,
-                                    style: TextStyle(fontSize: 12, color: Color.fromARGB(255, 97, 115, 239)),
-                                ),
-                              ],
-                            ),
-                          );
+          child: Row(
+            children: [
+              const Icon(Icons.turned_in_outlined,
+                  size: 13, color: Color.fromARGB(255, 97, 115, 239)),
+              const SizedBox(width: 5),
+              Text(
+                noteList[index].tagname,
+                style: TextStyle(
+                    fontSize: 12, color: Color.fromARGB(255, 97, 115, 239)),
+              ),
+            ],
+          ),
+        );
+      } else {
+        return const SizedBox();
       }
-      else{
+    } else {
+      if (foundedNote[index].tag_name != "") {
+        return Container(
+          child: Row(
+            children: [
+              const Icon(Icons.turned_in_outlined,
+                  size: 13, color: Color.fromARGB(255, 97, 115, 239)),
+              const SizedBox(width: 5),
+              Text(
+                foundedNote[index].tag_name?.toString() ?? "",
+                style: TextStyle(
+                    fontSize: 12, color: Color.fromARGB(255, 97, 115, 239)),
+              ),
+            ],
+          ),
+        );
+      } else {
         return const SizedBox();
       }
     }
-    else{
-      if(foundedNote[index].tag_name != ""){
-        return Container(
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  Icons.turned_in_outlined,
-                                  size: 13,
-                                  color: Color.fromARGB(255, 97, 115, 239)
-                                ), 
-
-                                const SizedBox(width: 5),
-
-                                Text(
-                                    foundedNote[index].tag_name?.toString() ?? "",
-                                    style: TextStyle(fontSize: 12, color: Color.fromARGB(255, 97, 115, 239)),
-                                ),
-                              ],
-                            ),
-                          );
-      }
-      else{
-        return const SizedBox();
-      }
-    }          
   }
 
-  Widget buildTrailingIcon_Grid(int index){
-    if(loginState){
-      if(noteList[index].tagname != ""){
+  Widget buildTrailingIcon_Grid(int index) {
+    if (loginState) {
+      if (noteList[index].tagname != "") {
         return const CircleAvatar(
-                          backgroundColor: Color.fromARGB(255, 97, 115, 239),
-                          minRadius: 10,
-                          maxRadius: 17,
-                          child: Icon(
-                            Icons.turned_in_not_outlined,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        );
+          backgroundColor: Color.fromARGB(255, 97, 115, 239),
+          minRadius: 10,
+          maxRadius: 17,
+          child: Icon(
+            Icons.turned_in_not_outlined,
+            color: Colors.white,
+            size: 20,
+          ),
+        );
+      } else {
+        return const CircleAvatar(
+          backgroundColor: Color.fromARGB(255, 251, 178, 37),
+          minRadius: 10,
+          maxRadius: 17,
+          child: Icon(
+            Icons.note_alt_outlined,
+            color: Colors.white,
+            size: 20,
+          ),
+        );
       }
-      else{
+    } else {
+      if (foundedNote[index].tag_name != "") {
         return const CircleAvatar(
-                          backgroundColor: Color.fromARGB(255, 251, 178, 37),
-                          minRadius: 10,
-                          maxRadius: 17,
-                          child: Icon(
-                            Icons.note_alt_outlined,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        );
+          backgroundColor: Color.fromARGB(255, 97, 115, 239),
+          minRadius: 10,
+          maxRadius: 17,
+          child: Icon(
+            Icons.turned_in_not_outlined,
+            color: Colors.white,
+            size: 20,
+          ),
+        );
+      } else {
+        return const CircleAvatar(
+          backgroundColor: Color.fromARGB(255, 251, 178, 37),
+          minRadius: 10,
+          maxRadius: 17,
+          child: Icon(
+            Icons.note_alt_outlined,
+            color: Colors.white,
+            size: 20,
+          ),
+        );
       }
     }
-    else{
-      if(foundedNote[index].tag_name != ""){
-        return const CircleAvatar(
-                          backgroundColor: Color.fromARGB(255, 97, 115, 239),
-                          minRadius: 10,
-                          maxRadius: 17,
-                          child: Icon(
-                            Icons.turned_in_not_outlined,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        );
-      }
-      else{
-        return const CircleAvatar(
-                          backgroundColor: Color.fromARGB(255, 251, 178, 37),
-                          minRadius: 10,
-                          maxRadius: 17,
-                          child: Icon(
-                            Icons.note_alt_outlined,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        );
-      }
-    }                
   }
 
-  Widget buildExpandedImage_Grid(int index){
-    if(loginState){
-      return noteList[index].content.firstWhere((element) => element.containsKey("local_image"), orElse: () => null) != null ? 
-                  Expanded(
-                    flex: settingimgflex(index),
-                    child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8.0),
-                        child: displayImagefromCloudOrLocal_grid(index)),
-                  )
-
-                  :
-
-                  Text("");
-    }
-    else{
-      if(listofTitleImage[index].path != ""){
+  Widget buildExpandedImage_Grid(int index) {
+    if (loginState) {
+      return noteList[index].content.firstWhere(
+                  (element) => element.containsKey("local_image"),
+                  orElse: () => null) !=
+              null
+          ? Expanded(
+              flex: settingimgflex(index),
+              child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8.0),
+                  child: displayImagefromCloudOrLocal_grid(index)),
+            )
+          : Text("");
+    } else {
+      if (listofTitleImage[index].path != "") {
         return Expanded(
-                    flex: settingimgflex(index),
-                    child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8.0),
-                        child: displayImagefromCloudOrLocal_grid(index)),
-                  );
-      }
-      else{
+          flex: settingimgflex(index),
+          child: ClipRRect(
+              borderRadius: BorderRadius.circular(8.0),
+              child: displayImagefromCloudOrLocal_grid(index)),
+        );
+      } else {
         return const Text("");
       }
     }
-    
   }
 
   Widget buildListView() {
@@ -782,8 +726,7 @@ class HomeScreenState extends State<HomeScreen> {
                         await reloadNoteListAtLocal(resultFromNewNote);
                       }
                     },
-                    leading: buildNoteLeadingIcon(index)
-                    ,
+                    leading: buildNoteLeadingIcon(index),
                     title: Text(
                       loginState
                           ? noteList[index].title
@@ -800,9 +743,9 @@ class HomeScreenState extends State<HomeScreen> {
                           loginState
                               ? noteList[index].timeStamp
                               : foundedNote[index].date_created,
-                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          style:
+                              const TextStyle(fontSize: 12, color: Colors.grey),
                         ),
-                    
                         buildTagName(index)
                       ],
                     ),
@@ -814,10 +757,9 @@ class HomeScreenState extends State<HomeScreen> {
                         child: displayImagefromCloudOrLocal_list(index)),
                   ),
                   Container(
-                    margin: const EdgeInsets.all(10),
-                    alignment: Alignment.centerLeft,
-                    child: buildBriefContextTextWG(index)
-                  )
+                      margin: const EdgeInsets.all(10),
+                      alignment: Alignment.centerLeft,
+                      child: buildBriefContextTextWG(index))
                 ],
               ));
         },
@@ -855,57 +797,47 @@ class HomeScreenState extends State<HomeScreen> {
                   Expanded(
                     flex: 2,
                     child: ListTile(
-                      onTap: () async {
-                        final resultfromNewNote = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => NewNoteScreen(
-                                email: email == null ? "" : email?.toString(),
-                                noteId: loginState
-                                    ? noteList[index].noteId
-                                    : (foundedNote[index]
-                                            .note_id
-                                            ?.toInt()
-                                            .toString() ??
-                                        0.toString()),
-                                isEdit: true),
-                          ),
-                        );
-                        if (loginState) {
-                          await refreshNoteListFromCloud();
-                        } else {
-                          await reloadNoteListAtLocal(resultfromNewNote);
-                        }
-                      },
-                      title: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          buildSpaceAboveNoteTitle_Grid(index)
-                          ,
-
-                          buildNoteTitle_Grid(index)
-                          
-                          ,
-
-                          buildTagName_Grid(index)                          
-                        ],
-                      ),
-                      // subtitle: Text(
-                      //   foundedNote[index].date_created,
-                      //   style: const TextStyle(
-                      //       fontSize: 11, color: Colors.grey),
-                      // ),
-                      trailing: buildTrailingIcon_Grid(index)
-                    ),
+                        onTap: () async {
+                          final resultfromNewNote = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => NewNoteScreen(
+                                  email: email == null ? "" : email?.toString(),
+                                  noteId: loginState
+                                      ? noteList[index].noteId
+                                      : (foundedNote[index]
+                                              .note_id
+                                              ?.toInt()
+                                              .toString() ??
+                                          0.toString()),
+                                  isEdit: true),
+                            ),
+                          );
+                          if (loginState) {
+                            await refreshNoteListFromCloud();
+                          } else {
+                            await reloadNoteListAtLocal(resultfromNewNote);
+                          }
+                        },
+                        title: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            buildSpaceAboveNoteTitle_Grid(index),
+                            buildNoteTitle_Grid(index),
+                            buildTagName_Grid(index)
+                          ],
+                        ),
+                        // subtitle: Text(
+                        //   foundedNote[index].date_created,
+                        //   style: const TextStyle(
+                        //       fontSize: 11, color: Colors.grey),
+                        // ),
+                        trailing: buildTrailingIcon_Grid(index)),
                   ),
                   SizedBox(
                     height: 10,
                   ),
-                  
-                  buildExpandedImage_Grid(index)
-                  
-                  ,
-
+                  buildExpandedImage_Grid(index),
                   Expanded(
                     flex: settingBriefContentflex(index),
                     child: Container(
@@ -913,7 +845,9 @@ class HomeScreenState extends State<HomeScreen> {
                       alignment: Alignment.topLeft,
                       child: Text(
                         loginState
-                            ? noteList[index].content.firstWhere((element) => element.containsKey("text") && element["text"] != "")["text"]
+                            ? noteList[index].content.firstWhere((element) =>
+                                element.containsKey("text") &&
+                                element["text"] != "")["text"]
                             : listofBriefContent[index],
                         style: const TextStyle(fontSize: 11),
                         overflow: TextOverflow.ellipsis,
@@ -921,7 +855,6 @@ class HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-                  
                   Expanded(
                       flex: 1,
                       child: Container(
@@ -949,7 +882,7 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-        create: (context) => CountdownState(),
+      create: (context) => CountdownState(),
       child: SafeArea(
         child: Scaffold(
             backgroundColor: const Color.fromARGB(63, 249, 253, 255),
@@ -978,7 +911,6 @@ class HomeScreenState extends State<HomeScreen> {
                       : const Icon(Icons.grid_view),
                   color: Colors.black,
                 ),
-                
               ],
             ),
             body: Container(
@@ -1000,7 +932,8 @@ class HomeScreenState extends State<HomeScreen> {
                                     hintText: "Tìm kiếm nè...",
                                     prefixIcon: Icon(Icons.search),
                                     filled: true,
-                                    fillColor: Color.fromARGB(255, 239, 241, 243),
+                                    fillColor:
+                                        Color.fromARGB(255, 239, 241, 243),
                                     enabledBorder: OutlineInputBorder(
                                         borderSide: BorderSide(
                                       width: 0.5,
@@ -1009,41 +942,40 @@ class HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
 
-                            loginState ? 
-
-                            Expanded(
-                              flex: 1,
-                              child: DropdownMenu<TagReceive>(
-                                initialSelection: lsttags.isEmpty ? null : lsttags[0],
-                                controller: filterTagController,
-                                label: const Text('Nhãn'),
-                                dropdownMenuEntries: tagListEntries,
-                                onSelected: (TagReceive? tag) {
-                                  filtertag(tag);
-                            
-                                },
-                              ),
-                            )
-
-                            :
-
-                            Expanded(
-                              flex: 1,
-                              child: DropdownMenu<TagModel>(
-                                initialSelection: lsttagsLocal.isEmpty ? null : lsttagsLocal[0],
-                                controller: filterTagLocalController,
-                                label: const Text('Nhãn'),
-                                dropdownMenuEntries: tagListEntriesLocal,
-                                onSelected: (TagModel? tag) {
-                                  filtertagAtLocal(tag);
-                                  
-                                },
-                              ),
-                            )
+                            // loginState ?
+                            //
+                            // Expanded(
+                            //   flex: 1,
+                            //   child: DropdownMenu<TagReceive>(
+                            //     initialSelection: lsttags.isEmpty ? null : lsttags[0],
+                            //     controller: filterTagController,
+                            //     label: const Text('Nhãn'),
+                            //     dropdownMenuEntries: tagListEntries,
+                            //     onSelected: (TagReceive? tag) {
+                            //       filtertag(tag);
+                            //
+                            //     },
+                            //   ),
+                            // )
+                            //
+                            // :
+                            //
+                            // Expanded(
+                            //   flex: 1,
+                            //   child: DropdownMenu<TagModel>(
+                            //     initialSelection: lsttagsLocal.isEmpty ? null : lsttagsLocal[0],
+                            //     controller: filterTagLocalController,
+                            //     label: const Text('Nhãn'),
+                            //     dropdownMenuEntries: tagListEntriesLocal,
+                            //     onSelected: (TagModel? tag) {
+                            //       filtertagAtLocal(tag);
+                            //
+                            //     },
+                            //   ),
+                            // )
                           ],
                         ),
-
-                        const SizedBox( 
+                        const SizedBox(
                           height: 13,
                         ),
                         Expanded(
@@ -1053,7 +985,8 @@ class HomeScreenState extends State<HomeScreen> {
                                     if (loginState) {
                                       await refreshNoteListFromCloud();
                                     } else {
-                                      await reloadNoteListAtLocal("RELOAD_LIST");
+                                      await reloadNoteListAtLocal(
+                                          "RELOAD_LIST");
                                     }
                                   },
                                   child: buildListView())
@@ -1120,7 +1053,6 @@ class HomeScreenState extends State<HomeScreen> {
         loginState = false;
         InitiateListOfNote();
       }
-      
     });
   }
 
@@ -1128,84 +1060,67 @@ class HomeScreenState extends State<HomeScreen> {
     // listofimglink_cloud.clear();
     // listofBriefContent_cloud.clear();
     noteList = await FireStorageService().getAllNote();
-    if(mounted){
+    if (mounted) {
       setState(() {});
     }
-        // for (int i = 0; i < noteList.length; i++) {
-        //   if(noteList[i].content.elementAtOrNull(1) != null){
-        //     if(noteList[i].content[1].containsKey("image")){
-        //       listofimglink_cloud.add(noteList[i].content[1]["image"].toString());
-        //     }
-        //     else{
-        //       listofimglink_cloud.add("");
-        //     }
-        //   }
-        //   else{
-        //     listofimglink_cloud.add("");
-        //   }
-        //   listofBriefContent_cloud.add(noteList[i].content[0]["text"].toString());
-        // }
+    // for (int i = 0; i < noteList.length; i++) {
+    //   if(noteList[i].content.elementAtOrNull(1) != null){
+    //     if(noteList[i].content[1].containsKey("image")){
+    //       listofimglink_cloud.add(noteList[i].content[1]["image"].toString());
+    //     }
+    //     else{
+    //       listofimglink_cloud.add("");
+    //     }
+    //   }
+    //   else{
+    //     listofimglink_cloud.add("");
+    //   }
+    //   listofBriefContent_cloud.add(noteList[i].content[0]["text"].toString());
+    // }
   }
 
   Future<void> InitiateListOfTag() async {
     lsttags = await FireStorageService().getTagsForFilter();
     tagListEntries.clear();
 
-    if(lsttags.isNotEmpty){
+    if (lsttags.isNotEmpty) {
       TagReceive tr = TagReceive();
       tr.tagname = "notag";
       tr.tagid = "notag";
 
-      tagListEntries.add(
-          DropdownMenuEntry<TagReceive>(
-            value: tr, 
-            label: "Không nhãn",
-          )
-      );
+      tagListEntries.add(DropdownMenuEntry<TagReceive>(
+        value: tr,
+        label: "Không nhãn",
+      ));
 
       TagReceive trall = TagReceive();
       trall.tagname = "all";
       trall.tagid = "all";
 
-      tagListEntries.add(
-          DropdownMenuEntry<TagReceive>(
-            value: trall, 
-            label: "Tất cả",
-          )
-      );
+      tagListEntries.add(DropdownMenuEntry<TagReceive>(
+        value: trall,
+        label: "Tất cả",
+      ));
 
       lsttags.insert(0, tr);
       lsttags.insert(0, trall);
 
-      for(int i = 2; i < lsttags.length; i++){
-        tagListEntries.add(
-          DropdownMenuEntry<TagReceive>(
-            value: lsttags[i], 
-            label: lsttags[i].tagname
-          )
-        );
+      for (int i = 2; i < lsttags.length; i++) {
+        tagListEntries.add(DropdownMenuEntry<TagReceive>(
+            value: lsttags[i], label: lsttags[i].tagname));
       }
-      
-    }
-    else{
+    } else {
       TagReceive tr = TagReceive();
       tr.tagname = "*Chưa tạo nhãn*";
       tr.tagid = "";
 
-      tagListEntries.add(
-        DropdownMenuEntry(
-          value: tr, 
-          label: tr.tagname
-        )
-      );
+      tagListEntries.add(DropdownMenuEntry(value: tr, label: tr.tagname));
 
       lsttags.add(tr);
     }
 
-    if(mounted){
-      setState(() {
-        
-      });
+    if (mounted) {
+      setState(() {});
     }
   }
 
@@ -1213,55 +1128,38 @@ class HomeScreenState extends State<HomeScreen> {
     lsttagsLocal = await tagDAL.getTagsForFilter_Local(-1, InitDataBase.db);
     tagListEntriesLocal.clear();
 
-    if(lsttagsLocal.isNotEmpty){
+    if (lsttagsLocal.isNotEmpty) {
       TagModel tr = TagModel(tag_id: -2, tag_name: "notag");
 
-      tagListEntriesLocal.add(
-          DropdownMenuEntry<TagModel>(
-            value: tr, 
-            label: "Không nhãn",
-          )
-      );
+      tagListEntriesLocal.add(DropdownMenuEntry<TagModel>(
+        value: tr,
+        label: "Không nhãn",
+      ));
 
       TagModel trall = TagModel(tag_id: -3, tag_name: "all");
 
-      tagListEntriesLocal.add(
-          DropdownMenuEntry<TagModel>(
-            value: trall, 
-            label: "Tất cả",
-          )
-      );
+      tagListEntriesLocal.add(DropdownMenuEntry<TagModel>(
+        value: trall,
+        label: "Tất cả",
+      ));
 
       lsttagsLocal.insert(0, tr);
       lsttagsLocal.insert(0, trall);
 
-      for(int i = 2; i < lsttagsLocal.length; i++){
-        tagListEntriesLocal.add(
-          DropdownMenuEntry<TagModel>(
-            value: lsttagsLocal[i], 
-            label: lsttagsLocal[i].tag_name
-          )
-        );
+      for (int i = 2; i < lsttagsLocal.length; i++) {
+        tagListEntriesLocal.add(DropdownMenuEntry<TagModel>(
+            value: lsttagsLocal[i], label: lsttagsLocal[i].tag_name));
       }
-      
-    }
-    else{
+    } else {
       TagModel tr = TagModel(tag_id: -4, tag_name: "*Chưa tạo nhãn*");
 
-      tagListEntriesLocal.add(
-        DropdownMenuEntry(
-          value: tr, 
-          label: tr.tag_name
-        )
-      );
+      tagListEntriesLocal.add(DropdownMenuEntry(value: tr, label: tr.tag_name));
 
       lsttagsLocal.add(tr);
     }
 
-    if(mounted){
-      setState(() {
-        
-      });
+    if (mounted) {
+      setState(() {});
     }
   }
 }

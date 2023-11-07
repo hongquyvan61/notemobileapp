@@ -1,61 +1,30 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-import 'package:timezone/timezone.dart' as tz;
-
 class NotificationService {
-  final FlutterLocalNotificationsPlugin notificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+  FlutterLocalNotificationsPlugin();
 
-  Future<void> initNotification() async {
-    AndroidInitializationSettings initializationSettingsAndroid =
-        const AndroidInitializationSettings('flutter_logo');
 
-    var initializationSettingIOS = DarwinInitializationSettings(
-        requestAlertPermission: true,
-        requestBadgePermission: true,
-        requestSoundPermission: true,
-        onDidReceiveLocalNotification:
-            (int id, String? title, String? body, String? payload) async {});
-    var initializationSettings = InitializationSettings(
-        android: initializationSettingsAndroid, iOS: initializationSettingIOS);
-    await notificationsPlugin.initialize(
-      initializationSettings,
-      onDidReceiveNotificationResponse:
-          (NotificationResponse notificationResponse) async {},
+
+  Future<void> showNotification(String title, String body) async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+    AndroidNotificationDetails(
+      'your_channel_id', // ID của channel
+      'your_channel_name', // Tên của channel
+      // Mô tả của channel
+      importance: Importance.max,
+      priority: Priority.high,
     );
-  }
 
-  Future showNotification(
-      {int id = 0, String? title, String? body, String? payload}) async {
-    return notificationsPlugin.show(
-        id, title, body, await notificationDetails());
-  }
+    const NotificationDetails platformChannelSpecifics =
+    NotificationDetails(android: androidPlatformChannelSpecifics);
 
-  notificationDetails() {
-    return const NotificationDetails(
-        android: AndroidNotificationDetails("channelId", "channelName",
-            importance: Importance.max),
-        iOS: DarwinNotificationDetails());
-  }
-
-  Future scheduleNotification(
-      {int id = 0,
-      String? title,
-      String? body,
-      String? payLoad,
-      required DateTime scheduledNotificationDateTime}) async {
-    return notificationsPlugin.zonedSchedule(
-        id,
-        title,
-        body,
-        tz.TZDateTime.from(
-          scheduledNotificationDateTime,
-          tz.local,
-        ),
-        await notificationDetails(),
-        // androidAllowWhileIdle: true,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime);
-
+    await flutterLocalNotificationsPlugin.show(
+      0, // ID của thông báo
+      title,
+      body,
+      platformChannelSpecifics,
+      payload: 'item x',
+    );
   }
 }

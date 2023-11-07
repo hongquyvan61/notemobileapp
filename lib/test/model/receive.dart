@@ -3,6 +3,7 @@ class Receive{
   late String _owner;
   late String _rule;
   late String _email;
+  bool _isNew = true;
 
 
   Receive.withValue(this._owner, this._rule, this._noteId, this._email);
@@ -14,6 +15,12 @@ class Receive{
 
   set owner(String value) {
     _owner = value;
+  }
+
+  bool get isNew => _isNew;
+
+  set isNew(bool value) {
+    _isNew = value;
   }
 
   String get email => _email;
@@ -38,6 +45,7 @@ class Receive{
     return {
       'owner' : _owner,
       'rule' : _rule,
+      'isNew' : _isNew,
     };
   }
 }
