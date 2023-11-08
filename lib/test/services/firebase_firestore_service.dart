@@ -175,17 +175,18 @@ class FireStorageService {
     final inviteDocument =
         notesCollection.doc(currentUser).collection('invite').doc(id);
     DocumentSnapshot doc = await inviteDocument.get();
+    Map<String, dynamic>? test = doc.data() as Map<String, dynamic>?;
 
-    if (doc.exists) {
+    if (doc.exists && test!.containsKey('rules')) {
       inviteReceive.rules = doc.get('rules');
     } else {
       saveInvite(id);
-      final inviteDocument =
-          notesCollection.doc(currentUser).collection('invite').doc(id);
-      DocumentSnapshot doc = await inviteDocument.get();
-      if(doc.data() != null){
-        inviteReceive.rules = doc.get('rules');
-      }
+      // final inviteDocument =
+      //     notesCollection.doc(currentUser).collection('invite').doc(id);
+      // DocumentSnapshot doc = await inviteDocument.get();
+      // if(doc.data() != null){
+      //   inviteReceive.rules = doc.get('rules');
+      // }
     }
     return inviteReceive;
   }
@@ -198,7 +199,6 @@ class FireStorageService {
   }
 
 
-
   Future<void> updateInvite(Invite invite) async {
     final idInvite = notesCollection
         .doc(currentUser)
@@ -207,6 +207,10 @@ class FireStorageService {
     await idInvite.update(invite.toMap());
     debugPrint('Insert successful');
   }
+
+    Future<void> deleteReceive(Receive receives) async {
+      final receive = notesCollection.doc(receives.email).collection('receive').doc(receives.noteId).delete();
+    }
 
   Future<void> addInviteToUser(Receive receive) async {
     receive.owner = currentUser!;
@@ -233,6 +237,28 @@ class FireStorageService {
       users.add(element.id);
     });
     return users;
+  }
+
+  Future<List<Receive>> getAllReceive() async {
+    List<Receive> listReceive = [];
+    final idReceive = notesCollection
+        .doc(currentUser)
+        .collection("receive").get().then((value) {
+          for (var element in value.docs) {
+                listReceive.add(Receive.withValue1(element.get('owner'), element.get('rule'), element.id, element.get('timestamp'), element.get('hadseen')));
+          }
+    });
+
+    return listReceive;
+
+  }
+
+  Future<void> setTrueHasSeen(Receive receives) async {
+    final idReceive = notesCollection
+        .doc(currentUser)
+        .collection("receive").doc(receives.noteId);
+    idReceive.update({'hadseen' : true});
+
   }
 
   Future<void> insertCollection() async {

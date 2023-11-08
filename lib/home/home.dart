@@ -109,8 +109,7 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> CheckInternetConnection() async {
-    final fcmToken = await FirebaseMessaging.instance.getToken();
-    final notificationSettings = await FirebaseMessaging.instance.requestPermission(provisional: true);
+
     _networkConnectivity.initialise();
     _networkConnectivity.myStream.listen((source) {
       _source = source;

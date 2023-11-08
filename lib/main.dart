@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -26,6 +27,27 @@ void main() async {
   await Firebase.initializeApp();
   InitDataBase.firebasedb = FirebaseDatabase.instance.ref();
 
+  // final fcmToken = await FirebaseMessaging.instance.getToken();
+  // print(fcmToken);
+  // final notificationSettings = await FirebaseMessaging.instance
+  //     .requestPermission(provisional: true);
+  // FirebaseMessaging messaging = FirebaseMessaging.instance;
+  //
+  // NotificationSettings settings = await messaging.requestPermission(
+  //   alert: true,
+  //   announcement: true,
+  //   badge: true,
+  //   carPlay: true,
+  //   criticalAlert: true,
+  //   provisional: true,
+  //   sound: true,
+  // );
+  //
+  // FirebaseMessaging.onMessage.listen((event) {
+  //   print(event.notification?.body);
+  //   print(event.notification?.title);
+  // });
+
   String? userEmail = FirebaseAuth.instance.currentUser?.email;
   FirebaseFirestore.instance
       .collection('notes')
@@ -41,7 +63,8 @@ void main() async {
           // Xử lý sự kiện thay đổi dữ liệu ở đây
           // NotificationService().showNotification(title: "Chia sẻ ghi chú", body: "Xem ghi chú ngay");
           // isChange = true;
-          NotificationService().showNotification("Chia sẻ ghi chú" ,'$owner đã chia sẻ ghi chú với bạn');
+          NotificationService().showNotification(
+              "Chia sẻ ghi chú", '$owner đã chia sẻ ghi chú với bạn');
           FireStorageService().setIsNewFalse(element.doc.id);
         } else {
           // isChange = false;
@@ -64,13 +87,15 @@ class MyApp extends StatelessWidget {
       initialRoute: RoutePaths.start,
       onGenerateRoute: RouterCustom.generateRoute,
       theme: ThemeData(
-          //colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple),
+        //colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple),
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
           // textTheme: GoogleFonts(
           //   Theme.of(context).textTheme
           // )
           textTheme: GoogleFonts.merriweatherSansTextTheme(
-              Theme.of(context).textTheme)),
+              Theme
+                  .of(context)
+                  .textTheme)),
       builder: EasyLoading.init(),
       home: const HomeScreen(),
       // home:  StreamBuilder<User?>(

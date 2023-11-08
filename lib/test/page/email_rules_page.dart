@@ -4,6 +4,8 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
 import 'package:notemobileapp/test/model/invite.dart';
 import 'package:notemobileapp/test/model/invite_receive.dart';
 import 'package:notemobileapp/test/model/receive.dart';
@@ -31,10 +33,12 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
   int indexOfOld = 0;
   List<int> indexOfLog = [];
   List<String> users = [];
+  List<String> deleteListTemp = [];
   final List<String> items = [
     'Chỉ xem',
     'Chỉnh sửa',
   ];
+  bool isDelete = false;
 
   @override
   void initState() {
@@ -100,6 +104,10 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
                     if (updated) {
                       updateInviteToCloud();
                       updateInviteToUser();
+                      if (isDelete) {
+                        deleteReceive();
+                      }
+
                     }
                     setState(() {
                       updated = false;
@@ -175,9 +183,11 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
                                 IconButton(
                                     onPressed: () async {
                                       if (await confirmDelete()) {
+                                        deleteListTemp.add(emails[index]);
+                                        emails.removeAt(index);
+                                        dropDownValue.removeAt(index);
                                         setState(() {
-                                          emails.removeAt(index);
-                                          dropDownValue.removeAt(index);
+                                          isDelete = true;
                                           updated = true;
                                         });
                                       }
@@ -213,12 +223,12 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
                     ElevatedButton(
                         onPressed: () async {
                           String textController = _textEditingController.text;
-                          if (textController.isNotEmpty && await checkSelfEmail(textController) &&
+                          if (textController.isNotEmpty &&
+                              await checkSelfEmail(textController) &&
                               isValidEmail(textController) &&
-                              await checkDuplicate(
-                                  textController) &&
+                              await checkDuplicate(textController) &&
                               await checkExistEmail(textController)) {
-                            emailsMap.addAll({textController : ''});
+                            emailsMap.addAll({textController: ''});
                             addInviteTemp();
                             _textEditingController.clear();
                             setState(() {
@@ -247,8 +257,10 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
     inviteReceive = await FireStorageService().getInviteById(widget.noteId);
     emailsMap = inviteReceive.rules;
     inviteReceive.rules.forEach((key, value) {
-      emails.add(key);
-      dropDownValue.add(value);
+      if (!key.contains('timestamp')) {
+        emails.add(key);
+        dropDownValue.add(value);
+      }
     });
     setState(() {
       indexOfOld = emails.length;
@@ -265,22 +277,38 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
   }
 
   Future<void> updateInviteToCloud() async {
+    DateTime now = DateTime.now();
+    String currentDateTime = DateFormat.yMd('vi_VN').add_jm().format(now);
     Invite invite = Invite();
     for (int i = 0; i < emails.length; i++) {
       invite.rules.addAll({emails[i]: dropDownValue[i]});
     }
+    invite.rules.addAll({'timestamp': currentDateTime});
     invite.noteId = widget.noteId;
     await FireStorageService().updateInvite(invite);
   }
 
   Future<void> updateInviteToUser() async {
+    DateTime now = DateTime.now();
+    String currentDateTime = DateFormat.yMd('vi_VN').add_jm().format(now);
     Receive receive = Receive();
     for (int i = 0; i < emails.length; i++) {
       receive.rule = dropDownValue[i];
       receive.email = emails[i];
       receive.noteId = widget.noteId;
+      receive.timeStamp = currentDateTime;
       await FireStorageService().addInviteToUser(receive);
     }
+  }
+
+  Future<void> deleteReceive() async {
+    Receive receive = Receive();
+    for (int i = 0; i < deleteListTemp.length; i++) {
+      receive.email = deleteListTemp[i];
+      receive.noteId = widget.noteId;
+      FireStorageService().deleteReceive(receive);
+    }
+    deleteListTemp.clear();
   }
 
   Future<bool> checkDuplicate(String key) async {
@@ -290,7 +318,8 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text("Địa chỉ email này đã được mời !"),
+              title: Text(
+                  "Địa chỉ email này đã được mời hoặc chưa lưu thay đổi !"),
               actions: [
                 ElevatedButton(
                     onPressed: () {
@@ -358,12 +387,13 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
 
   Future<bool> checkSelfEmail(String email) async {
     bool check = true;
-    if(userEmail == email){
+    if (userEmail == email) {
       check = await showDialog(
           context: context,
           builder: (context) {
             return AlertDialog(
-              title: Text('Bạn không thể tự mời chính mình, thử lại email khác'),
+              title:
+                  Text('Bạn không thể tự mời chính mình, thử lại email khác'),
               actions: [
                 ElevatedButton(
                     onPressed: () {

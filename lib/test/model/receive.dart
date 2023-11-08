@@ -3,15 +3,30 @@ class Receive{
   late String _owner;
   late String _rule;
   late String _email;
+  late String _timeStamp;
   bool _isNew = true;
+  bool _hadSeen = false;
 
 
   Receive.withValue(this._owner, this._rule, this._noteId, this._email);
+  Receive.withValue1(this._owner, this._rule, this._noteId, this._timeStamp, this._hadSeen);
   Receive();
 
 
 
   String get owner => _owner;
+
+  String get timeStamp => _timeStamp;
+
+  set timeStamp(String value) {
+    _timeStamp = value;
+  }
+
+  bool get hadSeen => _hadSeen;
+
+  set hadSeen(bool value) {
+    _hadSeen = value;
+  }
 
   set owner(String value) {
     _owner = value;
@@ -46,6 +61,10 @@ class Receive{
       'owner' : _owner,
       'rule' : _rule,
       'isNew' : _isNew,
+      'hadseen' : _hadSeen,
+      'timestamp' : _timeStamp,
     };
   }
+
+
 }
