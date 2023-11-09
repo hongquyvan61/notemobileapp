@@ -4,15 +4,32 @@ class NoteReceive{
   late String _timeStamp;
   late String _title;
   late String _tagname;
+  late String _owner;
+  Map<String, dynamic> _rules = {};
 
 
   NoteReceive.withValue(this._content, this._noteId, this._timeStamp, this._title, this._tagname);
+  NoteReceive.withValue2(this._content, this._noteId, this._timeStamp, this._title, this._tagname, this._owner);
+  NoteReceive.withValue1(this._title,this._timeStamp);
   NoteReceive();
+
+
+  Map<String, dynamic> get rules => _rules;
+
+  set rules(Map<String, dynamic> value) {
+    _rules = value;
+  }
 
   String get title => _title;
 
   set title(String value) {
     _title = value;
+  }
+
+  String get owner => _owner;
+
+  set owner(String value) {
+    _owner = value;
   }
 
   String get timeStamp => _timeStamp;
