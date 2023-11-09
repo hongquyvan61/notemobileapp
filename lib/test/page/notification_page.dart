@@ -1,8 +1,11 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:notemobileapp/test/services/firebase_firestore_service.dart';
 
+import '../model/note_receive.dart';
 import '../model/receive.dart';
 
 class NotificationPage extends StatefulWidget {
@@ -14,6 +17,9 @@ class NotificationPage extends StatefulWidget {
 
 class _NotificationPageState extends State<NotificationPage> {
   List<Receive> listReceive = [];
+  List<NoteReceive> listNote = [];
+  NoteReceive noteReceive = NoteReceive();
+  bool isSetStage = true;
 
   @override
   void initState() {
@@ -22,7 +28,9 @@ class _NotificationPageState extends State<NotificationPage> {
     super.initState();
   }
 
-  Widget isNewNotification(String content,String time,int index) {
+  String? currentUser = FirebaseAuth.instance.currentUser?.email;
+
+  Widget isNewNotification(var document, int index) {
     return Padding(
       padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 1),
       child: Container(
@@ -45,8 +53,8 @@ class _NotificationPageState extends State<NotificationPage> {
             style: TextButton.styleFrom(foregroundColor: Colors.black),
             onPressed: () {
               setState(() {
-                listReceive[index].hadSeen = true;
-                updateHasSeen(listReceive[index]);
+                // listReceive[index].hadSeen = true;
+                // updateHasSeen(listReceive[index]);
               });
             },
             child: Row(
@@ -61,24 +69,24 @@ class _NotificationPageState extends State<NotificationPage> {
                   ),
                 ),
                 Expanded(
-                  child: Padding(
-                    padding: EdgeInsetsDirectional.fromSTEB(12, 0, 0, 0),
-                    child: Text(
-                      content,
-                      // style:
-                      // FlutterFlowTheme.of(context).bodyLarge.override(
-                      //   fontFamily: 'Plus Jakarta Sans',
-                      //   color: Color(0xFF14181B),
-                      //   fontSize: 16,
-                      //   fontWeight: FontWeight.normal,
-                      // ),
-                    ),
+                  child: ListTile(
+                    title: Text('${document.get('owner')} đã chia sẻ ghi chú'),
+                    subtitle: listNote.length > index
+                        ? Text(listNote[index].title)
+                        : Text(''),
+                    // style:
+                    // FlutterFlowTheme.of(context).bodyLarge.override(
+                    //   fontFamily: 'Plus Jakarta Sans',
+                    //   color: Color(0xFF14181B),
+                    //   fontSize: 16,
+                    //   fontWeight: FontWeight.normal,
+                    // ),
                   ),
                 ),
                 Padding(
                   padding: EdgeInsetsDirectional.fromSTEB(12, 0, 0, 0),
                   child: Text(
-                    time,
+                    document.get('timestamp'),
                     // style:
                     // FlutterFlowTheme.of(context).labelMedium.override(
                     //   fontFamily: 'Plus Jakarta Sans',
@@ -96,7 +104,7 @@ class _NotificationPageState extends State<NotificationPage> {
     );
   }
 
-  Widget isOldNotification(String content,String time) {
+  Widget isOldNotification(var document, int index) {
     return Padding(
       padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 1),
       child: Container(
@@ -127,25 +135,24 @@ class _NotificationPageState extends State<NotificationPage> {
                 ),
               ),
               Expanded(
-                child: Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(12, 0, 0, 0),
-                  child: Text(
-                    content,
-                    // style: FlutterFlowTheme.of(context)
-                    //     .labelLarge
-                    //     .override(
-                    //   fontFamily: 'Plus Jakarta Sans',
-                    //   color: Color(0xFF57636C),
-                    //   fontSize: 16,
-                    //   fontWeight: FontWeight.normal,
-                    // ),
-                  ),
+                child: ListTile(
+                  title: Text('${document['owner']} đã chia sẻ ghi chú'),
+                  subtitle: listNote.length > index
+                      ? Text(listNote[index].title)
+                      : Text(''),
+                  // style:
+                  // FlutterFlowTheme.of(context).bodyLarge.override(
+                  //   fontFamily: 'Plus Jakarta Sans',
+                  //   color: Color(0xFF14181B),
+                  //   fontSize: 16,
+                  //   fontWeight: FontWeight.normal,
+                  // ),
                 ),
               ),
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(12, 0, 0, 0),
                 child: Text(
-                  time,
+                  document['timestamp'],
                   // style:
                   // FlutterFlowTheme.of(context).labelMedium.override(
                   //   fontFamily: 'Plus Jakarta Sans',
@@ -164,32 +171,86 @@ class _NotificationPageState extends State<NotificationPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Thông báo'),
-        centerTitle: true,
-      ),
-      body: ListView.builder(
-        itemBuilder: (context, index) {
+    final Stream _userStream = FirebaseFirestore.instance
+        .collection('notes')
+        .doc(currentUser)
+        .collection('receive')
+        .orderBy('hadseen', descending: false)
+        .snapshots();
+    return StreamBuilder(
+        stream: _userStream,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Text('Something went wrong');
+          }
 
-          return listReceive[index].hadSeen
-              ? isOldNotification('${listReceive[index].owner}đã chia sẻ ghi chú với bạn', listReceive[index].timeStamp)
-              : isNewNotification('${listReceive[index].owner} đã chia sẻ ghi chú với bạn', listReceive[index].timeStamp, index);
-        },
-        itemCount: listReceive.length,
-      ),
-    );
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Text("Loading");
+          }
+
+          // snapshot.data?.docs.forEach((element) {
+          //   test = element.get('rule');
+          // });
+
+          // return Scaffold(
+          //   appBar: AppBar(title: Text('Chia sẻ ghi chú'), centerTitle: true,),
+          //   body: Center(child: Text(test)),
+          // );
+          if (isSetStage == true) {
+            getNote();
+          }
+          var documents = snapshot.data?.docs ?? [];
+          return Scaffold(
+            appBar: AppBar(
+              title: Text('Thông báo'),
+              centerTitle: true,
+            ),
+            body: ListView.builder(
+              itemBuilder: (context, index) {
+                var document = documents[index];
+                var test = document['hadseen'];
+
+                return test
+                    ? isOldNotification(document, index)
+                    : isNewNotification(document, index);
+              },
+              itemCount: documents.length,
+            ),
+          );
+        });
+
+    // return Scaffold(
+    //   appBar: AppBar(
+    //     title: Text('Thông báo'),
+    //     centerTitle: true,
+    //   ),
+    //   body: ListView.builder(
+    //     itemBuilder: (context, index) {
+    //       return listReceive[index].hadSeen
+    //           ? isOldNotification(index)
+    //           : isNewNotification(index);
+    //     },
+    //     itemCount: listReceive.length,
+    //   ),
+    // );
   }
 
   Future<void> getAllReceive() async {
     listReceive = await FireStorageService().getAllReceive();
     setState(() {
+      isSetStage = true;
     });
   }
 
-  Future<void> updateHasSeen(Receive receives)async {
+  Future<void> updateHasSeen(Receive receives) async {
     await FireStorageService().setTrueHasSeen(receives);
+    setState(() {});
+  }
+
+  Future<void> getNote() async {
+    listNote = await FireStorageService().getNoteByOwner(listReceive);
     setState(() {
+      isSetStage = false;
     });
   }
 }
