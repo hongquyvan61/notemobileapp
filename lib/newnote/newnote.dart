@@ -930,13 +930,10 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                                     Expanded(
                                       child: ElevatedButton(
                                         onPressed: () {
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      ShareNoteUser(
-                                                          noteId:
-                                                              widget.noteId)));
+                                          Navigator.push(context, MaterialPageRoute(
+                                                          builder: (context) => ShareNoteUser( noteId: widget.noteId)
+                                                          )
+                                                        );
                                         },
                                         child: const Icon(
                                           Icons.share,

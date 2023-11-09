@@ -28,6 +28,10 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
   bool updated = false;
   List<String> dropDownValue = [];
   TextEditingController _textEditingController = TextEditingController();
+
+  TextEditingController sharewithMailController = TextEditingController();
+
+  TextEditingController ErrorTextController = TextEditingController();
   FocusNode _focusNode = FocusNode();
   List<Invite> invites = [];
   int indexOfOld = 0;
@@ -39,6 +43,7 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
     'Chỉnh sửa',
   ];
   bool isDelete = false;
+  bool isInvalidMail = false;
 
   @override
   void initState() {
@@ -54,79 +59,9 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        // Hỏi người dùng có chắc chắn muốn quay lại không
-        if (updated) {
-          bool confirm = await showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text('Xác nhận'),
-                content: Text(
-                    'Các thay đổi chưa được lưu, bạn chắc chắn muốn thoát ?'),
-                actions: <Widget>[
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(true); // Người dùng chấp nhận
-                    },
-                    child: Text('Có'),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(false); // Người dùng từ chối
-                    },
-                    child: Text('Không'),
-                  ),
-                ],
-              );
-            },
-          );
-          return confirm;
-        } else {
-          return true;
-        }
-      },
-      child: GestureDetector(
-        onTap: () {
-          if (_focusNode.hasFocus) {
-            _focusNode.unfocus(); // Ẩn bàn phím
-          }
-        },
-        child: Scaffold(
-          appBar: AppBar(
-            title: Text('Chia sẻ'),
-            actions: [
-              IconButton(
-                  onPressed: () {
-                    if (updated) {
-                      updateInviteToCloud();
-                      updateInviteToUser();
-                      if (isDelete) {
-                        deleteReceive();
-                      }
-
-                    }
-                    setState(() {
-                      updated = false;
-                    });
-                  },
-                  icon: !updated ? Icon(Icons.check) : Icon(Icons.save))
-            ],
-          ),
-          body: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              children: [
-                Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: () async {
-                      getAllEmailInvite();
-                      getAllUser();
-                    },
-                    child: ListView.separated(
+  Widget buildListView(){
+    if(emails.isNotEmpty){
+      return ListView.separated(
                         itemCount: emails.length,
                         itemBuilder: (context, index) {
                           return ListTile(
@@ -206,45 +141,282 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
                             thickness: 1,
                             height: 40,
                           );
-                        }),
+                        });
+    }
+    else{
+      return const Center(
+        child: Text(
+            "Danh sách lời mời trống hoặc do chưa kịp hiển thị danh sách, xin đợi chút hoặc kéo thả để tải lại danh sách!"),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return WillPopScope(
+      onWillPop: () async {
+        // Hỏi người dùng có chắc chắn muốn quay lại không
+        if (updated) {
+          bool confirm = await showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('Xác nhận'),
+                content: Text(
+                    'Các thay đổi chưa được lưu, bạn chắc chắn muốn thoát ?'),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(true); // Người dùng chấp nhận
+                    },
+                    child: Text('Có'),
                   ),
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _textEditingController,
-                        focusNode: _focusNode,
-                        decoration:
-                            InputDecoration(labelText: 'Enter your text'),
-                      ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(false); // Người dùng từ chối
+                    },
+                    child: Text('Không'),
+                  ),
+                ],
+              );
+            },
+          );
+          return confirm;
+        } else {
+          return true;
+        }
+      },
+      child: GestureDetector(
+        onTap: () {
+          if (_focusNode.hasFocus) {
+            _focusNode.unfocus(); // Ẩn bàn phím
+          }
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            backgroundColor: const Color.fromARGB(131, 0, 0, 0),
+            title: Center(child: Text('Chia sẻ')),
+            actions: [
+              IconButton(
+                  onPressed: () {
+                    if (updated) {
+                      updateInviteToCloud();
+                      updateInviteToUser();
+                    }
+                    setState(() {
+                      updated = false;
+                    });
+                  },
+                  icon: !updated ? Icon(Icons.check) : Icon(Icons.save))
+            ],
+          ),
+          body: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Stack(
+              children: [ 
+               Column(
+                children: [
+                  Expanded(
+                    child: RefreshIndicator(
+                      onRefresh: () async {
+                        getAllEmailInvite();
+                        getAllUser();
+                      },
+                      child: buildListView()
                     ),
-                    ElevatedButton(
-                        onPressed: () async {
-                          String textController = _textEditingController.text;
-                          if (textController.isNotEmpty &&
-                              await checkSelfEmail(textController) &&
-                              isValidEmail(textController) &&
-                              await checkDuplicate(textController) &&
-                              await checkExistEmail(textController)) {
-                            emailsMap.addAll({textController: ''});
-                            addInviteTemp();
-                            _textEditingController.clear();
-                            setState(() {
-                              updated = true;
-                            });
-                          }
-                        },
-                        child: Text(
-                          'Mời',
-                          style: TextStyle(fontSize: 20),
-                        )),
-                  ],
-                ),
-              ],
+                  ),
+                  Row(
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _textEditingController,
+                          focusNode: _focusNode,
+                          decoration:
+                              InputDecoration(labelText: 'Nhập email người muốn mời'),
+                        ),
+                      ),
+                      ElevatedButton(
+                          onPressed: () async {
+                            String textController = _textEditingController.text;
+                            if (textController.isNotEmpty && await checkSelfEmail(textController) &&
+                                isValidEmail(textController) &&
+                                await checkDuplicate(
+                                    textController) &&
+                                await checkExistEmail(textController)) {
+                              emailsMap.addAll({textController : ''});
+                              addInviteTemp();
+                              _textEditingController.clear();
+                              setState(() {
+                                updated = true;
+                              });
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                              shape: const StadiumBorder(),
+                              backgroundColor:
+                                  const Color.fromARGB(255, 97, 115, 239)
+                          ),
+                          child: Text(
+                            'Chia sẻ',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        
+                      ),
+                    ],
+                  ),
+                ],
+              )
+               ,
+               Container(
+                 margin: const EdgeInsets.only(bottom: 50.0),
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: ElevatedButton.icon(
+                          icon: const Icon(
+                            Icons.mail,
+                            size: 16.0,
+                          ),
+                          onPressed: (){
+                            showDialog(
+                              barrierDismissible: false,
+                              context: context, 
+                              builder: (context) {
+                                return StatefulBuilder(
+                                  builder: (context, setState) {
+                                    return Dialog(
+                                      child: Container(
+                                        margin: EdgeInsets.all(10),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Center(
+                                                  child: Text("Chia sẻ qua mail", style: TextStyle(fontSize: 18),),
+                                            ),
+
+                                            const SizedBox(height: 15,),
+
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                              mainAxisSize: MainAxisSize.max,
+                                              children: [
+                                                Expanded(
+                                                  child: ListTile(
+                                                    title: Container(
+                                                      child: TextField(
+                                                        controller: sharewithMailController,
+                                                        style: const TextStyle(
+                                                          fontSize: 13,
+                                                        ),
+                                                        decoration: const InputDecoration(
+                                                            hintText: "Nhập email của người muốn chia sẻ...",
+                                                        ),
+                                                        onTap: () {
+                                                          isInvalidMail = false;
+                                                          ErrorTextController.text = "";
+                                                          setState(() {
+                                                              
+                                                          });
+                                                        },
+                                                      ),
+                                                    ),
+                                                
+                                                    trailing: ElevatedButton(
+                                                        onPressed: () async {
+                                                          RegExp regExp = RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
+                                                          if (!regExp.hasMatch(sharewithMailController.text)) {
+                                                            isInvalidMail = true;
+                                                            ErrorTextController.text = "Email không đúng dịnh dạng, thử lại";
+                                                            setState(() {
+                                                              
+                                                            });
+                                                          }
+                                                          else{
+                                                            
+                                                          }
+                                                        },
+                                                        style: ElevatedButton.styleFrom(
+                                                            shape: const StadiumBorder(),
+                                                            backgroundColor:
+                                                                const Color.fromARGB(255, 97, 115, 239)
+                                                        ),
+                                                        child: Text(
+                                                          'Chia sẻ',
+                                                          style: TextStyle(fontSize: 15),
+                                                        ),
+                                                      
+                                                    ),
+                                                  ),
+                                                )
+                                                
+                                              ]
+                                            ),
+
+                                            const SizedBox(height: 10,),
+
+                                            isInvalidMail ? 
+                                            TextField(
+                                              enabled: false,
+                                              controller: ErrorTextController,
+                                              style: const TextStyle(
+                                                fontSize: 13,
+                                                color: Colors.red
+                                              ),
+                                              decoration: const InputDecoration(
+                                                border: InputBorder.none
+                                              )
+                                            )
+                                            :
+                                            const Text(""),
+
+
+                                            Expanded(
+                                                  flex: 0,
+                                                  child: Container(
+                                                    width: 300,
+                                                    child: ElevatedButton(
+                                                      onPressed: (){
+                                                        isInvalidMail = false;
+                                                        ErrorTextController.text = "";
+                                                        sharewithMailController.text = "";
+                                                        Navigator.of(context).pop();
+                                                      }, 
+                                                      style: ElevatedButton.styleFrom(
+                                                        shape: const StadiumBorder(),
+                                                        backgroundColor: Color.fromARGB(255, 97, 115, 239),
+                                                        side: const BorderSide(
+                                                          width: 1.0,
+                                                          color: Colors.grey,
+                                                        ),
+                                                      ),
+                                                      child: Text("THOÁT")
+                                                    ),
+                                                  ),
+                                                )
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                              shape: const StadiumBorder(),
+                              backgroundColor:
+                                  const Color.fromARGB(255, 97, 115, 239)),
+                          label: const Text(
+                            'Chia sẻ qua mail',
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ),     
+               ),
+              ]
             ),
           ),
+          
         ),
       ),
     );
@@ -427,4 +599,17 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
     }
     return regExp.hasMatch(email);
   }
+
+  // void isValidEmail_Dialog(String email) {
+  //   RegExp regExp = RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
+  //   if (!regExp.hasMatch(email)) {
+  //     isInvalidMail = true;
+  //     ErrorTextController.text = "Email không đúng dịnh dạng, thử lại";
+  //     setState(() {
+        
+  //     });
+  //   }
+  // }
+
+
 }

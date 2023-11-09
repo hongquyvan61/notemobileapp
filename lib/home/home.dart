@@ -5,23 +5,18 @@ import 'dart:math';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+//import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:notemobileapp/DAL/FB_DAL.dart/FB_Note.dart';
-import 'package:notemobileapp/DAL/FB_DAL.dart/FB_NoteContent.dart';
 import 'package:notemobileapp/DAL/NoteContentDAL.dart';
 import 'package:notemobileapp/DAL/NoteDAL.dart';
 import 'package:notemobileapp/DAL/TagDAL.dart';
-import 'package:notemobileapp/model/SqliteModel/FirebaseModel/FBNoteModel.dart';
-import 'package:notemobileapp/model/SqliteModel/NoteContentModel.dart';
 import 'package:notemobileapp/model/SqliteModel/initializeDB.dart';
 import 'package:notemobileapp/newnote/newnote.dart';
 import 'package:notemobileapp/router.dart';
-import 'package:notemobileapp/test/component/popup_menu.dart';
 import 'package:notemobileapp/test/services/firebase_firestore_service.dart';
-import 'package:notemobileapp/test/services/firebase_store_service.dart';
+//import 'package:notemobileapp/test/services/firebase_store_service.dart';
 import 'package:provider/provider.dart';
 
 import '../model/SqliteModel/NoteModel.dart';
@@ -109,7 +104,6 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> CheckInternetConnection() async {
-
     _networkConnectivity.initialise();
     _networkConnectivity.myStream.listen((source) {
       _source = source;
@@ -401,7 +395,7 @@ class HomeScreenState extends State<HomeScreen> {
     if (loginState) {
       return Text(
         noteList[index].content.firstWhere((element) =>
-            element.containsKey("text") && element["text"] != "")['text'],
+            element.containsKey("text"))['text'],
         style: const TextStyle(fontSize: 12),
         overflow: TextOverflow.ellipsis,
         maxLines: 2,
@@ -845,8 +839,7 @@ class HomeScreenState extends State<HomeScreen> {
                       child: Text(
                         loginState
                             ? noteList[index].content.firstWhere((element) =>
-                                element.containsKey("text") &&
-                                element["text"] != "")["text"]
+                                element.containsKey("text"))["text"]
                             : listofBriefContent[index],
                         style: const TextStyle(fontSize: 11),
                         overflow: TextOverflow.ellipsis,
