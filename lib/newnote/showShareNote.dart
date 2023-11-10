@@ -120,14 +120,7 @@ class ShowShareNoteState extends State<ShowShareNote> {
   late String NoteTitle = '';
   late String currentDateTime;
   late String firsttxtfieldcont;
-
-  UserDAL uDAL = UserDAL();
-  NoteDAL nDAL = NoteDAL();
-  NoteContentDAL ncontentDAL = NoteContentDAL();
-  TagDAL tagDAL = TagDAL();
-
-  FB_Note fb_note = FB_Note();
-  FB_NoteContent fb_notect = FB_NoteContent();
+  
 
   FloatingActionButtonLocation get _fabLocation => _isVisible
       ? FloatingActionButtonLocation.centerDocked
@@ -204,13 +197,11 @@ class ShowShareNoteState extends State<ShowShareNote> {
     checkLogin();
     CheckInternetConnection();
 
-    if (widget.isEdit && widget.email == "") {
-      loadingNoteWithIDAtLocal(-1, widget.noteId, widget.isEdit);
-    }
+
     if (widget.isEdit && widget.email != "") {
       var temp = int.tryParse(widget.noteId);
       if (temp != null) {
-        loadingNoteWithIDAtLocal(-1, widget.noteId, widget.isEdit);
+
       } else {
         getNoteById(widget.noteId);
       }
@@ -218,8 +209,6 @@ class ShowShareNoteState extends State<ShowShareNote> {
 
     if (widget.email != "") {
       getTagsByID();
-    } else {
-      getTagsAtLocal();
     }
 
     //CheckInternetConnection();
@@ -330,75 +319,6 @@ class ShowShareNoteState extends State<ShowShareNote> {
     return result ?? false;
   }
 
-  Future loadingNoteWithIDAtLocal(
-      int userid, String noteID, bool isEdit) async {
-    List<NoteModel> tmp =
-        await nDAL.getNoteByID(userid, int.parse(noteID), InitDataBase.db);
-    if (tmp.isNotEmpty && isEdit) {
-      _noteTitleController.text = tmp[0].title;
-      currentDateTime = tmp[0].date_created;
-
-      taglocal!.tag_name = tmp[0].tag_name?.toString() ?? "";
-
-      List<NoteContentModel> contents = await ncontentDAL
-          .getAllNoteContentsById(InitDataBase.db, int.parse(noteID));
-      if (contents.isNotEmpty) {
-        firstTxtFieldController.text = contents[0].textcontent.toString();
-
-        UpdateNoteModel firstupdtmodel = UpdateNoteModel(
-            notecontent_id: contents[0].notecontent_id?.toInt() ?? 0,
-            type: "update");
-
-        lstupdatecontents.add(firstupdtmodel);
-        //fcnFirstTxtField.requestFocus();
-
-        if (contents.length >= 2) {
-          for (int i = 1; i < contents.length; i++) {
-            if (contents[i].textcontent != null) {
-              FocusNode fcnTxtField = FocusNode();
-              TextEditingController txtFieldController =
-                  TextEditingController();
-              Widget txtfield = TextField(
-                keyboardType: TextInputType.multiline,
-                focusNode: fcnTxtField,
-                controller: txtFieldController,
-                showCursor: true,
-                //autofocus: true,
-                maxLines: null,
-                style: const TextStyle(fontSize: 14),
-                decoration: const InputDecoration(border: InputBorder.none),
-              );
-              txtFieldController.text = contents[i].textcontent.toString();
-              lstFocusNode.add(fcnTxtField);
-              lstTxtController.add(txtFieldController);
-              noteContentList.add(txtfield);
-
-              UpdateNoteContentList.add(txtFieldController);
-
-              UpdateNoteModel updtmodel = UpdateNoteModel(
-                  notecontent_id: contents[i].notecontent_id?.toInt() ?? 0,
-                  type: "update");
-
-              lstupdatecontents.add(updtmodel);
-            }
-            if (contents[i].imagecontent != null) {
-              File img = File(contents[i].imagecontent.toString());
-
-              noteContentList.add(img);
-              UpdateNoteContentList.add(img);
-
-              UpdateNoteModel updtmodel = UpdateNoteModel(
-                  notecontent_id: contents[i].notecontent_id?.toInt() ?? 0,
-                  type: "update");
-
-              lstupdatecontents.add(updtmodel);
-            }
-          }
-        }
-        setState(() {});
-      }
-    }
-  }
 
   Future<void> uploadNoteToCloud() async {
     // showDialog(
@@ -435,7 +355,7 @@ class ShowShareNoteState extends State<ShowShareNote> {
 
     //Navigator.pop(appcontext);
 
-    String noteid = await FireStorageService().saveContentNotes(noteContent);
+    String noteid = await FireStorageService().saveContentNotesForShare(noteContent, widget.email);
 
     if (isConnected) {
       for (int i = 0; i < SaveNoteContentList.length; i++) {
@@ -446,212 +366,11 @@ class ShowShareNoteState extends State<ShowShareNote> {
         }
       }
 
-      await FireStorageService().updateCloudImageURL(noteid, CloudContents);
+      await FireStorageService().updateCloudImageURLForShare(noteid, CloudContents, widget.email);
     }
   }
 
-  Future<void> saveNoteToLocal() async {
-    //SUA LAI USER ID O DAY
-    //SUA LAI USER ID O DAY
-    //SUA LAI USER ID O DAY
-    //SUA LAI USER ID O DAY
-    //SUA LAI USER ID O DAY
-    late NoteModel md;
-    if (taglocal == null) {
-      md = NoteModel(
-          title: NoteTitle, date_created: currentDateTime, user_id: -1);
-    } else {
-      md = NoteModel(
-          title: NoteTitle,
-          date_created: currentDateTime,
-          user_id: -1,
-          tag_id: taglocal!.tag_id);
-    }
 
-    bool checkinsertnote =
-        await nDAL.insertNote(md, -1, InitDataBase.db).catchError(
-      (Object e, StackTrace stackTrace) {
-        debugPrint(e.toString());
-      },
-    );
-    if (checkinsertnote) {
-      int latestid =
-          await ncontentDAL.getLatestNoteID(InitDataBase.db).catchError(
-        (Object e, StackTrace stackTrace) {
-          debugPrint(e.toString());
-        },
-      );
-      for (int i = 0; i < SaveNoteContentList.length; i++) {
-        if (SaveNoteContentList[i] is File) {
-          // getting a directory path for saving
-          // final Directory directory = await getApplicationDocumentsDirectory();
-
-          // String imagename = basename(SaveNoteContentList[i].path);
-
-          // copy the file to a new path
-          // final File newImage = await File(SaveNoteContentList[i].path)
-          //     .copy('$path/image/$imagename')
-          //     .catchError(
-          //   (Object e, StackTrace stackTrace) {
-          //     debugPrint(e.toString());
-          //   },
-          // );
-
-          NoteContentModel conmd = NoteContentModel(
-              notecontent_id: null,
-              textcontent: null,
-              imagecontent: SaveNoteContentList[i].path,
-              note_id: latestid);
-
-          bool checkinsertnotecontent = await ncontentDAL
-              .insertNoteContent(conmd, InitDataBase.db)
-              .catchError(
-            (Object e, StackTrace stackTrace) {
-              debugPrint(e.toString());
-            },
-          );
-
-          if (checkinsertnotecontent) {
-            debugPrint('insert noi dung ghi chu thanh cong');
-          } else {
-            debugPrint('loi insert noi dung ghi chu');
-          }
-        } else {
-          String noiDungGhiChu = SaveNoteContentList[i].text;
-          NoteContentModel conmd = NoteContentModel(
-              notecontent_id: null,
-              textcontent: noiDungGhiChu,
-              imagecontent: null,
-              note_id: latestid);
-
-          bool checkinsertnotecontent = await ncontentDAL
-              .insertNoteContent(conmd, InitDataBase.db)
-              .catchError(
-            (Object e, StackTrace stackTrace) {
-              debugPrint(e.toString());
-            },
-          );
-
-          if (checkinsertnotecontent) {
-            debugPrint('insert noi dung ghi chu thanh cong');
-          } else {
-            debugPrint('loi insert noi dung ghi chu');
-          }
-        }
-      }
-    } else {
-      debugPrint('loi insert note');
-    }
-
-    //List<NoteModel> lstnotemodel = await nDAL.getAllNotes(InitDataBase.db);
-    //List<NoteContentModel> lstnotecontent = await ncontentDAL.getAllNoteContentsById(InitDataBase.db, 1);
-  }
-
-  Future<void> updateNoteToLocal() async {
-    bool updttitle = await nDAL.updateNoteTitle(
-        int.parse(widget.noteId), _noteTitleController.text, InitDataBase.db);
-
-    bool updtag = await nDAL.updateTagInNote(
-        int.parse(widget.noteId), taglocal, InitDataBase.db);
-
-    if (updttitle) {
-      debugPrint("cap nhat tieu de ghi chu thanh cong");
-    } else {
-      debugPrint("xay ra loi khi cap nhat tieu de ghi chu");
-    }
-    for (int i = 0; i < lstupdatecontents.length; i++) {
-      if (lstupdatecontents[i].type == "update") {
-        if (UpdateNoteContentList[i] is File) {
-          String imgpath = UpdateNoteContentList[i].path;
-          bool isSuccess = await ncontentDAL.updateContentByID(
-              lstupdatecontents[i].notecontent_id?.toInt() ?? 0,
-              null,
-              imgpath,
-              InitDataBase.db);
-        } else {
-          String txt = UpdateNoteContentList[i].text;
-          bool isSuccess = await ncontentDAL.updateContentByID(
-              lstupdatecontents[i].notecontent_id?.toInt() ?? 0,
-              txt,
-              null,
-              InitDataBase.db);
-        }
-      }
-      if (lstupdatecontents[i].type == "insert_img") {
-        // final Directory directory = await getApplicationDocumentsDirectory();
-        // String drpath = directory.path;
-
-        String imgpath = UpdateNoteContentList[i].path;
-        // String imagename = basename(imgpath);
-
-        // final File newImage =
-        //     await File(imgpath).copy('$drpath/image/$imagename').catchError(
-        //   (Object e, StackTrace stackTrace) {
-        //     debugPrint(e.toString());
-        //   },
-        // );
-
-        NoteContentModel conmd = NoteContentModel(
-            notecontent_id: null,
-            textcontent: null,
-            imagecontent: imgpath,
-            note_id: int.parse(widget.noteId));
-
-        bool checkinsertimgnotecontent = await ncontentDAL
-            .insertNoteContent(conmd, InitDataBase.db)
-            .catchError(
-          (Object e, StackTrace stackTrace) {
-            debugPrint(e.toString());
-          },
-        );
-
-        if (checkinsertimgnotecontent) {
-          debugPrint('insert hinh moi khi edit ghi chu thanh cong');
-        } else {
-          debugPrint('loi insert hinh moi khi edit ghi chu');
-        }
-      }
-      if (lstupdatecontents[i].type == "insert_text") {
-        NoteContentModel conmd = NoteContentModel(
-            notecontent_id: null,
-            textcontent: UpdateNoteContentList[i].text,
-            imagecontent: null,
-            note_id: int.parse(widget.noteId));
-
-        bool checkinsertnotecontent = await ncontentDAL
-            .insertNoteContent(conmd, InitDataBase.db)
-            .catchError(
-          (Object e, StackTrace stackTrace) {
-            debugPrint(e.toString());
-          },
-        );
-
-        if (checkinsertnotecontent) {
-          debugPrint('insert text moi khi edit ghi chu thanh cong');
-        } else {
-          debugPrint('loi insert text moi khi edit ghi chu');
-        }
-      }
-    }
-
-    for (int i = 0; i < lstdeletecontents.length; i++) {
-      bool checkdel = await ncontentDAL.deleteNoteContentsByID(
-          lstdeletecontents[i].notecontent_id?.toInt() ?? 0, InitDataBase.db);
-      if (checkdel) {
-        debugPrint("Xoa text field hoac img sau khi edit thanh cong");
-      } else {
-        debugPrint("Xoa text field hoac img sau khi edit xay ra loi!!");
-      }
-    }
-  }
-
-  Future<void> deleteNoteAtLocal() async {
-    bool isSuccess =
-        await nDAL.deleteNote(int.parse(widget.noteId), InitDataBase.db);
-    if (isSuccess == false) {
-      debugPrint("Xoa note xay ra loi!!!!!!");
-    }
-  }
 
   Widget buildImageWidget(BuildContext context, int index) {
     Widget imageWidget = Stack(children: [
@@ -915,9 +634,6 @@ class ShowShareNoteState extends State<ShowShareNote> {
                       if (widget.email != "") {
                         updateNote();
                         Navigator.of(context).pop('RELOAD_LIST');
-                      } else {
-                        updateNoteToLocal();
-                        Navigator.of(context).pop('RELOAD_LIST');
                       }
                       //updateNoteToLocal();
 
@@ -925,23 +641,7 @@ class ShowShareNoteState extends State<ShowShareNote> {
                     },
                   ),
                 //Icon(null)
-                if (widget.isEdit == false)
-                  IconButton(
-                    icon: const Icon(
-                      Icons.check,
-                    ),
-                    onPressed: () async {
-                      if (widget.email != "") {
-                        uploadNoteToCloud();
-                        Navigator.of(context).pop('RELOAD_LIST');
-                      } else {
-                        saveNoteToLocal();
-                        Navigator.of(context).pop('RELOAD_LIST');
-                      }
-                      //saveNoteToLocal();
-                      // Navigator.of(context).pop('RELOAD_LIST');
-                    },
-                  )
+
               ],
             ),
             body: Container(
@@ -953,7 +653,6 @@ class ShowShareNoteState extends State<ShowShareNote> {
                       fontSize: 23, fontWeight: FontWeight.bold),
                   controller: _noteTitleController,
                   decoration: const InputDecoration(
-                    hintText: 'Tiêu đề ghi chú',
                     hintStyle:
                         TextStyle(fontStyle: FontStyle.italic, fontSize: 15),
                     enabledBorder: UnderlineInputBorder(
@@ -1040,117 +739,9 @@ class ShowShareNoteState extends State<ShowShareNote> {
                         },
                         separatorBuilder: (BuildContext context, int index) =>
                             const Divider())),
-                Align(
-                    alignment: Alignment.bottomCenter,
-                    child: widget.isEdit && (isEditCompleted == true)
-                        ? Row(
-                            children: [
-                              Expanded(flex: 1, child: SizedBox()),
-                              Expanded(
-                                flex: 2,
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: ElevatedButton(
-                                        onPressed: () {
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      ShareNoteUser(
-                                                          noteId:
-                                                              widget.noteId)));
-                                        },
-                                        child: const Icon(
-                                          Icons.share,
-                                          size: 20.0,
-                                        ),
-                                        style: ButtonStyle(
-                                          padding: MaterialStateProperty.all(
-                                              EdgeInsets.zero),
-                                          backgroundColor:
-                                              MaterialStateProperty.all<Color>(
-                                                  Color.fromARGB(
-                                                      255, 97, 115, 239)),
-                                          shape: MaterialStateProperty.all<
-                                              RoundedRectangleBorder>(
-                                            RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(5),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: 5,
-                                    ),
-                                    Expanded(
-                                      child: ElevatedButton(
-                                        onPressed: () async {
-                                          if (widget.email != "") {
-                                            bool deleteornot =
-                                                await showAlertDialog(
-                                                    context,
-                                                    "Bạn có muốn xoá ghi chú này không?",
-                                                    "Xoá ghi chú");
-                                            if (deleteornot) {
-                                              deleteNote();
-                                              Navigator.pop(context, true);
-                                            }
-                                          } else {
-                                            bool deleteornot =
-                                                await showAlertDialog(
-                                                    context,
-                                                    "Bạn có muốn xoá ghi chú này không?",
-                                                    "Xoá ghi chú");
-                                            if (deleteornot) {
-                                              deleteNoteAtLocal();
-                                              Navigator.pop(context, true);
-                                            }
-                                          }
-                                        },
-                                        child: const Icon(
-                                          Icons.delete,
-                                          size: 20.0,
-                                        ),
-                                        style: ButtonStyle(
-                                          padding: MaterialStateProperty.all(
-                                              EdgeInsets.zero),
-                                          backgroundColor:
-                                              MaterialStateProperty.all<Color>(
-                                                  Color.fromARGB(
-                                                      255, 97, 115, 239)),
-                                          shape: MaterialStateProperty.all<
-                                              RoundedRectangleBorder>(
-                                            RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(5),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Expanded(flex: 1, child: SizedBox()),
-                            ],
-                          )
-                        : null)
               ]),
 
-              //  child: Column(
-              //   children: <Widget>[
 
-              //     Expanded(
-              //       child: ListView(
-              //         controller: _controller,
-              //         children: items.toList(),
-              //       ),
-              //     ),
-              //   ],
-              // ),
             ),
             floatingActionButton: (isEditCompleted == false) ||
                     widget.isEdit == false
@@ -1194,12 +785,7 @@ class ShowShareNoteState extends State<ShowShareNote> {
                         });
                         speechToText.stop();
                       },
-                      // child: FloatingActionButton(
-                      //   onPressed: (){},
-                      //   tooltip: 'Nhận diện giọng nói',
-                      //   elevation: _isVisible ? 0.0 : null,
-                      //   child: const Icon(Icons.mic),
-                      // ),
+
                       child: const CircleAvatar(
                         backgroundColor: Colors.brown,
                         radius: 30,
@@ -1233,17 +819,7 @@ class ShowShareNoteState extends State<ShowShareNote> {
                         onPressed: () {
                           getImage();
                         }
-                        // final SnackBar snackBar = SnackBar(
-                        //   content: const Text('Yay! A SnackBar!'),
-                        //   action: SnackBarAction(
-                        //     label: 'Undo',
-                        //     onPressed: () {},
-                        //   ),
-                        // );
 
-                        // Find the ScaffoldMessenger in the widget tree
-                        // and use it to show a SnackBar.
-                        //ScaffoldMessenger.of(context).showSnackBar(snackBar);
 
                         ),
                     IconButton(
@@ -1308,7 +884,7 @@ class ShowShareNoteState extends State<ShowShareNote> {
                                                   );
                                                   lsttags =
                                                       await FireStorageService()
-                                                          .getAllTags();
+                                                          .getAllTagsForShare(widget.email);
 
                                                   await EasyLoading.dismiss();
                                                 } else {
@@ -1561,9 +1137,7 @@ class ShowShareNoteState extends State<ShowShareNote> {
                                                         EasyLoadingMaskType
                                                             .none,
                                                   );
-                                                  lsttagslocal = await tagDAL
-                                                      .getAllTagsByUserID(
-                                                          -1, InitDataBase.db);
+
 
                                                   await EasyLoading.dismiss();
                                                 } else {
@@ -1573,12 +1147,6 @@ class ShowShareNoteState extends State<ShowShareNote> {
                                                         EasyLoadingMaskType
                                                             .none,
                                                   );
-                                                  lsttagslocal = lsttagslocal
-                                                      .where((element) =>
-                                                          element.tag_name
-                                                              .toLowerCase()
-                                                              .contains(value))
-                                                      .toList();
 
                                                   await EasyLoading.dismiss();
                                                 }
@@ -1679,14 +1247,6 @@ class ShowShareNoteState extends State<ShowShareNote> {
                                                     ),
                                                     trailing: IconButton(
                                                         onPressed: () async {
-                                                          createTagAtLocal();
-
-                                                          lsttagslocal = await tagDAL
-                                                              .getAllTagsByUserID(
-                                                                  -1,
-                                                                  InitDataBase
-                                                                      .db);
-
                                                           setState(() {});
                                                         },
                                                         icon: Icon(Icons.check,
@@ -1786,93 +1346,7 @@ class ShowShareNoteState extends State<ShowShareNote> {
                               });
                         }
                         setState(() {});
-                        // SelectDialog.showModal<TagReceive>(
-                        //   context,
-                        //   label: "Thêm nhãn",
-                        //   alwaysShowScrollBar: true,
-                        //   showSearchBox: true,
-                        //   searchBoxDecoration: InputDecoration(hintText: "Tìm kiếm nhãn..."),
-                        //   items: lsttags,
-                        //   selectedValue: tag,
-                        //   onFind: (text){
-                        //     if(text == "") return FireStorageService().getAllTagsForDialog();
-                        //     return searchTags(text);
-                        //   },
-                        //   itemBuilder: (BuildContext context, TagReceive item, bool isSelected){
-                        //     if(item.tagname == ""){
-                        //       // return Container(
-                        //       //   decoration: !isSelected
-                        //       //     ? null
-                        //       //     : BoxDecoration(
-                        //       //         borderRadius: BorderRadius.circular(5),
-                        //       //         color: Colors.white,
-                        //       //         border: Border.all(color: Theme.of(context).primaryColor),
-                        //       //       ),
-                        //       //   child: ListTile(
-                        //       //     leading: Icon(
-                        //       //       Icons.close,
-                        //       //       color: Color.fromARGB(255, 54, 137, 219),
-                        //       //       size: 20,
-                        //       //     ),
-                        //       //     trailing: IconButton(
-                        //       //       icon: Icon(
-                        //       //         Icons.check,
-                        //       //         color: Color.fromARGB(255, 54, 137, 219),
-                        //       //         size: 20,
-                        //       //       ),
-                        //       //       onPressed: () async {
-                        //       //         if(_tagnamecontroller.text.isNotEmpty){
-                        //       //           Tag t = Tag();
-                        //       //           t.tagname = _tagnamecontroller.text;
-                        //       //           await FireStorageService().saveTags(t);
 
-                        //       //           lsttags = await FireStorageService().getAllTags();
-
-                        //       //           setState(() {
-
-                        //       //           });
-                        //       //         }
-                        //       //       },
-                        //       //     ),
-
-                        //       //     selected: isSelected,
-                        //       //     title: TextField(
-                        //       //       controller: _tagnamecontroller,
-                        //       //       style: const TextStyle(
-                        //       //         fontSize: 18,
-                        //       //       )
-                        //       //     ),
-                        //       //   ),
-                        //       // );
-                        //     }
-
-                        //     return Container(
-                        //       decoration: !isSelected
-                        //         ? null
-                        //         : BoxDecoration(
-                        //             borderRadius: BorderRadius.circular(5),
-                        //             color: Colors.white,
-                        //             border: Border.all(color: Theme.of(context).primaryColor),
-                        //           ),
-                        //       child: ListTile(
-                        //         leading: Icon(
-                        //           Icons.turned_in_outlined,
-                        //           color: Color.fromARGB(255, 251, 178, 37),
-                        //           size: 22,
-                        //         ),
-                        //         selected: isSelected,
-                        //         title: Text(item.tagname, style: TextStyle(fontSize: 18),),
-                        //       ),
-                        //     );
-                        //   },
-                        //   onChange: (TagReceive selected) {
-                        //     setState(() {
-                        //       tag = selected;
-                        //     });
-                        //   },
-
-                        //);
-                        //Navigator.of(context).pushNamed(RoutePaths.test);
                       },
                     ),
                   ],
@@ -1882,20 +1356,11 @@ class ShowShareNoteState extends State<ShowShareNote> {
   }
 
   Future<void> getTagsByID() async {
-    lsttags = await FireStorageService().getAllTags();
-    // TagReceive inserttag = TagReceive();
-    // inserttag.tagname = "";
-    // inserttag.tagid = "";
-    // lsttags!.add(inserttag);
+    lsttags = await FireStorageService().getAllTagsForShare(widget.email);
+
   }
 
-  Future<void> getTagsAtLocal() async {
-    lsttagslocal = await tagDAL.getAllTagsByUserID(-1, InitDataBase.db);
-    // TagReceive inserttag = TagReceive();
-    // inserttag.tagname = "";
-    // inserttag.tagid = "";
-    // lsttags!.add(inserttag);
-  }
+
 
   void getNoteById(String id) async {
     if (widget.isEdit) {
@@ -1907,7 +1372,7 @@ class ShowShareNoteState extends State<ShowShareNote> {
       );
 
       note = await FireStorageService()
-          .getNoteShareById(widget.noteId, widget.email);
+          .getNoteShareByIdForShare(widget.noteId, widget.email);
       _noteTitleController.text = note.title;
 
       tag!.tagname = note.tagname;
@@ -1932,31 +1397,18 @@ class ShowShareNoteState extends State<ShowShareNote> {
           noteContentList.add(widget.rule == rules[0] ? textFieldWidgetViewOnly(controller, fcnode) : textFieldWidget(controller, fcnode));
         }
       }
-      // if(temp.containsKey('image')){
-      //   if(temp['image'] == ""){
-      //     if(isConnected){
-      //       String urlImageCloud = await StorageService().uploadImage(File(note.content[i-1]["local_image"]));
-      //       note.content[i]['image'] = urlImageCloud;
-      //     }
-      //   }
-      // }
+
     }
 
-    await FireStorageService().updateCloudImageURL(id, note.content);
+    await FireStorageService().updateCloudImageURLForShare(id, note.content, widget.email);
     setState(() {});
 
     await EasyLoading.dismiss();
   }
 
   Future<void> updateNote() async {
-    // showDialog(
-    //     context: appcontext,
-    //     builder: (context) {
-    //       return Center(
-    //         child: CircularProgressIndicator(),
-    //       );
-    //     });
-    note = await FireStorageService().getNoteById(widget.noteId);
+
+    note = await FireStorageService().getNoteShareByIdForShare(widget.noteId, widget.email);
 
     NoteContent noteContent = NoteContent();
     List<Map<String, dynamic>> imageText = [];
@@ -1981,7 +1433,7 @@ class ShowShareNoteState extends State<ShowShareNote> {
     //////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
     /////////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
 
-    await FireStorageService().updateNoteById(widget.noteId, noteContent);
+    await FireStorageService().updateNoteByIdForShare(widget.noteId, noteContent, widget.email);
 
     late int index;
     if (isConnected) {
@@ -1997,18 +1449,12 @@ class ShowShareNoteState extends State<ShowShareNote> {
       }
 
       noteContent.content = imageText;
-      await FireStorageService().updateNoteById(widget.noteId, noteContent);
+      await FireStorageService().updateNoteByIdForShare(widget.noteId, noteContent, widget.email);
     }
 
     //Navigator.pop(appcontext);
   }
-
-  Future<void> deleteNote() async {
-    await FireStorageService().deleteNoteById(widget.noteId);
-    if (isConnected) {
-      StorageService().deleteListImage(note.content);
-    }
-  }
+  
 
   Future<void> createTag() async {
     if (_tagnamecontroller.text.isNotEmpty) {
@@ -2019,33 +1465,15 @@ class ShowShareNoteState extends State<ShowShareNote> {
 
       Tag t = Tag();
       t.tagname = _tagnamecontroller.text;
-      FireStorageService().saveTags(t);
+      FireStorageService().saveTagsForShare(t, widget.email);
 
-      lsttags = await FireStorageService().getAllTags();
+      lsttags = await FireStorageService().getAllTagsForShare(widget.email);
 
       await EasyLoading.dismiss();
 
       isCreatedNewTag = false;
 
       _tagnamecontroller.text = "";
-    }
-  }
-
-  Future<void> createTagAtLocal() async {
-    if (_tagnamecontroller.text.isNotEmpty) {
-      TagModel tagmodel = TagModel(tag_name: _tagnamecontroller.text);
-
-      bool checkinsert = await tagDAL.insertTag(tagmodel, -1, InitDataBase.db);
-
-      checkinsert
-          ? debugPrint("Tao nhan thanh cong!")
-          : debugPrint("Tao nhan that bai, xay ra loi!");
-
-      _tagnamecontroller.text = "";
-
-      await EasyLoading.dismiss();
-
-      isCreatedNewTag = false;
     }
   }
 

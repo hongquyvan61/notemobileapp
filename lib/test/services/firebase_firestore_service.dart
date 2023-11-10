@@ -30,8 +30,21 @@ class FireStorageService {
     return idNote.id;
   }
 
+  Future<String> saveContentNotesForShare(NoteContent noteContent, String owner) async {
+    final idNote = notesCollection.doc(owner).collection("note").doc();
+    await idNote.set(noteContent.toMap());
+    debugPrint('Insert count');
+    return idNote.id;
+  }
+
   Future<void> saveTags(Tag tag) async {
     final idtag = notesCollection.doc(currentUser).collection("tag").doc();
+
+    await idtag.set(tag.toMap());
+  }
+
+  Future<void> saveTagsForShare(Tag tag, String owner) async {
+    final idtag = notesCollection.doc(owner).collection("tag").doc();
 
     await idtag.set(tag.toMap());
   }
@@ -59,6 +72,20 @@ class FireStorageService {
   Future<List<TagReceive>> getAllTags() async {
     List<TagReceive> tags = [];
     final tagCollection = notesCollection.doc(currentUser).collection("tag");
+
+    await tagCollection.get().then((value) {
+      for (var docSnapshot in value.docs) {
+        tags.add(
+            TagReceive.withValue(docSnapshot.get("tag_name"), docSnapshot.id));
+      }
+    });
+
+    return tags;
+  }
+
+  Future<List<TagReceive>> getAllTagsForShare(String owner) async {
+    List<TagReceive> tags = [];
+    final tagCollection = notesCollection.doc(owner).collection("tag");
 
     await tagCollection.get().then((value) {
       for (var docSnapshot in value.docs) {
@@ -132,10 +159,10 @@ class FireStorageService {
     return note;
   }
 
-  Future<NoteReceive> getNoteShareById(String id, String email) async {
+  Future<NoteReceive> getNoteShareByIdForShare(String id, String owner) async {
     NoteReceive noteReceive = NoteReceive();
     DocumentSnapshot noteDocument =
-        await notesCollection.doc(email).collection("note").doc(id).get();
+        await notesCollection.doc(owner).collection("note").doc(id).get();
 
     noteReceive = NoteReceive.withValue(
         noteDocument.get('content'),
@@ -210,9 +237,22 @@ class FireStorageService {
     await noteDocument.update(noteContent.toMap());
   }
 
+  Future<void> updateNoteByIdForShare(String id, NoteContent noteContent, String owner) async {
+    final noteDocument =
+    notesCollection.doc(owner).collection("note").doc(id);
+    await noteDocument.update(noteContent.toMap());
+  }
+
   Future<void> updateCloudImageURL(String id, List<dynamic> contents) async {
     final noteDocument =
         notesCollection.doc(currentUser).collection("note").doc(id);
+    Map<Object, Object?> map = {"content": contents};
+    noteDocument.update(map);
+  }
+
+  Future<void> updateCloudImageURLForShare(String id, List<dynamic> contents, String owner) async {
+    final noteDocument =
+        notesCollection.doc(owner).collection("note").doc(id);
     Map<Object, Object?> map = {"content": contents};
     noteDocument.update(map);
   }
