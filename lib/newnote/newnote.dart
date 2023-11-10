@@ -25,7 +25,6 @@ import 'package:notemobileapp/test/services/firebase_firestore_service.dart';
 import 'package:notemobileapp/test/services/firebase_store_service.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:select_dialog/select_dialog.dart';
 
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:notemobileapp/DAL/UserDAL.dart';

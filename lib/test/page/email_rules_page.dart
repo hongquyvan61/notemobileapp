@@ -2,13 +2,14 @@
 
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:notemobileapp/router.dart';
 
 import 'package:notemobileapp/test/model/invite.dart';
 import 'package:notemobileapp/test/model/invite_receive.dart';
 import 'package:notemobileapp/test/model/receive.dart';
+import 'package:notemobileapp/test/services/firebase_dynamic_link.dart';
 import 'package:notemobileapp/test/services/firebase_firestore_service.dart';
 
 class ShareNoteUser extends StatefulWidget {
@@ -332,7 +333,15 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
                                                             });
                                                           }
                                                           else{
-                                                            
+                                                            String dynamiclink = await FirebaseDynamicLinkService().createDynamicLink(false, RoutePaths.newnote, widget.noteId);
+
+                                                            //debugPrint(dynamiclink);
+
+                                                            isInvalidMail = true;
+                                                            ErrorTextController.text = dynamiclink;
+                                                            setState(() {
+                                                              
+                                                            });
                                                           }
                                                         },
                                                         style: ElevatedButton.styleFrom(
@@ -356,7 +365,7 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
 
                                             isInvalidMail ? 
                                             TextField(
-                                              enabled: false,
+                                              enabled: true,
                                               controller: ErrorTextController,
                                               style: const TextStyle(
                                                 fontSize: 13,

@@ -58,6 +58,7 @@ dependencies:
   firebase_core: ^2.15.1
   firebase_database: ^10.2.6
   firebase_storage: ^11.2.7
+  firebase_dynamic_links: ^5.4.3
   provider: ^6.0.5
   google_sign_in: ^6.1.5
   cloud_firestore: ^4.9.3

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -15,6 +14,7 @@ import 'package:notemobileapp/DAL/TagDAL.dart';
 import 'package:notemobileapp/model/SqliteModel/initializeDB.dart';
 import 'package:notemobileapp/newnote/newnote.dart';
 import 'package:notemobileapp/router.dart';
+import 'package:notemobileapp/test/services/firebase_dynamic_link.dart';
 import 'package:notemobileapp/test/services/firebase_firestore_service.dart';
 //import 'package:notemobileapp/test/services/firebase_store_service.dart';
 import 'package:provider/provider.dart';
@@ -94,6 +94,8 @@ class HomeScreenState extends State<HomeScreen> {
 
     checkLogin();
     CheckInternetConnection();
+
+    FirebaseDynamicLinkService().initDynamicLink(context);
   }
 
   @override
