@@ -5,6 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:notemobileapp/newnote/newnote.dart';
+import 'package:notemobileapp/newnote/showShareNote.dart';
 import 'package:notemobileapp/test/notifi_service.dart';
 import 'package:notemobileapp/test/services/change_invite_state.dart';
 import 'package:provider/provider.dart';
@@ -21,10 +23,10 @@ class ShareNotePage extends StatefulWidget {
 }
 
 class _ShareNotePageState extends State<ShareNotePage> {
-  String? userEmail = FirebaseAuth.instance.currentUser?.email;
   final scaffoldKey = GlobalKey<ScaffoldState>();
   List<Receive> listReceive = [];
   List<NoteReceive> listNote = [];
+  String? currentUser = FirebaseAuth.instance.currentUser?.email;
 
   // bool isChange = false;
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -42,6 +44,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
   Widget cardWidget(NoteReceive note) {
     String contentString = '';
     String urlImage = '';
+    String rule = note.rule;
     Map<String, dynamic> content = {};
 
     for (var element in note.content) {
@@ -55,66 +58,78 @@ class _ShareNotePageState extends State<ShareNotePage> {
         break;
       }
     }
-    return Card(
-      clipBehavior: Clip.antiAliasWithSaveLayer,
-      color: Colors.yellow,
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            Text(
-              note.title,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontFamily: 'Roboto',
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500),
-            ),
-            Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
-              child: Text(
-                contentString,
-                maxLines: 5,
-                style: TextStyle(fontFamily: 'Roboto'),
+
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => ShowShareNote(
+                    noteId: note.noteId, isEdit: true, email: note.owner, rule: rule,)));
+      },
+      child: Card(
+        clipBehavior: Clip.antiAliasWithSaveLayer,
+        color: Colors.yellow,
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Padding(
+          padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Text(
+                note.title,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontFamily: 'Roboto',
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500),
               ),
-            ),
-            urlImage != ''
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      urlImage,
-                      width: 300,
-                      height: 200,
-                      fit: BoxFit.cover,
-                    ),
-                  )
-                : Text(''),
-            Align(
-              alignment: AlignmentDirectional(1.00, 0.00),
-              child: Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
+              Padding(
+                padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
                 child: Text(
-                  note.timeStamp,
-                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 10),
+                  contentString,
+                  maxLines: 5,
+                  style: TextStyle(fontFamily: 'Roboto', fontSize: 15),
                 ),
               ),
-            ),
-            Align(
-              alignment: AlignmentDirectional(1.00, 0.00),
-              child: Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
-                child: Text(
-                  note.owner,
-                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 10),
+              urlImage != ''
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        urlImage,
+                        width: 300,
+                        height: 200,
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                  : SizedBox(height: 0, width: 0,),
+              Divider(thickness: 1,),
+              Align(
+                alignment: AlignmentDirectional(1.00, 0.00),
+                child: Padding(
+                  padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
+                  child: Text(
+                    note.timeStamp,
+                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 10),
+                  ),
                 ),
               ),
-            )
-          ],
+              Align(
+                alignment: AlignmentDirectional(1.00, 0.00),
+                child: Padding(
+                  padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
+                  child: Text(
+                    note.owner,
+                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 10),
+                  ),
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -126,16 +141,18 @@ class _ShareNotePageState extends State<ShareNotePage> {
     Map<String, dynamic> content = {};
     String userShared = '';
 
-    if(note.rules.isNotEmpty){
+    if (note.rules.isNotEmpty) {
       note.rules.forEach((key, value) {
-        if(key != 'timestamp'){
+        if (key != 'timestamp') {
           userShared += '$key\n';
         }
       });
-    } else if(note.rules.isEmpty){
-      return SizedBox(width: 0.0, height: 0.0,);
+    } else if (note.rules.isEmpty) {
+      return SizedBox(
+        width: 0.0,
+        height: 0.0,
+      );
     }
-
 
     for (var element in note.content) {
       content = element;
@@ -148,66 +165,78 @@ class _ShareNotePageState extends State<ShareNotePage> {
         break;
       }
     }
-    return Card(
-      clipBehavior: Clip.antiAliasWithSaveLayer,
-      color: Colors.yellow,
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            Text(
-              note.title,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontFamily: 'Roboto',
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500),
-            ),
-            Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
-              child: Text(
-                contentString,
-                maxLines: 5,
-                style: TextStyle(fontFamily: 'Roboto'),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => NewNoteScreen(
+                    noteId: note.noteId,
+                    isEdit: true,
+                    email: currentUser!.isNotEmpty ? currentUser : '')));
+      },
+      child: Card(
+        clipBehavior: Clip.antiAliasWithSaveLayer,
+        color: Colors.yellow,
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Padding(
+          padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Text(
+                note.title,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontFamily: 'Roboto',
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500),
               ),
-            ),
-            urlImage != ''
-                ? ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                urlImage,
-                width: 300,
-                height: 200,
-                fit: BoxFit.cover,
-              ),
-            )
-                : Text(''),
-            Align(
-              alignment: AlignmentDirectional(1.00, 0.00),
-              child: Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
+              Padding(
+                padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
                 child: Text(
-                  note.timeStamp,
-                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 10),
+                  contentString,
+                  maxLines: 5,
+                  style: TextStyle(fontFamily: 'Roboto', fontSize: 15),
                 ),
               ),
-            ),
-            Align(
-              alignment: AlignmentDirectional(1.00, 0.00),
-              child: Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
-                child: Text(
-                  userShared,
-                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 10),
+              urlImage != ''
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        urlImage,
+                        width: 300,
+                        height: 200,
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                  : SizedBox(width: 0, height: 0,),
+              Divider(thickness: 1,),
+              Align(
+                alignment: AlignmentDirectional(1.00, 0.00),
+                child: Padding(
+                  padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
+                  child: Text(
+                    note.timeStamp,
+                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 10),
+                  ),
                 ),
               ),
-            ),
-          ],
+              Align(
+                alignment: AlignmentDirectional(1.00, 0.00),
+                child: Padding(
+                  padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
+                  child: Text(
+                    userShared,
+                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 10),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -322,143 +351,24 @@ class _ShareNotePageState extends State<ShareNotePage> {
                             child: Padding(
                               padding:
                                   EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
-                              child: InkWell(
-                                splashColor: Colors.transparent,
-                                focusColor: Colors.transparent,
-                                hoverColor: Colors.transparent,
-                                highlightColor: Colors.transparent,
-                                onTap: () async {},
-                                child: MasonryGridView.count(
-                                  crossAxisCount: 2,
-                                  crossAxisSpacing: 10,
-                                  mainAxisSpacing: 10,
-                                  itemCount: snapshot.data?.length,
-                                  itemBuilder: (context, index) {
-                                    // return [
-                                    //   () => Card(
-                                    //         clipBehavior: Clip.antiAliasWithSaveLayer,
-                                    //         color: Colors.yellow,
-                                    //         elevation: 4,
-                                    //         shape: RoundedRectangleBorder(
-                                    //           borderRadius: BorderRadius.circular(8),
-                                    //         ),
-                                    //         child: Padding(
-                                    //           padding: EdgeInsetsDirectional.fromSTEB(
-                                    //               8, 8, 8, 8),
-                                    //           child: Column(
-                                    //             mainAxisSize: MainAxisSize.max,
-                                    //             children: [
-                                    //               Text(
-                                    //                 'Xin chào các bạn',
-                                    //                 textAlign: TextAlign.center,
-                                    //                 style: TextStyle(fontFamily: 'Roboto', fontSize: 18, fontWeight: FontWeight.w500),
-                                    //               ),
-                                    //               Padding(
-                                    //                 padding: EdgeInsetsDirectional.fromSTEB(
-                                    //                     8, 8, 8, 8),
-                                    //                 child: Text(
-                                    //                   'OPPO A18 là một trong những sản phẩm điện thoại mới nhất được giới thiệu tại thị trường Việt Nam trong những tháng cuối năm 2023. Thiết kế của chiếc điện thoại này vẫn giữ nguyên phong cách quen thuộc như các sản phẩm điện thoại OPPO A, đi cùng một màn hình sắc nét cùng một hiệu năng ổn định.',
-                                    //                   maxLines: 5,
-                                    //                   style:
-                                    //                       TextStyle(fontFamily: 'Roboto'),
-                                    //                 ),
-                                    //               ),
-                                    //               ClipRRect(
-                                    //                 borderRadius: BorderRadius.circular(8),
-                                    //                 child: Image.network(
-                                    //                   'https://picsum.photos/seed/463/600',
-                                    //                   width: 300,
-                                    //                   height: 200,
-                                    //                   fit: BoxFit.cover,
-                                    //                 ),
-                                    //               ),
-                                    //               Align(
-                                    //                 alignment: AlignmentDirectional(1.00, 0.00),
-                                    //                 child: Padding(
-                                    //                   padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
-                                    //                   child: Text(
-                                    //                     '8/11/2023 10:16',
-                                    //                     style: TextStyle(fontWeight: FontWeight.w500, fontSize: 10),
-                                    //                   ),
-                                    //                 ),
-                                    //               )
-                                    //             ],
-                                    //           ),
-                                    //         ),
-                                    //       ),
-                                    //   () => Card(
-                                    //         clipBehavior: Clip.antiAliasWithSaveLayer,
-                                    //         color: Colors.yellow,
-                                    //         elevation: 4,
-                                    //         shape: RoundedRectangleBorder(
-                                    //           borderRadius: BorderRadius.circular(8),
-                                    //         ),
-                                    //         child: Padding(
-                                    //           padding: EdgeInsetsDirectional.fromSTEB(
-                                    //               8, 8, 8, 8),
-                                    //           child: Column(
-                                    //             mainAxisSize: MainAxisSize.max,
-                                    //             children: [
-                                    //               Text(
-                                    //                 'Xin chào các bạn',
-                                    //                 textAlign: TextAlign.center,
-                                    //                 style: TextStyle(fontFamily: 'Roboto'),
-                                    //               ),
-                                    //               Padding(
-                                    //                 padding: EdgeInsetsDirectional.fromSTEB(
-                                    //                     8, 8, 8, 8),
-                                    //                 child: ClipRRect(
-                                    //                   borderRadius:
-                                    //                       BorderRadius.circular(8),
-                                    //                   child: Image.network(
-                                    //                     'https://picsum.photos/seed/463/600',
-                                    //                     width: 300,
-                                    //                     height: 200,
-                                    //                     fit: BoxFit.cover,
-                                    //                   ),
-                                    //                 ),
-                                    //               ),
-                                    //             ],
-                                    //           ),
-                                    //         ),
-                                    //       ),
-                                    //   () => Card(
-                                    //         clipBehavior: Clip.antiAliasWithSaveLayer,
-                                    //         color: Colors.yellow,
-                                    //         elevation: 4,
-                                    //         shape: RoundedRectangleBorder(
-                                    //           borderRadius: BorderRadius.circular(8),
-                                    //         ),
-                                    //         child: Padding(
-                                    //           padding: EdgeInsetsDirectional.fromSTEB(
-                                    //               8, 8, 8, 8),
-                                    //           child: Column(
-                                    //             mainAxisSize: MainAxisSize.max,
-                                    //             crossAxisAlignment:
-                                    //                 CrossAxisAlignment.center,
-                                    //             children: [
-                                    //               Text(
-                                    //                 'Đây là tiêu đề',
-                                    //                 textAlign: TextAlign.center,
-                                    //                 style: TextStyle(fontFamily: 'Roboto'),
-                                    //               ),
-                                    //               Padding(
-                                    //                 padding: EdgeInsetsDirectional.fromSTEB(
-                                    //                     8, 8, 8, 8),
-                                    //                 child: Text(
-                                    //                   'vivo V29e 5G là một phiên bản điện thoại di động đáng chú ý trong phân khúc tầm trung, đặc biệt với sự kết hợp tinh tế giữa thiết kế và hiệu suất. Điều làm nổi bật chiếc điện thoại này chính là camera chất lượng, thiết kế sang trọng và viên pin lớn kèm sạc nhanh. ',
-                                    //                   maxLines: 5,
-                                    //                   style:
-                                    //                       TextStyle(fontFamily: 'Roboto'),
-                                    //                 ),
-                                    //               ),
-                                    //             ],
-                                    //           ),
-                                    //         ),
-                                    //       ),
-                                    // ][index]();
-                                    return cardWidgetShare(snapshot.data![index]);
-                                  },
+                              child: RefreshIndicator(
+                                onRefresh: () => refresh(),
+                                child: InkWell(
+                                  splashColor: Colors.transparent,
+                                  focusColor: Colors.transparent,
+                                  hoverColor: Colors.transparent,
+                                  highlightColor: Colors.transparent,
+                                  onTap: () async {},
+                                  child: MasonryGridView.count(
+                                    crossAxisCount: 2,
+                                    crossAxisSpacing: 10,
+                                    mainAxisSpacing: 10,
+                                    itemCount: snapshot.data?.length,
+                                    itemBuilder: (context, index) {
+                                      return cardWidgetShare(
+                                          snapshot.data![index]);
+                                    },
+                                  ),
                                 ),
                               ),
                             ),
@@ -486,143 +396,23 @@ class _ShareNotePageState extends State<ShareNotePage> {
                             child: Padding(
                               padding:
                                   EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
-                              child: InkWell(
-                                splashColor: Colors.transparent,
-                                focusColor: Colors.transparent,
-                                hoverColor: Colors.transparent,
-                                highlightColor: Colors.transparent,
-                                onTap: () async {},
-                                child: MasonryGridView.count(
-                                  crossAxisCount: 2,
-                                  crossAxisSpacing: 10,
-                                  mainAxisSpacing: 10,
-                                  itemCount: snapshot.data?.length,
-                                  itemBuilder: (context, index) {
-                                    // return [
-                                    //   () => Card(
-                                    //         clipBehavior: Clip.antiAliasWithSaveLayer,
-                                    //         color: Colors.yellow,
-                                    //         elevation: 4,
-                                    //         shape: RoundedRectangleBorder(
-                                    //           borderRadius: BorderRadius.circular(8),
-                                    //         ),
-                                    //         child: Padding(
-                                    //           padding: EdgeInsetsDirectional.fromSTEB(
-                                    //               8, 8, 8, 8),
-                                    //           child: Column(
-                                    //             mainAxisSize: MainAxisSize.max,
-                                    //             children: [
-                                    //               Text(
-                                    //                 'Xin chào các bạn',
-                                    //                 textAlign: TextAlign.center,
-                                    //                 style: TextStyle(fontFamily: 'Roboto', fontSize: 18, fontWeight: FontWeight.w500),
-                                    //               ),
-                                    //               Padding(
-                                    //                 padding: EdgeInsetsDirectional.fromSTEB(
-                                    //                     8, 8, 8, 8),
-                                    //                 child: Text(
-                                    //                   'OPPO A18 là một trong những sản phẩm điện thoại mới nhất được giới thiệu tại thị trường Việt Nam trong những tháng cuối năm 2023. Thiết kế của chiếc điện thoại này vẫn giữ nguyên phong cách quen thuộc như các sản phẩm điện thoại OPPO A, đi cùng một màn hình sắc nét cùng một hiệu năng ổn định.',
-                                    //                   maxLines: 5,
-                                    //                   style:
-                                    //                       TextStyle(fontFamily: 'Roboto'),
-                                    //                 ),
-                                    //               ),
-                                    //               ClipRRect(
-                                    //                 borderRadius: BorderRadius.circular(8),
-                                    //                 child: Image.network(
-                                    //                   'https://picsum.photos/seed/463/600',
-                                    //                   width: 300,
-                                    //                   height: 200,
-                                    //                   fit: BoxFit.cover,
-                                    //                 ),
-                                    //               ),
-                                    //               Align(
-                                    //                 alignment: AlignmentDirectional(1.00, 0.00),
-                                    //                 child: Padding(
-                                    //                   padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
-                                    //                   child: Text(
-                                    //                     '8/11/2023 10:16',
-                                    //                     style: TextStyle(fontWeight: FontWeight.w500, fontSize: 10),
-                                    //                   ),
-                                    //                 ),
-                                    //               )
-                                    //             ],
-                                    //           ),
-                                    //         ),
-                                    //       ),
-                                    //   () => Card(
-                                    //         clipBehavior: Clip.antiAliasWithSaveLayer,
-                                    //         color: Colors.yellow,
-                                    //         elevation: 4,
-                                    //         shape: RoundedRectangleBorder(
-                                    //           borderRadius: BorderRadius.circular(8),
-                                    //         ),
-                                    //         child: Padding(
-                                    //           padding: EdgeInsetsDirectional.fromSTEB(
-                                    //               8, 8, 8, 8),
-                                    //           child: Column(
-                                    //             mainAxisSize: MainAxisSize.max,
-                                    //             children: [
-                                    //               Text(
-                                    //                 'Xin chào các bạn',
-                                    //                 textAlign: TextAlign.center,
-                                    //                 style: TextStyle(fontFamily: 'Roboto'),
-                                    //               ),
-                                    //               Padding(
-                                    //                 padding: EdgeInsetsDirectional.fromSTEB(
-                                    //                     8, 8, 8, 8),
-                                    //                 child: ClipRRect(
-                                    //                   borderRadius:
-                                    //                       BorderRadius.circular(8),
-                                    //                   child: Image.network(
-                                    //                     'https://picsum.photos/seed/463/600',
-                                    //                     width: 300,
-                                    //                     height: 200,
-                                    //                     fit: BoxFit.cover,
-                                    //                   ),
-                                    //                 ),
-                                    //               ),
-                                    //             ],
-                                    //           ),
-                                    //         ),
-                                    //       ),
-                                    //   () => Card(
-                                    //         clipBehavior: Clip.antiAliasWithSaveLayer,
-                                    //         color: Colors.yellow,
-                                    //         elevation: 4,
-                                    //         shape: RoundedRectangleBorder(
-                                    //           borderRadius: BorderRadius.circular(8),
-                                    //         ),
-                                    //         child: Padding(
-                                    //           padding: EdgeInsetsDirectional.fromSTEB(
-                                    //               8, 8, 8, 8),
-                                    //           child: Column(
-                                    //             mainAxisSize: MainAxisSize.max,
-                                    //             crossAxisAlignment:
-                                    //                 CrossAxisAlignment.center,
-                                    //             children: [
-                                    //               Text(
-                                    //                 'Đây là tiêu đề',
-                                    //                 textAlign: TextAlign.center,
-                                    //                 style: TextStyle(fontFamily: 'Roboto'),
-                                    //               ),
-                                    //               Padding(
-                                    //                 padding: EdgeInsetsDirectional.fromSTEB(
-                                    //                     8, 8, 8, 8),
-                                    //                 child: Text(
-                                    //                   'vivo V29e 5G là một phiên bản điện thoại di động đáng chú ý trong phân khúc tầm trung, đặc biệt với sự kết hợp tinh tế giữa thiết kế và hiệu suất. Điều làm nổi bật chiếc điện thoại này chính là camera chất lượng, thiết kế sang trọng và viên pin lớn kèm sạc nhanh. ',
-                                    //                   maxLines: 5,
-                                    //                   style:
-                                    //                       TextStyle(fontFamily: 'Roboto'),
-                                    //                 ),
-                                    //               ),
-                                    //             ],
-                                    //           ),
-                                    //         ),
-                                    //       ),
-                                    // ][index]();
-                                    return cardWidget(snapshot.data![index]);
-                                  },
+                              child: RefreshIndicator(
+                                onRefresh: () => refresh(),
+                                child: InkWell(
+                                  splashColor: Colors.transparent,
+                                  focusColor: Colors.transparent,
+                                  hoverColor: Colors.transparent,
+                                  highlightColor: Colors.transparent,
+                                  onTap: () async {},
+                                  child: MasonryGridView.count(
+                                    crossAxisCount: 2,
+                                    crossAxisSpacing: 10,
+                                    mainAxisSpacing: 10,
+                                    itemCount: snapshot.data?.length,
+                                    itemBuilder: (context, index) {
+                                      return cardWidget(snapshot.data![index]);
+                                    },
+                                  ),
                                 ),
                               ),
                             ),
@@ -651,5 +441,11 @@ class _ShareNotePageState extends State<ShareNotePage> {
     List<NoteReceive> idNote = [];
     idNote = await FireStorageService().getNoteShare();
     return idNote;
+  }
+
+  Future<void> refresh () async {
+    setState(() {
+
+    });
   }
 }

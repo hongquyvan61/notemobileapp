@@ -124,11 +124,26 @@ class FireStorageService {
         notesCollection.doc(currentUser).collection("note").doc(id);
     DocumentSnapshot doc = await noteDocument.get();
     NoteReceive note = NoteReceive();
+    note.noteId = doc.id;
     note.title = doc.get('title');
     note.timeStamp = doc.get('timestamp');
     note.content = doc.get('content');
     note.tagname = doc.get('tagname');
     return note;
+  }
+
+  Future<NoteReceive> getNoteShareById(String id, String email) async {
+    NoteReceive noteReceive = NoteReceive();
+    DocumentSnapshot noteDocument =
+        await notesCollection.doc(email).collection("note").doc(id).get();
+
+    noteReceive = NoteReceive.withValue(
+        noteDocument.get('content'),
+        noteDocument.id,
+        noteDocument.get('timestamp'),
+        noteDocument.get('title'),
+        noteDocument.get('tagname'));
+    return noteReceive;
   }
 
   Future<List<NoteReceive>> getNoteByOwner(List<Receive> listReceive) async {
@@ -146,7 +161,8 @@ class FireStorageService {
           doc.get('timestamp'),
           doc.get('title'),
           doc.get('tagname'),
-          element.owner);
+          element.owner,
+          element.rule);
       listNote.add(noteReceive);
     }
 
@@ -154,8 +170,37 @@ class FireStorageService {
   }
 
   Future<void> deleteNoteById(String id) async {
+    String emailInvited = '';
+    Receive receives = Receive();
     final noteDocument =
         notesCollection.doc(currentUser).collection("note").doc(id);
+
+    //delete Receive ở từng user
+    final inviteDocument =
+        notesCollection.doc(currentUser).collection("invite");
+    QuerySnapshot collectionSnapshot = await inviteDocument.get();
+
+    //Kiểm tra xem invite có trống hay không (người dùng chưa bấm vào share)
+    if (collectionSnapshot.docs.isNotEmpty) {
+      DocumentSnapshot doc = await inviteDocument.doc(id).get();
+      Map<String, dynamic>? docData = doc.data() as Map<String, dynamic>?;
+      Map<String, dynamic>? rulesData = {};
+
+      if (docData!.containsKey('rules')) {
+        rulesData = docData['rules'];
+        rulesData?.forEach((key, value) async {
+          if (key != 'timestamp') {
+            receives.email = key;
+            receives.noteId = id;
+            await deleteReceive(receives);
+          }
+        });
+      }
+    }
+
+    ///----------------------------
+
+    await deleteInviteById(id);
     await noteDocument.delete();
   }
 
@@ -188,9 +233,9 @@ class FireStorageService {
     final inviteDocument =
         notesCollection.doc(currentUser).collection('invite').doc(id);
     DocumentSnapshot doc = await inviteDocument.get();
-    Map<String, dynamic>? test = doc.data() as Map<String, dynamic>?;
+    Map<String, dynamic>? docData = doc.data() as Map<String, dynamic>?;
 
-    if (doc.exists && test!.containsKey('rules')) {
+    if (doc.exists && docData!.containsKey('rules')) {
       inviteReceive.rules = doc.get('rules');
     } else {
       saveInvite(id);
@@ -220,6 +265,14 @@ class FireStorageService {
     debugPrint('Insert successful');
   }
 
+  Future<void> deleteInviteById(String id) async {
+    await notesCollection
+        .doc(currentUser)
+        .collection("invite")
+        .doc(id)
+        .delete();
+  }
+
   Future<List<NoteReceive>> getNoteShare() async {
     List<NoteReceive> note = [];
     NoteReceive temp = NoteReceive();
@@ -229,9 +282,8 @@ class FireStorageService {
         await notesCollection.doc(currentUser).collection('invite').get();
     for (QueryDocumentSnapshot document in inviteColection.docs) {
       checkNull = document.data() as Map<String, dynamic>?;
-
       temp = await getNoteById(document.id);
-      if (checkNull!.containsKey('rules')) {
+      if (checkNull!.containsKey('rules') && checkNull['rules'].length > 1) { // check nếu như người dùng xoá hết email share và values chỉ còn timestamp
         rules = document.get('rules');
         temp.rules = rules;
       }

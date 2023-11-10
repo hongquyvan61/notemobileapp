@@ -20,6 +20,7 @@ class RoutePaths {
   static const shareNotePage = 'shareNotePage';
   static const shareNoteManager = 'shareNoteManager';
 
+
 }
 
 class RouterCustom {

@@ -119,10 +119,12 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
                                 IconButton(
                                     onPressed: () async {
                                       if (await confirmDelete()) {
-                                        deleteListTemp.add(emails[index]);
-                                        emails.removeAt(index);
-                                        dropDownValue.removeAt(index);
+
                                         setState(() {
+                                          emailsMap.remove(emails[index]);
+                                          deleteListTemp.add(emails[index]);
+                                          emails.removeAt(index);
+                                          dropDownValue.removeAt(index);
                                           isDelete = true;
                                           updated = true;
                                         });
@@ -203,6 +205,9 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
                     if (updated) {
                       updateInviteToCloud();
                       updateInviteToUser();
+                      if (isDelete) {
+                        deleteReceive();
+                      }
                     }
                     setState(() {
                       updated = false;
@@ -490,6 +495,9 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
       FireStorageService().deleteReceive(receive);
     }
     deleteListTemp.clear();
+    setState(() {
+      isDelete = false;
+    });
   }
 
   Future<bool> checkDuplicate(String key) async {

@@ -5,14 +5,21 @@ class NoteReceive{
   late String _title;
   late String _tagname;
   late String _owner;
+  late String _rule;
   Map<String, dynamic> _rules = {};
 
 
   NoteReceive.withValue(this._content, this._noteId, this._timeStamp, this._title, this._tagname);
-  NoteReceive.withValue2(this._content, this._noteId, this._timeStamp, this._title, this._tagname, this._owner);
+  NoteReceive.withValue2(this._content, this._noteId, this._timeStamp, this._title, this._tagname, this._owner, this._rule);
   NoteReceive.withValue1(this._title,this._timeStamp);
   NoteReceive();
 
+
+  String get rule => _rule;
+
+  set rule(String value) {
+    _rule = value;
+  }
 
   Map<String, dynamic> get rules => _rules;
 
