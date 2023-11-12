@@ -3,6 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:notemobileapp/newnote/showShareNote.dart';
 import 'package:notemobileapp/test/services/firebase_firestore_service.dart';
 
 import '../model/note_receive.dart';
@@ -50,12 +51,20 @@ class _NotificationPageState extends State<NotificationPage> {
         child: Padding(
           padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
           child: TextButton(
-            style: TextButton.styleFrom(foregroundColor: Colors.black),
+            style: TextButton.styleFrom(
+                foregroundColor: Colors.black,
+                textStyle: TextStyle(
+                  fontFamily: 'Roboto',
+                  fontWeight: FontWeight.normal,
+                  color: Color(0xFF57636C),
+                )),
             onPressed: () {
               setState(() {
-                // listReceive[index].hadSeen = true;
-                // updateHasSeen(listReceive[index]);
+                listReceive[index].hadSeen = true;
+                updateHasSeen(listReceive[index]);
               });
+              
+              Navigator.push(context, MaterialPageRoute(builder: (context) => ShowShareNote(noteId: listNote[index].noteId, isEdit: true, email: listNote[index].owner, rule: listNote[index].rule)));
             },
             child: Row(
               mainAxisSize: MainAxisSize.max,
@@ -70,31 +79,33 @@ class _NotificationPageState extends State<NotificationPage> {
                 ),
                 Expanded(
                   child: ListTile(
-                    title: Text('${document.get('owner')} đã chia sẻ ghi chú'),
+                    title: Text('${document.get('owner')} đã chia sẻ ghi chú',
+                        style: TextStyle(
+                          fontFamily: 'Roboto',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF57636C),
+                        )),
                     subtitle: listNote.length > index
-                        ? Text(listNote[index].title)
+                        ? Text('\nTiêu đề: ${listNote[index].title}',
+                            style: TextStyle(
+                              fontFamily: 'Roboto',
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal,
+                              color: Color(0xFF57636C),
+                            ))
                         : Text(''),
-                    // style:
-                    // FlutterFlowTheme.of(context).bodyLarge.override(
-                    //   fontFamily: 'Plus Jakarta Sans',
-                    //   color: Color(0xFF14181B),
-                    //   fontSize: 16,
-                    //   fontWeight: FontWeight.normal,
-                    // ),
                   ),
                 ),
                 Padding(
                   padding: EdgeInsetsDirectional.fromSTEB(12, 0, 0, 0),
-                  child: Text(
-                    document.get('timestamp'),
-                    // style:
-                    // FlutterFlowTheme.of(context).labelMedium.override(
-                    //   fontFamily: 'Plus Jakarta Sans',
-                    //   color: Color(0xFF57636C),
-                    //   fontSize: 14,
-                    //   fontWeight: FontWeight.normal,
-                    // ),
-                  ),
+                  child: Text(document.get('timestamp'),
+                      style: TextStyle(
+                        fontFamily: 'Roboto',
+                        fontSize: 12,
+                        fontWeight: FontWeight.normal,
+                        color: Color(0xFF57636C),
+                      )),
                 ),
               ],
             ),
@@ -123,46 +134,56 @@ class _NotificationPageState extends State<NotificationPage> {
         ),
         child: Padding(
           padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
-          child: Row(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Container(
-                width: 4,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: Color(0xFFE0E3E7),
-                  borderRadius: BorderRadius.circular(2),
+          child: TextButton(
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => ShowShareNote(noteId: listNote[index].noteId, isEdit: true, email: listNote[index].owner, rule: listNote[index].rule)));
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Container(
+                  width: 4,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Color(0xFFE0E3E7),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
-              ),
-              Expanded(
-                child: ListTile(
-                  title: Text('${document['owner']} đã chia sẻ ghi chú'),
-                  subtitle: listNote.length > index
-                      ? Text(listNote[index].title)
-                      : Text(''),
-                  // style:
-                  // FlutterFlowTheme.of(context).bodyLarge.override(
-                  //   fontFamily: 'Plus Jakarta Sans',
-                  //   color: Color(0xFF14181B),
-                  //   fontSize: 16,
-                  //   fontWeight: FontWeight.normal,
-                  // ),
+                Expanded(
+                  child: ListTile(
+                    title: Text('${document['owner']} đã chia sẻ ghi chú',
+                        style: TextStyle(
+                          fontFamily: 'Roboto',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF57636C),
+                        )),
+                    subtitle: listNote.length > index
+                        ? Text('\nTiêu đề: ${listNote[index].title}',
+                        style: TextStyle(
+                          fontFamily: 'Roboto',
+                          fontSize: 14,
+                          fontWeight: FontWeight.normal,
+                          color: Color(0xFF57636C),
+                        ))
+                        : SizedBox(height: 0, width: 0,),
+
+                  ),
                 ),
-              ),
-              Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(12, 0, 0, 0),
-                child: Text(
-                  document['timestamp'],
-                  // style:
-                  // FlutterFlowTheme.of(context).labelMedium.override(
-                  //   fontFamily: 'Plus Jakarta Sans',
-                  //   color: Color(0xFF57636C),
-                  //   fontSize: 14,
-                  //   fontWeight: FontWeight.normal,
-                  // ),
+                Padding(
+                  padding: EdgeInsetsDirectional.fromSTEB(12, 0, 0, 0),
+                  child: Text(
+                    document['timestamp'],
+                    style: TextStyle(
+                      fontFamily: 'Roboto',
+                      fontSize: 12,
+                      fontWeight: FontWeight.normal,
+                      color: Color(0xFF57636C),
+                    ),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -180,22 +201,6 @@ class _NotificationPageState extends State<NotificationPage> {
     return StreamBuilder(
         stream: _userStream,
         builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return const Text('Something went wrong');
-          }
-
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Text("Loading");
-          }
-
-          // snapshot.data?.docs.forEach((element) {
-          //   test = element.get('rule');
-          // });
-
-          // return Scaffold(
-          //   appBar: AppBar(title: Text('Chia sẻ ghi chú'), centerTitle: true,),
-          //   body: Center(child: Text(test)),
-          // );
           if (isSetStage == true) {
             getNote();
           }
@@ -218,21 +223,6 @@ class _NotificationPageState extends State<NotificationPage> {
             ),
           );
         });
-
-    // return Scaffold(
-    //   appBar: AppBar(
-    //     title: Text('Thông báo'),
-    //     centerTitle: true,
-    //   ),
-    //   body: ListView.builder(
-    //     itemBuilder: (context, index) {
-    //       return listReceive[index].hadSeen
-    //           ? isOldNotification(index)
-    //           : isNewNotification(index);
-    //     },
-    //     itemCount: listReceive.length,
-    //   ),
-    // );
   }
 
   Future<void> getAllReceive() async {

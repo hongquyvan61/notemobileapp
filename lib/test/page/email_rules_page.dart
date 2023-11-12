@@ -85,6 +85,7 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
                               child: Text(
                                 item,
                                 style: const TextStyle(
+                                  fontFamily: 'Roboto',
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.black,
@@ -268,7 +269,7 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
                                 const Color.fromARGB(255, 97, 115, 239)),
                         child: Text(
                           'Chia sẻ',
-                          style: TextStyle(fontSize: 16),
+                          style: TextStyle(fontFamily: 'Roboto',fontSize: 16),
                         ),
                       ),
                     ],
@@ -300,7 +301,7 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
                                       const Center(
                                         child: Text(
                                           "Chia sẻ qua mail",
-                                          style: TextStyle(fontSize: 18),
+                                          style: TextStyle(fontFamily: 'Roboto',fontSize: 18),
                                         ),
                                       ),
                                       const SizedBox(
@@ -317,7 +318,7 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
                                                   child: TextField(
                                                     controller:
                                                         sharewithMailController,
-                                                    style: const TextStyle(
+                                                    style: const TextStyle(fontFamily: 'Roboto',
                                                       fontSize: 13,
                                                     ),
                                                     decoration:
@@ -374,7 +375,7 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
                                                   child: Text(
                                                     'Chia sẻ',
                                                     style:
-                                                        TextStyle(fontSize: 15),
+                                                        TextStyle(fontFamily: 'Roboto',fontSize: 15),
                                                   ),
                                                 ),
                                               ),
@@ -387,7 +388,7 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
                                           ? TextField(
                                               enabled: true,
                                               controller: ErrorTextController,
-                                              style: const TextStyle(
+                                              style: const TextStyle(fontFamily: 'Roboto',
                                                   fontSize: 13,
                                                   color: Colors.red),
                                               decoration: const InputDecoration(
@@ -414,7 +415,9 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
                                                   color: Colors.grey,
                                                 ),
                                               ),
-                                              child: Text("THOÁT")),
+                                              child: Text("THOÁT", style: TextStyle(
+                                                fontFamily: 'Roboto',
+                                              ),)),
                                         ),
                                       )
                                     ],
@@ -432,7 +435,7 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
                             const Color.fromARGB(255, 97, 115, 239)),
                     label: const Text(
                       'Chia sẻ qua mail',
-                      style: TextStyle(fontSize: 16),
+                      style: TextStyle(fontFamily: 'Roboto',fontSize: 16),
                     ),
                   ),
                 ),

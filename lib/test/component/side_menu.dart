@@ -73,7 +73,6 @@ class _NavBarState extends State<NavBar> {
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
                                 color: Colors.black,
-
                               ),
                             ),
                           ),
@@ -255,7 +254,7 @@ class AppDrawerTile extends StatelessWidget {
         ),
         title: Text(
           drawerItemText[index],
-          style: GoogleFonts.sanchez(
+          style: GoogleFonts.roboto(
             fontSize: 16,
             fontWeight: FontWeight.w500,
             color: Colors.black,

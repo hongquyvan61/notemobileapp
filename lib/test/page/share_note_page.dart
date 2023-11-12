@@ -119,7 +119,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
                   padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
                   child: Text(
                     note.timeStamp,
-                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 10),
+                    style: TextStyle(fontFamily: 'Roboto',fontWeight: FontWeight.w500, fontSize: 10),
                   ),
                 ),
               ),
@@ -129,7 +129,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
                   padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
                   child: Text(
                     note.owner,
-                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 10),
+                    style: TextStyle(fontFamily: 'Roboto' ,fontWeight: FontWeight.w500, fontSize: 10),
                   ),
                 ),
               )
@@ -226,7 +226,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
                   padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
                   child: Text(
                     note.timeStamp,
-                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 10),
+                    style: TextStyle(fontFamily: 'Roboto', fontWeight: FontWeight.w500, fontSize: 10),
                   ),
                 ),
               ),
@@ -236,7 +236,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
                   padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
                   child: Text(
                     userShared,
-                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 10),
+                    style: TextStyle(fontFamily: 'Roboto',fontWeight: FontWeight.w500, fontSize: 10),
                   ),
                 ),
               ),
@@ -257,7 +257,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
           title: Text(
             'Chia sẻ ghi chú',
             style: TextStyle(
-                fontFamily: 'Outfit', color: Colors.white, fontSize: 22),
+                fontFamily: 'Roboto', color: Colors.white, fontSize: 22),
           ),
           actions: const [],
           centerTitle: true,
