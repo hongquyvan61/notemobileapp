@@ -16,8 +16,8 @@ import '../model/receive.dart';
 import '../services/firebase_firestore_service.dart';
 
 class ShareNotePage extends StatefulWidget {
-  const ShareNotePage({super.key});
-
+  const ShareNotePage({super.key, required this.navNotification});
+  final bool navNotification;
   @override
   State<ShareNotePage> createState() => _ShareNotePageState();
 }
@@ -36,6 +36,11 @@ class _ShareNotePageState extends State<ShareNotePage> {
 
   @override
   void initState() {
+    if(widget.navNotification){
+      setState(() {
+        isShare = false;
+      });
+    }
     // TODO: implement initState
     super.initState();
     getAllReceive();

@@ -929,6 +929,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                                     Expanded(
                                       child: ElevatedButton(
                                         onPressed: () {
+
                                           Navigator.push(context, MaterialPageRoute(
                                                           builder: (context) => ShareNoteUser( noteId: widget.noteId)
                                                           )
@@ -1853,6 +1854,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                                                                 
     }
   }
+
 
   checkLogin() {
     FirebaseAuth.instance.authStateChanges().listen((User? user) {

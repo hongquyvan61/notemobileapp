@@ -25,6 +25,7 @@ import '../test/component/side_menu.dart';
 import '../test/model/note_receive.dart';
 import '../test/model/tag_receive.dart';
 import '../test/services/count_down_state.dart';
+import '../test/services/firebase_message_service.dart';
 import '../test/services/internet_connection.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -92,10 +93,21 @@ class HomeScreenState extends State<HomeScreen> {
       ..indicatorType = EasyLoadingIndicatorType.chasingDots
       ..loadingStyle = EasyLoadingStyle.dark;
 
+
+    FireBaseMessageService().messageInnit(context);
+    FireBaseMessageService().setupInteractMessage(context);
+    FireBaseMessageService().requestNotificationPermission();
+    FireBaseMessageService().getToken().then((value) => print(value));
+
+
+
+
     checkLogin();
     CheckInternetConnection();
 
     FirebaseDynamicLinkService().initDynamicLink(context);
+
+
   }
 
   @override
@@ -106,6 +118,13 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> CheckInternetConnection() async {
+
+    dynamic token;
+    await FireBaseMessageService().getToken().then((value) async {
+      token = value.toString();
+    });
+    FireStorageService().addToken(token);
+
     _networkConnectivity.initialise();
     _networkConnectivity.myStream.listen((source) {
       _source = source;
@@ -1040,6 +1059,8 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   checkLogin() {
+
+
     FirebaseAuth.instance.authStateChanges().listen((User? user) {
       if (user != null) {
         loginState = true;

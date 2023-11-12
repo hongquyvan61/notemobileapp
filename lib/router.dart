@@ -50,7 +50,7 @@ class RouterCustom {
       case RoutePaths.notificationPage:
         return MaterialPageRoute(builder: (_) => const NotificationPage());
       case RoutePaths.shareNotePage:
-        return MaterialPageRoute(builder: (_) => const ShareNotePage());
+        return MaterialPageRoute(builder: (_) => const ShareNotePage(navNotification: false,));
 
       default:
         return MaterialPageRoute(

@@ -10,6 +10,7 @@ import 'package:notemobileapp/model/SqliteModel/NoteContentModel.dart';
 import 'package:notemobileapp/model/SqliteModel/initializeDB.dart';
 import 'package:notemobileapp/test/component/toast.dart';
 import 'package:notemobileapp/test/model/note_content.dart';
+import 'package:notemobileapp/test/services/firebase_message_service.dart';
 
 import '../../model/SqliteModel/NoteModel.dart';
 import '../../model/SqliteModel/TagModel.dart';
@@ -108,12 +109,15 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
   }
 
   checkEmailVerified() async {
+
     await FirebaseAuth.instance.currentUser?.reload();
     setState(() {
       _isEmailVerified = FirebaseAuth.instance.currentUser!.emailVerified;
     });
 
     if (_isEmailVerified) {
+
+
       uploadNoteToCloud();
       FireStorageService().insertCollection();
       ToastComponent().showToast("Email của bạn đã được xác thực thành công !");

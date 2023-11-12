@@ -2,11 +2,13 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:notemobileapp/test/model/note_content.dart';
 import 'package:notemobileapp/test/model/note_receive.dart';
 import 'package:notemobileapp/test/model/receive.dart';
+import 'package:notemobileapp/test/services/firebase_message_service.dart';
 
 import '../model/invite.dart';
 import '../model/invite_receive.dart';
@@ -341,12 +343,16 @@ class FireStorageService {
   }
 
   Future<void> addInviteToUser(Receive receive) async {
+    String token = '';
     receive.owner = currentUser!;
     final idReceive = notesCollection
         .doc(receive.email)
         .collection("receive")
         .doc(receive.noteId);
-    await idReceive.set(receive.toMap());
+    await idReceive.set(receive.toMap(), SetOptions(merge: true));
+
+    token = await getToken(receive.email);
+    await FireBaseMessageService().messageFromServer(token, receive.noteId, receive.owner, receive.rule);
     debugPrint('Insert successful');
   }
 
@@ -397,5 +403,26 @@ class FireStorageService {
   Future<void> insertCollection() async {
     Map<String, dynamic> temp = {};
     await notesCollection.doc(currentUser).set(temp);
+  }
+
+  Future<void> addToken(dynamic token) async {
+
+      await notesCollection.doc(currentUser).set({'token' : token});
+
+  }
+
+  Future<String> getToken(String user) async {
+    String result = '';
+    DocumentSnapshot documentSnapshot = await notesCollection.doc(user).get();
+    if (documentSnapshot.exists) {
+      // Dữ liệu tồn tại
+      Map<String, dynamic> data = documentSnapshot.data() as Map<String, dynamic>;
+      result = data['token'];
+    } else {
+      // Dữ liệu không tồn tại
+      print('Không tìm thấy dữ liệu');
+    }
+
+    return result;
   }
 }
