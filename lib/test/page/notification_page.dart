@@ -20,7 +20,7 @@ class _NotificationPageState extends State<NotificationPage> {
   List<Receive> listReceive = [];
   List<NoteReceive> listNote = [];
   NoteReceive noteReceive = NoteReceive();
-  bool isSetStage = true;
+  bool isSetStage = false;
 
   @override
   void initState() {
@@ -63,8 +63,15 @@ class _NotificationPageState extends State<NotificationPage> {
                 listReceive[index].hadSeen = true;
                 updateHasSeen(listReceive[index]);
               });
-              
-              Navigator.push(context, MaterialPageRoute(builder: (context) => ShowShareNote(noteId: listNote[index].noteId, isEdit: true, email: listNote[index].owner, rule: listNote[index].rule)));
+
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ShowShareNote(
+                          noteId: listNote[index].noteId,
+                          isEdit: true,
+                          email: listNote[index].owner,
+                          rule: listNote[index].rule)));
             },
             child: Row(
               mainAxisSize: MainAxisSize.max,
@@ -136,7 +143,14 @@ class _NotificationPageState extends State<NotificationPage> {
           padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
           child: TextButton(
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => ShowShareNote(noteId: listNote[index].noteId, isEdit: true, email: listNote[index].owner, rule: listNote[index].rule)));
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ShowShareNote(
+                          noteId: listNote[index].noteId,
+                          isEdit: true,
+                          email: listNote[index].owner,
+                          rule: listNote[index].rule)));
             },
             child: Row(
               mainAxisSize: MainAxisSize.max,
@@ -160,14 +174,16 @@ class _NotificationPageState extends State<NotificationPage> {
                         )),
                     subtitle: listNote.length > index
                         ? Text('\nTiêu đề: ${listNote[index].title}',
-                        style: TextStyle(
-                          fontFamily: 'Roboto',
-                          fontSize: 14,
-                          fontWeight: FontWeight.normal,
-                          color: Color(0xFF57636C),
-                        ))
-                        : SizedBox(height: 0, width: 0,),
-
+                            style: TextStyle(
+                              fontFamily: 'Roboto',
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal,
+                              color: Color(0xFF57636C),
+                            ))
+                        : SizedBox(
+                            height: 0,
+                            width: 0,
+                          ),
                   ),
                 ),
                 Padding(
@@ -204,6 +220,11 @@ class _NotificationPageState extends State<NotificationPage> {
           if (isSetStage == true) {
             getNote();
           }
+
+          if (isSetStage == true) {
+            return Center(child: CircularProgressIndicator());
+          }
+
           var documents = snapshot.data?.docs ?? [];
           return Scaffold(
             appBar: AppBar(
@@ -226,9 +247,10 @@ class _NotificationPageState extends State<NotificationPage> {
   }
 
   Future<void> getAllReceive() async {
-    listReceive = await FireStorageService().getAllReceive();
-    setState(() {
-      isSetStage = true;
+    listReceive = await FireStorageService().getAllReceive().whenComplete(() {
+      setState(() {
+        isSetStage = true;
+      });
     });
   }
 
