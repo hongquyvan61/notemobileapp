@@ -12,15 +12,13 @@ import 'package:notemobileapp/test/test_page.dart';
 class RoutePaths {
   static const start = '/';
   static const newnote = 'newnotescreen';
-  static const temp = 'tempscreen';
+  static const temp = 'testscreen';
   static const login = 'loginscreen';
   static const signup = 'signupscreen';
   static const verifyEmail = 'verifyscreen';
   static const notificationPage = 'notificationPage';
   static const shareNotePage = 'shareNotePage';
   static const shareNoteManager = 'shareNoteManager';
-
-
 }
 
 class RouterCustom {
@@ -50,7 +48,12 @@ class RouterCustom {
       case RoutePaths.notificationPage:
         return MaterialPageRoute(builder: (_) => const NotificationPage());
       case RoutePaths.shareNotePage:
-        return MaterialPageRoute(builder: (_) => const ShareNotePage(navNotification: false,));
+        return MaterialPageRoute(
+            builder: (_) => const ShareNotePage(
+                  navNotification: false,
+                ));
+      case RoutePaths.temp:
+        return MaterialPageRoute(builder: (_) => const TestPage());
 
       default:
         return MaterialPageRoute(

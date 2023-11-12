@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+
 //import 'package:flutter_quill/flutter_quill.dart' hide Text;
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -26,7 +27,7 @@ import 'package:notemobileapp/test/services/firebase_store_service.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'package:speech_to_text/speech_to_text.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:notemobileapp/DAL/UserDAL.dart';
 
 import 'package:notemobileapp/DAL/NoteDAL.dart';
@@ -64,8 +65,11 @@ class NewNoteScreenState extends State<NewNoteScreen> {
   late BuildContext appcontext;
 
   File? _image;
+  late stt.SpeechToText _speech;
+  bool _isListening = false;
+  double _confidence = 1.0;
 
-  SpeechToText speechToText = SpeechToText();
+  // SpeechToText speechToText = SpeechToText();
 
   static FocusNode fcnFirstTxtField = FocusNode();
   static TextEditingController firstTxtFieldController =
@@ -197,7 +201,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     EasyLoading.instance
       ..indicatorType = EasyLoadingIndicatorType.chasingDots
       ..loadingStyle = EasyLoadingStyle.dark;
-
+    _speech = stt.SpeechToText();
     checkLogin();
     CheckInternetConnection();
 
@@ -213,10 +217,9 @@ class NewNoteScreenState extends State<NewNoteScreen> {
       }
     }
 
-    if(widget.email != ""){
+    if (widget.email != "") {
       getTagsByID();
-    }
-    else{
+    } else {
       getTagsAtLocal();
     }
 
@@ -338,8 +341,8 @@ class NewNoteScreenState extends State<NewNoteScreen> {
 
       taglocal!.tag_name = tmp[0].tag_name?.toString() ?? "";
 
-      List<NoteContentModel> contents =
-          await ncontentDAL.getAllNoteContentsById(InitDataBase.db, int.parse(noteID));
+      List<NoteContentModel> contents = await ncontentDAL
+          .getAllNoteContentsById(InitDataBase.db, int.parse(noteID));
       if (contents.isNotEmpty) {
         firstTxtFieldController.text = contents[0].textcontent.toString();
 
@@ -425,7 +428,9 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     noteContent.timeStamp = currentDateTime;
     noteContent.title = NoteTitle;
     noteContent.content = CloudContents;
-    noteContent.tagname = tag!.tagname == "" || tag == null ? "" : tag!.tagname;                  //////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
+    noteContent.tagname = tag!.tagname == "" || tag == null
+        ? ""
+        : tag!.tagname; //////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
     //////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
     /////////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
 
@@ -453,15 +458,17 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     //SUA LAI USER ID O DAY
     //SUA LAI USER ID O DAY
     late NoteModel md;
-    if(taglocal == null){
+    if (taglocal == null) {
       md = NoteModel(
-        title: NoteTitle, date_created: currentDateTime, user_id: -1);
-    }
-    else{
+          title: NoteTitle, date_created: currentDateTime, user_id: -1);
+    } else {
       md = NoteModel(
-        title: NoteTitle, date_created: currentDateTime, user_id: -1, tag_id: taglocal!.tag_id);
+          title: NoteTitle,
+          date_created: currentDateTime,
+          user_id: -1,
+          tag_id: taglocal!.tag_id);
     }
-    
+
     bool checkinsertnote =
         await nDAL.insertNote(md, -1, InitDataBase.db).catchError(
       (Object e, StackTrace stackTrace) {
@@ -544,9 +551,10 @@ class NewNoteScreenState extends State<NewNoteScreen> {
   Future<void> updateNoteToLocal() async {
     bool updttitle = await nDAL.updateNoteTitle(
         int.parse(widget.noteId), _noteTitleController.text, InitDataBase.db);
-    
-    bool updtag = await nDAL.updateTagInNote(int.parse(widget.noteId), taglocal, InitDataBase.db);
-    
+
+    bool updtag = await nDAL.updateTagInNote(
+        int.parse(widget.noteId), taglocal, InitDataBase.db);
+
     if (updttitle) {
       debugPrint("cap nhat tieu de ghi chu thanh cong");
     } else {
@@ -848,60 +856,60 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                 ),
                 const SizedBox(height: 10),
                 Container(
-                  alignment: Alignment.topLeft,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: ElevatedButton.icon(
-                            onPressed: (){
-                                              
-                            }, 
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.transparent, 
-                              shadowColor: Colors.transparent,
-                              elevation: 0,
-                              padding: EdgeInsets.only(left: 0.0),
+                    alignment: Alignment.topLeft,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: ElevatedButton.icon(
+                              onPressed: () {},
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                elevation: 0,
+                                padding: EdgeInsets.only(left: 0.0),
+                              ),
+                              icon: const Icon(Icons.turned_in_outlined,
+                                  size: 19.0,
+                                  color: Color.fromARGB(255, 97, 115, 239)),
+                              label: loginState
+                                  ? Text(
+                                      tag == null || tag!.tagname == ""
+                                          ? "Chưa có nhãn"
+                                          : tag!.tagname,
+                                      style: TextStyle(
+                                          fontSize: 13,
+                                          color: Color.fromARGB(
+                                              255, 97, 115, 239)),
+                                    )
+                                  : Text(
+                                      taglocal == null ||
+                                              taglocal!.tag_name == ""
+                                          ? "Chưa có nhãn"
+                                          : taglocal!.tag_name,
+                                      style: TextStyle(
+                                          fontSize: 13,
+                                          color: Color.fromARGB(
+                                              255, 97, 115, 239)),
+                                    ),
                             ),
-                            icon: const Icon(
-                              Icons.turned_in_outlined,
-                              size: 19.0,
-                              color: Color.fromARGB(255, 97, 115, 239)
-                            ), 
-                            label: loginState ? 
-                                  Text(
-                                    
-                                    tag == null || tag!.tagname == "" ? "Chưa có nhãn" : tag!.tagname,
-                                    style: TextStyle(fontSize: 13, color: Color.fromARGB(255, 97, 115, 239)),
-                                  )
-
-                                  :
-
-                                  Text(
-                              
-                                    taglocal == null || taglocal!.tag_name == "" ? "Chưa có nhãn" : taglocal!.tag_name,
-                                    style: TextStyle(fontSize: 13, color: Color.fromARGB(255, 97, 115, 239)),
-                                  ),
                           ),
                         ),
-                      ),
-
-                      Expanded(
-                        flex: 4,
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: Text(
-                            'Ngày tạo: ' + currentDateTime,
-                            style: TextStyle(fontSize: 13, color: Colors.grey),
+                        Expanded(
+                          flex: 4,
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              'Ngày tạo: ' + currentDateTime,
+                              style:
+                                  TextStyle(fontSize: 13, color: Colors.grey),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  )
-                ),
-
+                      ],
+                    )),
                 Expanded(
                     child: ListView.separated(
                         controller: _controller,
@@ -929,11 +937,13 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                                     Expanded(
                                       child: ElevatedButton(
                                         onPressed: () {
-
-                                          Navigator.push(context, MaterialPageRoute(
-                                                          builder: (context) => ShareNoteUser( noteId: widget.noteId)
-                                                          )
-                                                        );
+                                          Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      ShareNoteUser(
+                                                          noteId:
+                                                              widget.noteId)));
                                         },
                                         child: const Icon(
                                           Icons.share,
@@ -1029,57 +1039,63 @@ class NewNoteScreenState extends State<NewNoteScreen> {
             floatingActionButton: (isEditCompleted == false) ||
                     widget.isEdit == false
                 ? AvatarGlow(
-                    animate: MicroIsListening,
-                    duration: const Duration(milliseconds: 2000),
-                    glowColor: Colors.deepOrange,
+                    animate: _isListening,
+                    glowColor: Theme.of(context).primaryColor,
+                    duration: const Duration(microseconds: 2000),
                     repeat: true,
-                    child: GestureDetector(
-                      onTapDown: (details) async {
-                        var available = await speechToText.initialize();
-                        var vitri;
-                        if (available) {
-                          setState(() {
-                            MicroIsListening = true;
-                            speechToText.listen(onResult: (result) {
-                              setState(() {
-                                for (var i = 0; i < lstFocusNode.length; i++) {
-                                  if (lstFocusNode[i].hasFocus) {
-                                    vitri = i;
-                                    break;
-                                  }
-                                }
-                                if (result.finalResult) {
-                                  String doanvannoi = result.recognizedWords;
-                                  lstTxtController[vitri].text += doanvannoi;
-                                  if (vitri == 0) {
-                                    firsttxtfieldcont = doanvannoi;
-                                  }
-                                  MicroIsListening = false;
-                                }
-                              });
-                            });
-                          });
-                        }
+                    child: FloatingActionButton(
+                      onPressed: () {
+                        _listenVoice();
                       },
-
-                      onTapUp: (details) {
-                        setState(() {
-                          MicroIsListening = false;
-                        });
-                        speechToText.stop();
-                      },
-                      // child: FloatingActionButton(
-                      //   onPressed: (){},
-                      //   tooltip: 'Nhận diện giọng nói',
-                      //   elevation: _isVisible ? 0.0 : null,
-                      //   child: const Icon(Icons.mic),
-                      // ),
-                      child: const CircleAvatar(
-                        backgroundColor: Colors.brown,
-                        radius: 30,
-                        child: const Icon(Icons.mic, color: Colors.white),
-                      ),
+                      child: Icon(_isListening ? Icons.mic : Icons.mic_none),
                     ),
+                    // child: GestureDetector(
+                    //   onTapDown: (details) async {
+                    //     var available = await speechToText.initialize();
+                    //     var vitri;
+                    //     if (available) {
+                    //       setState(() {
+                    //         MicroIsListening = true;
+                    //         speechToText.listen(onResult: (result) {
+                    //           setState(() {
+                    //             for (var i = 0; i < lstFocusNode.length; i++) {
+                    //               if (lstFocusNode[i].hasFocus) {
+                    //                 vitri = i;
+                    //                 break;
+                    //               }
+                    //             }
+                    //             if (result.finalResult) {
+                    //               String doanvannoi = result.recognizedWords;
+                    //               lstTxtController[vitri].text += doanvannoi;
+                    //               if (vitri == 0) {
+                    //                 firsttxtfieldcont = doanvannoi;
+                    //               }
+                    //               MicroIsListening = false;
+                    //             }
+                    //           });
+                    //         });
+                    //       });
+                    //     }
+                    //   },
+                    //
+                    //   onTapUp: (details) {
+                    //     setState(() {
+                    //       MicroIsListening = false;
+                    //     });
+                    //     speechToText.stop();
+                    //   },
+                    //   // child: FloatingActionButton(
+                    //   //   onPressed: (){},
+                    //   //   tooltip: 'Nhận diện giọng nói',
+                    //   //   elevation: _isVisible ? 0.0 : null,
+                    //   //   child: const Icon(Icons.mic),
+                    //   // ),
+                    //    child: const CircleAvatar(
+              //                         backgroundColor: Colors.brown,
+              //                         radius: 30,
+              //                         child: const Icon(Icons.mic, color: Colors.white),
+              //                       ),
+                    // ),
                   )
                 : null,
             floatingActionButtonLocation: _fabLocation,
@@ -1124,7 +1140,9 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                       tooltip: 'Hẹn giờ thông báo',
                       color: Colors.white,
                       icon: const Icon(Icons.notifications_none_outlined),
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.pushNamed(context, RoutePaths.temp);
+                      },
                     ),
                     IconButton(
                       tooltip: 'Định dạng chữ',
@@ -1140,529 +1158,530 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                         size: 22,
                       ),
                       onPressed: () async {
-                        if(loginState){
+                        if (loginState) {
                           tag = await showDialog<TagReceive>(
-                            context: context, 
-                            barrierDismissible: false,
-                            builder: (BuildContext context) {
-                              return StatefulBuilder(
-                                builder: (context, setState) {
-                                  return Dialog(
-                                          child: Container(
-                                            margin: EdgeInsets.all(10),
-                                            child: Column(
-                                              children: [
-                                                const Center(
-                                                  child: Text("Chọn nhãn", style: TextStyle(fontSize: 18),),
-                                                ),
-                                                const SizedBox(height: 15,),
-                                                Expanded(
-                                                  flex: 0,
-                                                  child: TextField(
-                                                    style: const TextStyle(
-                                                      fontSize: 15,
-                                                    ),
-                                                    decoration: const InputDecoration(
-                                                        hintText: "Tìm kiếm nhãn...",
-                                                        prefixIcon: Icon(Icons.search),
-                                                        
-                                                    ),
-                                                    onChanged: (value) async {
-                                                      
-                                                      if(value == "") {
-                                                        await EasyLoading.show(
-                                                          status: "Đang tải danh sách nhãn của bạn...",
-                                                          maskType: EasyLoadingMaskType.none,
-                                                        );
-                                                        lsttags = await FireStorageService().getAllTags();
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (BuildContext context) {
+                                return StatefulBuilder(
+                                  builder: (context, setState) {
+                                    return Dialog(
+                                        child: Container(
+                                      margin: EdgeInsets.all(10),
+                                      child: Column(
+                                        children: [
+                                          const Center(
+                                            child: Text(
+                                              "Chọn nhãn",
+                                              style: TextStyle(fontSize: 18),
+                                            ),
+                                          ),
+                                          const SizedBox(
+                                            height: 15,
+                                          ),
+                                          Expanded(
+                                            flex: 0,
+                                            child: TextField(
+                                              style: const TextStyle(
+                                                fontSize: 15,
+                                              ),
+                                              decoration: const InputDecoration(
+                                                hintText: "Tìm kiếm nhãn...",
+                                                prefixIcon: Icon(Icons.search),
+                                              ),
+                                              onChanged: (value) async {
+                                                if (value == "") {
+                                                  await EasyLoading.show(
+                                                    status:
+                                                        "Đang tải danh sách nhãn của bạn...",
+                                                    maskType:
+                                                        EasyLoadingMaskType
+                                                            .none,
+                                                  );
+                                                  lsttags =
+                                                      await FireStorageService()
+                                                          .getAllTags();
 
-                                                        await EasyLoading.dismiss();
-                                                      }
-                                                      else{
-                                                        await EasyLoading.show(
-                                                          status: "Đang tìm kiếm...",
-                                                          maskType: EasyLoadingMaskType.none,
-                                                        );
-                                                        lsttags = lsttags.where((element) => element.tagname.toLowerCase().contains(value)).toList();
-                                                        await EasyLoading.dismiss();
-                                                      }
+                                                  await EasyLoading.dismiss();
+                                                } else {
+                                                  await EasyLoading.show(
+                                                    status: "Đang tìm kiếm...",
+                                                    maskType:
+                                                        EasyLoadingMaskType
+                                                            .none,
+                                                  );
+                                                  lsttags = lsttags
+                                                      .where((element) =>
+                                                          element.tagname
+                                                              .toLowerCase()
+                                                              .contains(value))
+                                                      .toList();
+                                                  await EasyLoading.dismiss();
+                                                }
 
-                                                      setState(() {
-                                                          
-                                                      });
-                                                    },
-                                                  ),
-                                                ),
-                                          
-                                                Expanded(
-                                                  flex: 5,
-                                                  child: ListView.builder(
-                                                    itemBuilder: (context, index) {
-                                                      return Container(
-                                                              padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                                                              child: ListTile(
-                                                                        leading: Icon(
-                                                                          Icons.turned_in_outlined,
-                                                                          color: Color.fromARGB(255, 251, 178, 37),
-                                                                          size: 22,
-                                                                        ),
-                                                                        trailing: Icon(
-                                                                          Icons.trip_origin,
-                                                                          color: Colors.grey,
-                                                                          size: 22,
-                                                                        ),
-                                                                        title: Text(lsttags[index].tagname, style: TextStyle(fontSize: 18),),
-                                                                        onTap: (){
-                                                                          Navigator.of(context).pop(lsttags[index]);
-                                                                        },
-                                                              ),
-                                                            );
-                                                    }, 
-                                                    itemCount: lsttags.length
-                                                  ),
-                                                ),
-
-                                                Expanded(
-                                                  flex: 0,
-                                                  child: Container(
-                                                        width: 300,
-                                                        child: ElevatedButton.icon(
-                                                          onPressed: (){
-                                                            Navigator.of(context).pop(null);
-                                                          },
-                                                          icon: Icon(
-                                                            Icons.close,
-                                                            size: 20,
-                                                            color: Color.fromARGB(255, 97, 115, 239)
-                                                          ),
-                                                          style: ElevatedButton.styleFrom(
-                                                            shape: const StadiumBorder(),
-                                                            backgroundColor: Colors.transparent,
-                                                            shadowColor: Colors.transparent.withOpacity(0.1),
-                                                            elevation: 0,
-                                                            side: const BorderSide(
-                                                              width: 1.0,
-                                                              color: Color.fromARGB(255, 97, 115, 239),
-                                                            ),
-                                                          ),
-                                                          label: Text("Gỡ nhãn", style: TextStyle(color: Color.fromARGB(255, 97, 115, 239)))
-                                                        ),
+                                                setState(() {});
+                                              },
+                                            ),
+                                          ),
+                                          Expanded(
+                                            flex: 5,
+                                            child: ListView.builder(
+                                                itemBuilder: (context, index) {
+                                                  return Container(
+                                                    padding:
+                                                        EdgeInsets.fromLTRB(
+                                                            10, 0, 10, 0),
+                                                    child: ListTile(
+                                                      leading: Icon(
+                                                        Icons
+                                                            .turned_in_outlined,
+                                                        color: Color.fromARGB(
+                                                            255, 251, 178, 37),
+                                                        size: 22,
                                                       ),
-                                                ),
-
-                                                Expanded(
-                                                  flex: 0,
-                                                  child: isCreatedNewTag ? 
-                                                        ListTile(
-                                                            leading: IconButton(
-                                                              icon: Icon(
-                                                                Icons.close,
-                                                                size: 20,
-                                                                color: Colors.red,
-                                                              ),
-                                                              onPressed: (){
-                                                                isCreatedNewTag = false;
-                                                                setState(() {
-                                                                  
-                                                                });
-                                                              },
-                                                            ),
-                                                            trailing: IconButton(
-                                                              onPressed: () async {
-                                                                createTag();
-
-                                                                setState(() {
-                                                                    
-                                                                });
-                                                              }, 
-                                                              icon: Icon(
-                                                                Icons.check,
-                                                                size: 20,
-                                                                color: Colors.green
-                                                              )
-                                                            ),
-
-                                                            title: Container(
-                                                              width: 200,
-                                                              child: TextField(
-                                                                controller: _tagnamecontroller,
-                                                                style: const TextStyle(
-                                                                  fontSize: 18,
-                                                                )
-                                                              ),
-                                                            ),
-                                                          )
-
-                                                      :
-
-                                                      Container(
-                                                        width: 300,
-                                                        child: ElevatedButton.icon(
-                                                          onPressed: (){
-                                                            isCreatedNewTag = true;
-                                                            setState(() {
-                                                              
-                                                            });
-                                                          },
-                                                          icon: Icon(
-                                                            Icons.add,
-                                                            size: 20,
-                                                            color: Color.fromARGB(255, 97, 115, 239)
-                                                          ),
-                                                          style: ElevatedButton.styleFrom(
-                                                            shape: const StadiumBorder(),
-                                                            backgroundColor: Colors.transparent,
-                                                            shadowColor: Colors.transparent.withOpacity(0.1),
-                                                            elevation: 0,
-                                                            side: const BorderSide(
-                                                              width: 1.0,
-                                                              color: Color.fromARGB(255, 97, 115, 239),
-                                                            ),
-                                                          ),
-                                                          label: Text("Tạo nhãn mới", style: TextStyle(color: Color.fromARGB(255, 97, 115, 239)))
-                                                        ),
+                                                      trailing: Icon(
+                                                        Icons.trip_origin,
+                                                        color: Colors.grey,
+                                                        size: 22,
                                                       ),
-                                                ),
-                                          
-                                                Expanded(
-                                                  flex: 0,
-                                                  child: Container(
-                                                    width: 300,
-                                                    child: ElevatedButton(
-                                                      onPressed: (){
+                                                      title: Text(
+                                                        lsttags[index].tagname,
+                                                        style: TextStyle(
+                                                            fontSize: 18),
+                                                      ),
+                                                      onTap: () {
+                                                        Navigator.of(context)
+                                                            .pop(
+                                                                lsttags[index]);
+                                                      },
+                                                    ),
+                                                  );
+                                                },
+                                                itemCount: lsttags.length),
+                                          ),
+                                          Expanded(
+                                            flex: 0,
+                                            child: Container(
+                                              width: 300,
+                                              child: ElevatedButton.icon(
+                                                  onPressed: () {
+                                                    Navigator.of(context)
+                                                        .pop(null);
+                                                  },
+                                                  icon: Icon(Icons.close,
+                                                      size: 20,
+                                                      color: Color.fromARGB(
+                                                          255, 97, 115, 239)),
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    shape:
+                                                        const StadiumBorder(),
+                                                    backgroundColor:
+                                                        Colors.transparent,
+                                                    shadowColor: Colors
+                                                        .transparent
+                                                        .withOpacity(0.1),
+                                                    elevation: 0,
+                                                    side: const BorderSide(
+                                                      width: 1.0,
+                                                      color: Color.fromARGB(
+                                                          255, 97, 115, 239),
+                                                    ),
+                                                  ),
+                                                  label: Text("Gỡ nhãn",
+                                                      style: TextStyle(
+                                                          color: Color.fromARGB(
+                                                              255,
+                                                              97,
+                                                              115,
+                                                              239)))),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            flex: 0,
+                                            child: isCreatedNewTag
+                                                ? ListTile(
+                                                    leading: IconButton(
+                                                      icon: Icon(
+                                                        Icons.close,
+                                                        size: 20,
+                                                        color: Colors.red,
+                                                      ),
+                                                      onPressed: () {
                                                         isCreatedNewTag = false;
-                                                        Navigator.of(context).pop(tag);
-                                                      }, 
-                                                      style: ElevatedButton.styleFrom(
-                                                        shape: const StadiumBorder(),
-                                                        backgroundColor: Color.fromARGB(255, 97, 115, 239),
-                                                        side: const BorderSide(
-                                                          width: 1.0,
-                                                          color: Colors.grey,
+                                                        setState(() {});
+                                                      },
+                                                    ),
+                                                    trailing: IconButton(
+                                                        onPressed: () async {
+                                                          createTag();
+
+                                                          setState(() {});
+                                                        },
+                                                        icon: Icon(Icons.check,
+                                                            size: 20,
+                                                            color:
+                                                                Colors.green)),
+                                                    title: Container(
+                                                      width: 200,
+                                                      child: TextField(
+                                                          controller:
+                                                              _tagnamecontroller,
+                                                          style:
+                                                              const TextStyle(
+                                                            fontSize: 18,
+                                                          )),
+                                                    ),
+                                                  )
+                                                : Container(
+                                                    width: 300,
+                                                    child: ElevatedButton.icon(
+                                                        onPressed: () {
+                                                          isCreatedNewTag =
+                                                              true;
+                                                          setState(() {});
+                                                        },
+                                                        icon: Icon(Icons.add,
+                                                            size: 20,
+                                                            color:
+                                                                Color.fromARGB(
+                                                                    255,
+                                                                    97,
+                                                                    115,
+                                                                    239)),
+                                                        style: ElevatedButton
+                                                            .styleFrom(
+                                                          shape:
+                                                              const StadiumBorder(),
+                                                          backgroundColor:
+                                                              Colors
+                                                                  .transparent,
+                                                          shadowColor: Colors
+                                                              .transparent
+                                                              .withOpacity(0.1),
+                                                          elevation: 0,
+                                                          side:
+                                                              const BorderSide(
+                                                            width: 1.0,
+                                                            color:
+                                                                Color.fromARGB(
+                                                                    255,
+                                                                    97,
+                                                                    115,
+                                                                    239),
+                                                          ),
                                                         ),
-                                                      ),
-                                                      child: Text("HUỶ")
+                                                        label: Text(
+                                                            "Tạo nhãn mới",
+                                                            style: TextStyle(
+                                                                color: Color
+                                                                    .fromARGB(
+                                                                        255,
+                                                                        97,
+                                                                        115,
+                                                                        239)))),
+                                                  ),
+                                          ),
+                                          Expanded(
+                                            flex: 0,
+                                            child: Container(
+                                              width: 300,
+                                              child: ElevatedButton(
+                                                  onPressed: () {
+                                                    isCreatedNewTag = false;
+                                                    Navigator.of(context)
+                                                        .pop(tag);
+                                                  },
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    shape:
+                                                        const StadiumBorder(),
+                                                    backgroundColor:
+                                                        Color.fromARGB(
+                                                            255, 97, 115, 239),
+                                                    side: const BorderSide(
+                                                      width: 1.0,
+                                                      color: Colors.grey,
                                                     ),
                                                   ),
-                                                )
-                                              ],
+                                                  child: Text("HUỶ")),
                                             ),
                                           )
-                                        );
-                                },
-                              );
-                            }
-                          );
-                        }
-                        else {
+                                        ],
+                                      ),
+                                    ));
+                                  },
+                                );
+                              });
+                        } else {
                           taglocal = await showDialog<TagModel>(
-                            context: context, 
-                            barrierDismissible: false,
-                            builder: (BuildContext context) {
-                              return StatefulBuilder(
-                                builder: (context, setState) {
-                                  return Dialog(
-                                          child: Container(
-                                            margin: EdgeInsets.all(10),
-                                            child: Column(
-                                              children: [
-                                                const Center(
-                                                  child: Text("Chọn nhãn", style: TextStyle(fontSize: 18),),
-                                                ),
-                                                const SizedBox(height: 15,),
-                                                Expanded(
-                                                  flex: 0,
-                                                  child: TextField(
-                                                    style: const TextStyle(
-                                                      fontSize: 15,
-                                                    ),
-                                                    decoration: const InputDecoration(
-                                                        hintText: "Tìm kiếm nhãn...",
-                                                        prefixIcon: Icon(Icons.search),
-                                                        
-                                                    ),
-                                                    onChanged: (value) async {
-                                                      
-                                                      if(value == "") {
-                                                        await EasyLoading.show(
-                                                          status: "Đang tải danh sách nhãn của bạn...",
-                                                          maskType: EasyLoadingMaskType.none,
-                                                        );
-                                                        lsttagslocal = await tagDAL.getAllTagsByUserID(-1, InitDataBase.db);
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (BuildContext context) {
+                                return StatefulBuilder(
+                                  builder: (context, setState) {
+                                    return Dialog(
+                                        child: Container(
+                                      margin: EdgeInsets.all(10),
+                                      child: Column(
+                                        children: [
+                                          const Center(
+                                            child: Text(
+                                              "Chọn nhãn",
+                                              style: TextStyle(fontSize: 18),
+                                            ),
+                                          ),
+                                          const SizedBox(
+                                            height: 15,
+                                          ),
+                                          Expanded(
+                                            flex: 0,
+                                            child: TextField(
+                                              style: const TextStyle(
+                                                fontSize: 15,
+                                              ),
+                                              decoration: const InputDecoration(
+                                                hintText: "Tìm kiếm nhãn...",
+                                                prefixIcon: Icon(Icons.search),
+                                              ),
+                                              onChanged: (value) async {
+                                                if (value == "") {
+                                                  await EasyLoading.show(
+                                                    status:
+                                                        "Đang tải danh sách nhãn của bạn...",
+                                                    maskType:
+                                                        EasyLoadingMaskType
+                                                            .none,
+                                                  );
+                                                  lsttagslocal = await tagDAL
+                                                      .getAllTagsByUserID(
+                                                          -1, InitDataBase.db);
 
-                                                        await EasyLoading.dismiss();
-                                                      }
-                                                      else{
-                                                        await EasyLoading.show(
-                                                          status: "Đang tìm kiếm...",
-                                                          maskType: EasyLoadingMaskType.none,
-                                                        );
-                                                        lsttagslocal = lsttagslocal.where((element) => element.tag_name.toLowerCase().contains(value)).toList();
+                                                  await EasyLoading.dismiss();
+                                                } else {
+                                                  await EasyLoading.show(
+                                                    status: "Đang tìm kiếm...",
+                                                    maskType:
+                                                        EasyLoadingMaskType
+                                                            .none,
+                                                  );
+                                                  lsttagslocal = lsttagslocal
+                                                      .where((element) =>
+                                                          element.tag_name
+                                                              .toLowerCase()
+                                                              .contains(value))
+                                                      .toList();
 
-                                                        await EasyLoading.dismiss();
-                                                      }
+                                                  await EasyLoading.dismiss();
+                                                }
 
-                                                      setState(() {
-                                                          
-                                                      });
-                                                    },
-                                                  ),
-                                                ),
-                                          
-                                                Expanded(
-                                                  flex: 5,
-                                                  child: ListView.builder(
-                                                    itemBuilder: (context, index) {
-                                                      return Container(
-                                                              padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                                                              child: ListTile(
-                                                                        leading: Icon(
-                                                                          Icons.turned_in_outlined,
-                                                                          color: Color.fromARGB(255, 251, 178, 37),
-                                                                          size: 22,
-                                                                        ),
-                                                                        trailing: Icon(
-                                                                          Icons.trip_origin,
-                                                                          color: Colors.grey,
-                                                                          size: 22,
-                                                                        ),
-                                                                        title: Text(lsttagslocal[index].tag_name, style: TextStyle(fontSize: 18),),
-                                                                        onTap: (){
-                                                                          Navigator.of(context).pop(lsttagslocal[index]);
-                                                                        },
-                                                              ),
-                                                            );
-                                                    }, 
-                                                    itemCount: lsttagslocal.length
-                                                  ),
-                                                ),
-
-                                                Expanded(
-                                                  flex: 0,
-                                                  child: Container(
-                                                        width: 300,
-                                                        child: ElevatedButton.icon(
-                                                          onPressed: (){
-                                                            Navigator.of(context).pop(null);
-                                                          },
-                                                          icon: Icon(
-                                                            Icons.close,
-                                                            size: 20,
-                                                            color: Color.fromARGB(255, 97, 115, 239)
-                                                          ),
-                                                          style: ElevatedButton.styleFrom(
-                                                            shape: const StadiumBorder(),
-                                                            backgroundColor: Colors.transparent,
-                                                            shadowColor: Colors.transparent.withOpacity(0.1),
-                                                            elevation: 0,
-                                                            side: const BorderSide(
-                                                              width: 1.0,
-                                                              color: Color.fromARGB(255, 97, 115, 239),
-                                                            ),
-                                                          ),
-                                                          label: Text("Gỡ nhãn", style: TextStyle(color: Color.fromARGB(255, 97, 115, 239)))
-                                                        ),
+                                                setState(() {});
+                                              },
+                                            ),
+                                          ),
+                                          Expanded(
+                                            flex: 5,
+                                            child: ListView.builder(
+                                                itemBuilder: (context, index) {
+                                                  return Container(
+                                                    padding:
+                                                        EdgeInsets.fromLTRB(
+                                                            10, 0, 10, 0),
+                                                    child: ListTile(
+                                                      leading: Icon(
+                                                        Icons
+                                                            .turned_in_outlined,
+                                                        color: Color.fromARGB(
+                                                            255, 251, 178, 37),
+                                                        size: 22,
                                                       ),
-                                                ),
-
-                                                Expanded(
-                                                  flex: 0,
-                                                  child: isCreatedNewTag ? 
-                                                        ListTile(
-                                                            leading: IconButton(
-                                                              icon: Icon(
-                                                                Icons.close,
-                                                                size: 20,
-                                                                color: Colors.red,
-                                                              ),
-                                                              onPressed: (){
-                                                                isCreatedNewTag = false;
-                                                                setState(() {
-                                                                  
-                                                                });
-                                                              },
-                                                            ),
-                                                            trailing: IconButton(
-                                                              onPressed: () async {
-                                                                
-                                                                createTagAtLocal();
-                                                                
-                                                                lsttagslocal = await tagDAL.getAllTagsByUserID(-1, InitDataBase.db);
-
-                                                                setState(() {
-                                                                    
-                                                                });
-                                                              }, 
-                                                              icon: Icon(
-                                                                Icons.check,
-                                                                size: 20,
-                                                                color: Colors.green
-                                                              )
-                                                            ),
-
-                                                            title: Container(
-                                                              width: 200,
-                                                              child: TextField(
-                                                                controller: _tagnamecontroller,
-                                                                style: const TextStyle(
-                                                                  fontSize: 18,
-                                                                )
-                                                              ),
-                                                            ),
-                                                          )
-
-                                                      :
-
-                                                      Container(
-                                                        width: 300,
-                                                        child: ElevatedButton.icon(
-                                                          onPressed: (){
-                                                            isCreatedNewTag = true;
-                                                            setState(() {
-                                                              
-                                                            });
-                                                          },
-                                                          icon: Icon(
-                                                            Icons.add,
-                                                            size: 20,
-                                                            color: Color.fromARGB(255, 97, 115, 239)
-                                                          ),
-                                                          style: ElevatedButton.styleFrom(
-                                                            shape: const StadiumBorder(),
-                                                            backgroundColor: Colors.transparent,
-                                                            shadowColor: Colors.transparent.withOpacity(0.1),
-                                                            elevation: 0,
-                                                            side: const BorderSide(
-                                                              width: 1.0,
-                                                              color: Color.fromARGB(255, 97, 115, 239),
-                                                            ),
-                                                          ),
-                                                          label: Text("Tạo nhãn mới", style: TextStyle(color: Color.fromARGB(255, 97, 115, 239)))
-                                                        ),
+                                                      trailing: Icon(
+                                                        Icons.trip_origin,
+                                                        color: Colors.grey,
+                                                        size: 22,
                                                       ),
-                                                ),
-                                          
-                                                Expanded(
-                                                  flex: 0,
-                                                  child: Container(
-                                                    width: 300,
-                                                    child: ElevatedButton(
-                                                      onPressed: (){
+                                                      title: Text(
+                                                        lsttagslocal[index]
+                                                            .tag_name,
+                                                        style: TextStyle(
+                                                            fontSize: 18),
+                                                      ),
+                                                      onTap: () {
+                                                        Navigator.of(context)
+                                                            .pop(lsttagslocal[
+                                                                index]);
+                                                      },
+                                                    ),
+                                                  );
+                                                },
+                                                itemCount: lsttagslocal.length),
+                                          ),
+                                          Expanded(
+                                            flex: 0,
+                                            child: Container(
+                                              width: 300,
+                                              child: ElevatedButton.icon(
+                                                  onPressed: () {
+                                                    Navigator.of(context)
+                                                        .pop(null);
+                                                  },
+                                                  icon: Icon(Icons.close,
+                                                      size: 20,
+                                                      color: Color.fromARGB(
+                                                          255, 97, 115, 239)),
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    shape:
+                                                        const StadiumBorder(),
+                                                    backgroundColor:
+                                                        Colors.transparent,
+                                                    shadowColor: Colors
+                                                        .transparent
+                                                        .withOpacity(0.1),
+                                                    elevation: 0,
+                                                    side: const BorderSide(
+                                                      width: 1.0,
+                                                      color: Color.fromARGB(
+                                                          255, 97, 115, 239),
+                                                    ),
+                                                  ),
+                                                  label: Text("Gỡ nhãn",
+                                                      style: TextStyle(
+                                                          color: Color.fromARGB(
+                                                              255,
+                                                              97,
+                                                              115,
+                                                              239)))),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            flex: 0,
+                                            child: isCreatedNewTag
+                                                ? ListTile(
+                                                    leading: IconButton(
+                                                      icon: Icon(
+                                                        Icons.close,
+                                                        size: 20,
+                                                        color: Colors.red,
+                                                      ),
+                                                      onPressed: () {
                                                         isCreatedNewTag = false;
-                                                        Navigator.of(context).pop(taglocal);
-                                                      }, 
-                                                      style: ElevatedButton.styleFrom(
-                                                        shape: const StadiumBorder(),
-                                                        backgroundColor: Color.fromARGB(255, 97, 115, 239),
-                                                        side: const BorderSide(
-                                                          width: 1.0,
-                                                          color: Colors.grey,
+                                                        setState(() {});
+                                                      },
+                                                    ),
+                                                    trailing: IconButton(
+                                                        onPressed: () async {
+                                                          createTagAtLocal();
+
+                                                          lsttagslocal = await tagDAL
+                                                              .getAllTagsByUserID(
+                                                                  -1,
+                                                                  InitDataBase
+                                                                      .db);
+
+                                                          setState(() {});
+                                                        },
+                                                        icon: Icon(Icons.check,
+                                                            size: 20,
+                                                            color:
+                                                                Colors.green)),
+                                                    title: Container(
+                                                      width: 200,
+                                                      child: TextField(
+                                                          controller:
+                                                              _tagnamecontroller,
+                                                          style:
+                                                              const TextStyle(
+                                                            fontSize: 18,
+                                                          )),
+                                                    ),
+                                                  )
+                                                : Container(
+                                                    width: 300,
+                                                    child: ElevatedButton.icon(
+                                                        onPressed: () {
+                                                          isCreatedNewTag =
+                                                              true;
+                                                          setState(() {});
+                                                        },
+                                                        icon: Icon(Icons.add,
+                                                            size: 20,
+                                                            color:
+                                                                Color.fromARGB(
+                                                                    255,
+                                                                    97,
+                                                                    115,
+                                                                    239)),
+                                                        style: ElevatedButton
+                                                            .styleFrom(
+                                                          shape:
+                                                              const StadiumBorder(),
+                                                          backgroundColor:
+                                                              Colors
+                                                                  .transparent,
+                                                          shadowColor: Colors
+                                                              .transparent
+                                                              .withOpacity(0.1),
+                                                          elevation: 0,
+                                                          side:
+                                                              const BorderSide(
+                                                            width: 1.0,
+                                                            color:
+                                                                Color.fromARGB(
+                                                                    255,
+                                                                    97,
+                                                                    115,
+                                                                    239),
+                                                          ),
                                                         ),
-                                                      ),
-                                                      child: Text("HUỶ")
+                                                        label: Text(
+                                                            "Tạo nhãn mới",
+                                                            style: TextStyle(
+                                                                color: Color
+                                                                    .fromARGB(
+                                                                        255,
+                                                                        97,
+                                                                        115,
+                                                                        239)))),
+                                                  ),
+                                          ),
+                                          Expanded(
+                                            flex: 0,
+                                            child: Container(
+                                              width: 300,
+                                              child: ElevatedButton(
+                                                  onPressed: () {
+                                                    isCreatedNewTag = false;
+                                                    Navigator.of(context)
+                                                        .pop(taglocal);
+                                                  },
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    shape:
+                                                        const StadiumBorder(),
+                                                    backgroundColor:
+                                                        Color.fromARGB(
+                                                            255, 97, 115, 239),
+                                                    side: const BorderSide(
+                                                      width: 1.0,
+                                                      color: Colors.grey,
                                                     ),
                                                   ),
-                                                )
-                                              ],
+                                                  child: Text("HUỶ")),
                                             ),
                                           )
-                                        );
-                                },
-                              );
-                            }
-                          );
-
+                                        ],
+                                      ),
+                                    ));
+                                  },
+                                );
+                              });
                         }
-                        setState(() {
-                            
-                        });
-                          // SelectDialog.showModal<TagReceive>(
-                          //   context,
-                          //   label: "Thêm nhãn",
-                          //   alwaysShowScrollBar: true,
-                          //   showSearchBox: true,
-                          //   searchBoxDecoration: InputDecoration(hintText: "Tìm kiếm nhãn..."),
-                          //   items: lsttags,
-                          //   selectedValue: tag,
-                          //   onFind: (text){
-                          //     if(text == "") return FireStorageService().getAllTagsForDialog();
-                          //     return searchTags(text);
-                          //   },
-                          //   itemBuilder: (BuildContext context, TagReceive item, bool isSelected){
-                          //     if(item.tagname == ""){
-                          //       // return Container(
-                          //       //   decoration: !isSelected
-                          //       //     ? null
-                          //       //     : BoxDecoration(  
-                          //       //         borderRadius: BorderRadius.circular(5),
-                          //       //         color: Colors.white,
-                          //       //         border: Border.all(color: Theme.of(context).primaryColor),
-                          //       //       ),
-                          //       //   child: ListTile(
-                          //       //     leading: Icon(
-                          //       //       Icons.close,
-                          //       //       color: Color.fromARGB(255, 54, 137, 219),
-                          //       //       size: 20,
-                          //       //     ),
-                          //       //     trailing: IconButton(
-                          //       //       icon: Icon(
-                          //       //         Icons.check,
-                          //       //         color: Color.fromARGB(255, 54, 137, 219),
-                          //       //         size: 20,
-                          //       //       ),
-                          //       //       onPressed: () async {
-                          //       //         if(_tagnamecontroller.text.isNotEmpty){
-                          //       //           Tag t = Tag();
-                          //       //           t.tagname = _tagnamecontroller.text;
-                          //       //           await FireStorageService().saveTags(t);
+                        setState(() {});
 
-                          //       //           lsttags = await FireStorageService().getAllTags();
 
-                          //       //           setState(() {
-                                            
-                          //       //           });
-                          //       //         }
-                          //       //       },
-                          //       //     ),
 
-                          //       //     selected: isSelected,
-                          //       //     title: TextField(
-                          //       //       controller: _tagnamecontroller,
-                          //       //       style: const TextStyle(
-                          //       //         fontSize: 18,
-                          //       //       )
-                          //       //     ),
-                          //       //   ),
-                          //       // );
-                          //     }
 
-                          //     return Container(
-                          //       decoration: !isSelected
-                          //         ? null
-                          //         : BoxDecoration(  
-                          //             borderRadius: BorderRadius.circular(5),
-                          //             color: Colors.white,
-                          //             border: Border.all(color: Theme.of(context).primaryColor),
-                          //           ),
-                          //       child: ListTile(
-                          //         leading: Icon(
-                          //           Icons.turned_in_outlined,
-                          //           color: Color.fromARGB(255, 251, 178, 37),
-                          //           size: 22,
-                          //         ),
-                          //         selected: isSelected,
-                          //         title: Text(item.tagname, style: TextStyle(fontSize: 18),),
-                          //       ),
-                          //     );
-                          //   },
-                          //   onChange: (TagReceive selected) {
-                          //     setState(() {
-                          //       tag = selected;
-                          //     });
-                          //   },
-                            
-                          //);
-                        //Navigator.of(context).pushNamed(RoutePaths.test);
                       },
                     ),
                   ],
@@ -1670,20 +1689,45 @@ class NewNoteScreenState extends State<NewNoteScreen> {
               ),
             ))
 
-        //  child: Column(
-        //   children: <Widget>[
 
-        //     Expanded(
-        //       child: ListView(
-        //         controller: _controller,
-        //         children: items.toList(),
-        //       ),
-        //     ),
-        //   ],
-        // ),
         );
+  }
+
+  void _listenVoice() async {
+
+    if (!_isListening) {
+      bool available = await _speech.initialize(
+        onStatus: (value) => print('onStatus: $value'),
+        onError: (value) => print('onError: $value'),
+      );
 
 
+      if (available) {
+        setState(() => _isListening = true);
+        _speech.listen(
+            onResult: (value) => setState(() {
+              int vitri = 0;
+              for (var i = 0; i < lstFocusNode.length; i++) {
+                              if (lstFocusNode[i].hasFocus) {
+                                vitri = i;
+                                break;
+                              }
+                            }
+
+              lstTxtController[vitri].text = value.recognizedWords;
+              if(vitri == 0) {
+                firsttxtfieldcont = value.recognizedWords;
+              }
+
+                  if (value.hasConfidenceRating && value.confidence > 0) {
+                    _confidence = value.confidence;
+                  }
+                }));
+      }
+    } else {
+      setState(() => _isListening = false);
+      _speech.stop();
+    }
   }
 
   Future<void> getTagsByID() async {
@@ -1716,40 +1760,38 @@ class NewNoteScreenState extends State<NewNoteScreen> {
 
       tag!.tagname = note.tagname;
 
-        currentDateTime = note.timeStamp;
-        for (int i = 0; i < note.content.length; i++) {
-          Map<String, dynamic> temp = note.content[i];
-          if(temp.containsKey('local_image')){
-            bool exists = await File(temp["local_image"]).exists();
-            if(exists){
-               noteContentList.add(File(temp['local_image']));
-            }
-          }
-
-          if (temp.containsKey('text')) {
-            TextEditingController controller = TextEditingController();
-            FocusNode fcnode = FocusNode();
-
-            controller.text = temp['text'];
-            noteContentList.add(textFieldWidget(controller, fcnode));
+      currentDateTime = note.timeStamp;
+      for (int i = 0; i < note.content.length; i++) {
+        Map<String, dynamic> temp = note.content[i];
+        if (temp.containsKey('local_image')) {
+          bool exists = await File(temp["local_image"]).exists();
+          if (exists) {
+            noteContentList.add(File(temp['local_image']));
           }
         }
-        // if(temp.containsKey('image')){
-        //   if(temp['image'] == ""){
-        //     if(isConnected){
-        //       String urlImageCloud = await StorageService().uploadImage(File(note.content[i-1]["local_image"]));
-        //       note.content[i]['image'] = urlImageCloud;
-        //     }
-        //   }
-        // }
+
+        if (temp.containsKey('text')) {
+          TextEditingController controller = TextEditingController();
+          FocusNode fcnode = FocusNode();
+
+          controller.text = temp['text'];
+          noteContentList.add(textFieldWidget(controller, fcnode));
+        }
       }
+      // if(temp.containsKey('image')){
+      //   if(temp['image'] == ""){
+      //     if(isConnected){
+      //       String urlImageCloud = await StorageService().uploadImage(File(note.content[i-1]["local_image"]));
+      //       note.content[i]['image'] = urlImageCloud;
+      //     }
+      //   }
+      // }
+    }
 
-      await FireStorageService().updateCloudImageURL(id, note.content);
-      setState(() {
-        
-      });
+    await FireStorageService().updateCloudImageURL(id, note.content);
+    setState(() {});
 
-      await EasyLoading.dismiss();
+    await EasyLoading.dismiss();
   }
 
   Future<void> updateNote() async {
@@ -1779,7 +1821,9 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     noteContent.timeStamp = currentDateTime; //Chỉnh thành ngày update
     noteContent.title = NoteTitle;
     noteContent.content = imageText;
-    noteContent.tagname = tag == null || tag!.tagname == ""  ? "" : tag!.tagname;                     //////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
+    noteContent.tagname = tag == null || tag!.tagname == ""
+        ? ""
+        : tag!.tagname; //////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
     //////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
     /////////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
 
@@ -1813,7 +1857,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
   }
 
   Future<void> createTag() async {
-    if(_tagnamecontroller.text.isNotEmpty){
+    if (_tagnamecontroller.text.isNotEmpty) {
       await EasyLoading.show(
         status: "Đang tạo nhãn mới...",
         maskType: EasyLoadingMaskType.none,
@@ -1822,7 +1866,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
       Tag t = Tag();
       t.tagname = _tagnamecontroller.text;
       FireStorageService().saveTags(t);
-                                                  
+
       lsttags = await FireStorageService().getAllTags();
 
       await EasyLoading.dismiss();
@@ -1830,31 +1874,26 @@ class NewNoteScreenState extends State<NewNoteScreen> {
       isCreatedNewTag = false;
 
       _tagnamecontroller.text = "";
-                                                                
     }
   }
 
   Future<void> createTagAtLocal() async {
-    if(_tagnamecontroller.text.isNotEmpty){
-      
-
+    if (_tagnamecontroller.text.isNotEmpty) {
       TagModel tagmodel = TagModel(tag_name: _tagnamecontroller.text);
-      
+
       bool checkinsert = await tagDAL.insertTag(tagmodel, -1, InitDataBase.db);
-      
-      checkinsert ? debugPrint("Tao nhan thanh cong!") : debugPrint("Tao nhan that bai, xay ra loi!");
-                                                  
-      
+
+      checkinsert
+          ? debugPrint("Tao nhan thanh cong!")
+          : debugPrint("Tao nhan that bai, xay ra loi!");
 
       _tagnamecontroller.text = "";
 
       await EasyLoading.dismiss();
 
       isCreatedNewTag = false;
-                                                                
     }
   }
-
 
   checkLogin() {
     FirebaseAuth.instance.authStateChanges().listen((User? user) {
@@ -1866,6 +1905,3 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     });
   }
 }
-
-  
-
