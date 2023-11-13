@@ -3,11 +3,13 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:avatar_glow/avatar_glow.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 //import 'package:flutter_quill/flutter_quill.dart' hide Text;
 import 'package:intl/intl.dart';
@@ -64,6 +66,10 @@ class ShowShareNote extends StatefulWidget {
 
 class ShowShareNoteState extends State<ShowShareNote> {
   late BuildContext appcontext;
+
+  late stt.SpeechToText _speech;
+  bool _isListening = false;
+  double _confidence = 1.0;
   List<String> rules = ['Chỉ xem', 'Chỉnh sửa'];
   File? _image;
 
@@ -117,9 +123,9 @@ class ShowShareNoteState extends State<ShowShareNote> {
   int vitrihinh = 0;
 
   late String NoteTitle = '';
-  late String currentDateTime;
+  late Timestamp currentDateTime;
+  late String currentDateTimeShow;
   late String firsttxtfieldcont;
-  
 
   FloatingActionButtonLocation get _fabLocation => _isVisible
       ? FloatingActionButtonLocation.centerDocked
@@ -186,8 +192,16 @@ class ShowShareNoteState extends State<ShowShareNote> {
     taglocal = TagModel(tag_name: "");
 
     initializeDateFormatting();
-    DateTime now = DateTime.now();
-    currentDateTime = DateFormat.yMd('vi_VN').add_jm().format(now);
+    DateTime dateTime = DateTime.now();
+
+    String day = dateTime.day.toString();
+    String month = dateTime.month.toString();
+    String year = dateTime.year.toString();
+    String hour = dateTime.hour.toString().padLeft(2, '0');
+    String minute = dateTime.minute.toString().padLeft(2, '0');
+
+    currentDateTimeShow = '$day/$month/$year $hour:$minute';
+    currentDateTime = Timestamp.fromDate(dateTime);
 
     EasyLoading.instance
       ..indicatorType = EasyLoadingIndicatorType.chasingDots
@@ -196,11 +210,9 @@ class ShowShareNoteState extends State<ShowShareNote> {
     checkLogin();
     CheckInternetConnection();
 
-
     if (widget.isEdit && widget.email != "") {
       var temp = int.tryParse(widget.noteId);
       if (temp != null) {
-
       } else {
         getNoteById(widget.noteId);
       }
@@ -318,7 +330,6 @@ class ShowShareNoteState extends State<ShowShareNote> {
     return result ?? false;
   }
 
-
   Future<void> uploadNoteToCloud() async {
     // showDialog(
     //     context: appcontext,
@@ -354,7 +365,8 @@ class ShowShareNoteState extends State<ShowShareNote> {
 
     //Navigator.pop(appcontext);
 
-    String noteid = await FireStorageService().saveContentNotesForShare(noteContent, widget.email);
+    String noteid = await FireStorageService()
+        .saveContentNotesForShare(noteContent, widget.email);
 
     if (isConnected) {
       for (int i = 0; i < SaveNoteContentList.length; i++) {
@@ -365,98 +377,101 @@ class ShowShareNoteState extends State<ShowShareNote> {
         }
       }
 
-      await FireStorageService().updateCloudImageURLForShare(noteid, CloudContents, widget.email);
+      await FireStorageService()
+          .updateCloudImageURLForShare(noteid, CloudContents, widget.email);
     }
   }
-
-
 
   Widget buildImageWidget(BuildContext context, int index) {
     Widget imageWidget = Stack(children: [
       noteContentList[index] is String
           ? Transform.scale(
-            scale: 1,
-            child: Image.network(
+              scale: 1,
+              child: Image.network(
                 noteContentList[index],
                 fit: BoxFit.cover,
               ),
-          )
+            )
           : Transform.scale(
-            scale: 1,
-            child: Image.file(
+              scale: 1,
+              child: Image.file(
                 noteContentList[index]!,
-
                 fit: BoxFit.cover,
               ),
-          ),
-      widget.rule == rules[1] ? 
-      Positioned(
-          bottom: 0,
-          right: 0,
-          child: IconButton(
-              icon: Icon(
-                Icons.cancel,
-                color: Colors.black.withOpacity(0.5),
-                size: 30,
-              ),
-              onPressed: () async {
-                bool isDeleted = await showAlertDialog(
-                    appcontext, "Bạn có muốn xoá hình này?", "Xoá hình");
-                if (isDeleted) {
-                  //XOA HINH
-                  noteContentList.removeAt(index);
+            ),
+      widget.rule == rules[1]
+          ? Positioned(
+              bottom: 0,
+              right: 0,
+              child: IconButton(
+                  icon: Icon(
+                    Icons.cancel,
+                    color: Colors.black.withOpacity(0.5),
+                    size: 30,
+                  ),
+                  onPressed: () async {
+                    bool isDeleted = await showAlertDialog(
+                        appcontext, "Bạn có muốn xoá hình này?", "Xoá hình");
+                    if (isDeleted) {
+                      //XOA HINH
+                      noteContentList.removeAt(index);
 
-                  if (widget.isEdit == false) {
-                    SaveNoteContentList.removeAt(index);
-                  } else {
-                    if (loginState) {
+                      if (widget.isEdit == false) {
+                        SaveNoteContentList.removeAt(index);
+                      } else {
+                        if (loginState) {
+                        } else {
+                          UpdateNoteContentList.removeAt(index);
+
+                          UpdateNoteModel delmodel = UpdateNoteModel(
+                              notecontent_id:
+                                  lstupdatecontents[index].notecontent_id,
+                              type: "delete");
+
+                          lstupdatecontents.removeAt(index);
+                          lstdeletecontents.add(delmodel);
+                        }
+                      }
+                    }
+
+                    if (widget.isEdit == false) {
+                      if (SaveNoteContentList[index].text == "") {
+                        //XOA TEXT FIELD NGAY SAU HINH NEU TEXT FIELD TRONG KHI TAO GHI CHU
+                        noteContentList.removeAt(index);
+                      }
                     } else {
-                      UpdateNoteContentList.removeAt(index);
+                      if (loginState) {
+                        if (noteContentList[index] is TextField) {
+                          if (noteContentList[index].controller?.text == "") {
+                            //XOA TEXT FIELD NGAY SAU HINH NEU TEXT FIELD TRONG KHI EDIT GHI CHU
+                            noteContentList.removeAt(index);
+                          }
+                        }
+                      } else {
+                        if (UpdateNoteContentList[index]
+                            is TextEditingController) {
+                          if (UpdateNoteContentList[index].text == "") {
+                            //XOA TEXT FIELD NGAY SAU HINH NEU TEXT FIELD TRONG KHI EDIT GHI CHU
 
-                      UpdateNoteModel delmodel = UpdateNoteModel(
-                          notecontent_id:
-                              lstupdatecontents[index].notecontent_id,
-                          type: "delete");
+                            noteContentList.removeAt(index);
 
-                      lstupdatecontents.removeAt(index);
-                      lstdeletecontents.add(delmodel);
-                    }
-                  }
-                }
+                            UpdateNoteModel delmodel = UpdateNoteModel(
+                                notecontent_id:
+                                    lstupdatecontents[index].notecontent_id,
+                                type: "delete");
 
-                if (widget.isEdit == false) {
-                  if (SaveNoteContentList[index].text == "") {
-                    //XOA TEXT FIELD NGAY SAU HINH NEU TEXT FIELD TRONG KHI TAO GHI CHU
-                    noteContentList.removeAt(index);
-                  }
-                } else {
-                  if (loginState) {
-                    if (noteContentList[index] is TextField) {
-                      if (noteContentList[index].controller?.text == "") {
-                        //XOA TEXT FIELD NGAY SAU HINH NEU TEXT FIELD TRONG KHI EDIT GHI CHU
-                        noteContentList.removeAt(index);
+                            lstupdatecontents.removeAt(index);
+                            lstdeletecontents.add(delmodel);
+                          }
+                        }
                       }
                     }
-                  } else {
-                    if (UpdateNoteContentList[index] is TextEditingController) {
-                      if (UpdateNoteContentList[index].text == "") {
-                        //XOA TEXT FIELD NGAY SAU HINH NEU TEXT FIELD TRONG KHI EDIT GHI CHU
-
-                        noteContentList.removeAt(index);
-
-                        UpdateNoteModel delmodel = UpdateNoteModel(
-                            notecontent_id:
-                                lstupdatecontents[index].notecontent_id,
-                            type: "delete");
-
-                        lstupdatecontents.removeAt(index);
-                        lstdeletecontents.add(delmodel);
-                      }
-                    }
-                  }
-                }
-                setState(() {});
-              })) : SizedBox(width: 0, height: 0,)
+                    setState(() {});
+                  }))
+          : SizedBox(
+              width: 0,
+              height: 0,
+            )
     ]);
     return imageWidget;
   }
@@ -472,13 +487,13 @@ class ShowShareNoteState extends State<ShowShareNote> {
               backgroundColor: const Color.fromARGB(131, 0, 0, 0),
               elevation: 0.0,
               title: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Xem ghi chú',
-                        )
-                      ],
-                    ),
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Xem ghi chú',
+                  )
+                ],
+              ),
               centerTitle: true,
             ),
             body: Container(
@@ -555,7 +570,7 @@ class ShowShareNoteState extends State<ShowShareNote> {
                           child: Align(
                             alignment: Alignment.centerRight,
                             child: Text(
-                              'Ngày tạo: ' + currentDateTime,
+                              'Ngày tạo: $currentDateTimeShow',
                               style:
                                   TextStyle(fontSize: 13, color: Colors.grey),
                             ),
@@ -579,7 +594,7 @@ class ShowShareNoteState extends State<ShowShareNote> {
                             const Divider())),
               ]),
             ),
-    )
+          )
         : Scaffold(
             appBar: AppBar(
               backgroundColor: const Color.fromARGB(131, 0, 0, 0),
@@ -640,7 +655,6 @@ class ShowShareNoteState extends State<ShowShareNote> {
                     },
                   ),
                 //Icon(null)
-
               ],
             ),
             body: Container(
@@ -716,7 +730,7 @@ class ShowShareNoteState extends State<ShowShareNote> {
                           child: Align(
                             alignment: Alignment.centerRight,
                             child: Text(
-                              'Ngày tạo: ' + currentDateTime,
+                              'Ngày tạo: $currentDateTimeShow',
                               style:
                                   TextStyle(fontSize: 13, color: Colors.grey),
                             ),
@@ -739,8 +753,6 @@ class ShowShareNoteState extends State<ShowShareNote> {
                         separatorBuilder: (BuildContext context, int index) =>
                             const Divider())),
               ]),
-
-
             ),
             floatingActionButton: (isEditCompleted == false) ||
                     widget.isEdit == false
@@ -749,48 +761,54 @@ class ShowShareNoteState extends State<ShowShareNote> {
                     duration: const Duration(milliseconds: 2000),
                     glowColor: Colors.deepOrange,
                     repeat: true,
-                    child: GestureDetector(
-                      onTapDown: (details) async {
-                        var available = await speechToText.initialize();
-                        var vitri;
-                        if (available) {
-                          setState(() {
-                            MicroIsListening = true;
-                            speechToText.listen(onResult: (result) {
-                              setState(() {
-                                for (var i = 0; i < lstFocusNode.length; i++) {
-                                  if (lstFocusNode[i].hasFocus) {
-                                    vitri = i;
-                                    break;
-                                  }
-                                }
-                                if (result.finalResult) {
-                                  String doanvannoi = result.recognizedWords;
-                                  lstTxtController[vitri].text += doanvannoi;
-                                  if (vitri == 0) {
-                                    firsttxtfieldcont = doanvannoi;
-                                  }
-                                  MicroIsListening = false;
-                                }
-                              });
-                            });
-                          });
-                        }
+                    child: FloatingActionButton(
+                      onPressed: () {
+                        _listenVoice();
                       },
-
-                      onTapUp: (details) {
-                        setState(() {
-                          MicroIsListening = false;
-                        });
-                        speechToText.stop();
-                      },
-
-                      child: const CircleAvatar(
-                        backgroundColor: Colors.brown,
-                        radius: 30,
-                        child: const Icon(Icons.mic, color: Colors.white),
-                      ),
+                      child: Icon(_isListening ? Icons.mic : Icons.mic_none),
                     ),
+                    // child: GestureDetector(
+                    //   onTapDown: (details) async {
+                    //     var available = await speechToText.initialize();
+                    //     var vitri;
+                    //     if (available) {
+                    //       setState(() {
+                    //         MicroIsListening = true;
+                    //         speechToText.listen(onResult: (result) {
+                    //           setState(() {
+                    //             for (var i = 0; i < lstFocusNode.length; i++) {
+                    //               if (lstFocusNode[i].hasFocus) {
+                    //                 vitri = i;
+                    //                 break;
+                    //               }
+                    //             }
+                    //             if (result.finalResult) {
+                    //               String doanvannoi = result.recognizedWords;
+                    //               lstTxtController[vitri].text += doanvannoi;
+                    //               if (vitri == 0) {
+                    //                 firsttxtfieldcont = doanvannoi;
+                    //               }
+                    //               MicroIsListening = false;
+                    //             }
+                    //           });
+                    //         });
+                    //       });
+                    //     }
+                    //   },
+                    //
+                    //   onTapUp: (details) {
+                    //     setState(() {
+                    //       MicroIsListening = false;
+                    //     });
+                    //     speechToText.stop();
+                    //   },
+                    //
+                    //   child: const CircleAvatar(
+                    //     backgroundColor: Colors.brown,
+                    //     radius: 30,
+                    //     child: const Icon(Icons.mic, color: Colors.white),
+                    //   ),
+                    // ),
                   )
                 : null,
             floatingActionButtonLocation: _fabLocation,
@@ -817,10 +835,7 @@ class ShowShareNoteState extends State<ShowShareNote> {
                         color: Colors.white,
                         onPressed: () {
                           getImage();
-                        }
-
-
-                        ),
+                        }),
                     IconButton(
                       tooltip: 'Hẹn giờ thông báo',
                       color: Colors.white,
@@ -883,7 +898,8 @@ class ShowShareNoteState extends State<ShowShareNote> {
                                                   );
                                                   lsttags =
                                                       await FireStorageService()
-                                                          .getAllTagsForShare(widget.email);
+                                                          .getAllTagsForShare(
+                                                              widget.email);
 
                                                   await EasyLoading.dismiss();
                                                 } else {
@@ -1137,7 +1153,6 @@ class ShowShareNoteState extends State<ShowShareNote> {
                                                             .none,
                                                   );
 
-
                                                   await EasyLoading.dismiss();
                                                 } else {
                                                   await EasyLoading.show(
@@ -1345,7 +1360,6 @@ class ShowShareNoteState extends State<ShowShareNote> {
                               });
                         }
                         setState(() {});
-
                       },
                     ),
                   ],
@@ -1356,10 +1370,7 @@ class ShowShareNoteState extends State<ShowShareNote> {
 
   Future<void> getTagsByID() async {
     lsttags = await FireStorageService().getAllTagsForShare(widget.email);
-
   }
-
-
 
   void getNoteById(String id) async {
     if (widget.isEdit) {
@@ -1393,21 +1404,23 @@ class ShowShareNoteState extends State<ShowShareNote> {
           FocusNode fcnode = FocusNode();
 
           controller.text = temp['text'];
-          noteContentList.add(widget.rule == rules[0] ? textFieldWidgetViewOnly(controller, fcnode) : textFieldWidget(controller, fcnode));
+          noteContentList.add(widget.rule == rules[0]
+              ? textFieldWidgetViewOnly(controller, fcnode)
+              : textFieldWidget(controller, fcnode));
         }
       }
-
     }
 
-    await FireStorageService().updateCloudImageURLForShare(id, note.content, widget.email);
+    await FireStorageService()
+        .updateCloudImageURLForShare(id, note.content, widget.email);
     setState(() {});
 
     await EasyLoading.dismiss();
   }
 
   Future<void> updateNote() async {
-
-    note = await FireStorageService().getNoteShareByIdForShare(widget.noteId, widget.email);
+    note = await FireStorageService()
+        .getNoteShareByIdForShare(widget.noteId, widget.email);
 
     NoteContent noteContent = NoteContent();
     List<Map<String, dynamic>> imageText = [];
@@ -1432,7 +1445,8 @@ class ShowShareNoteState extends State<ShowShareNote> {
     //////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
     /////////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
 
-    await FireStorageService().updateNoteByIdForShare(widget.noteId, noteContent, widget.email);
+    await FireStorageService()
+        .updateNoteByIdForShare(widget.noteId, noteContent, widget.email);
 
     late int index;
     if (isConnected) {
@@ -1448,12 +1462,12 @@ class ShowShareNoteState extends State<ShowShareNote> {
       }
 
       noteContent.content = imageText;
-      await FireStorageService().updateNoteByIdForShare(widget.noteId, noteContent, widget.email);
+      await FireStorageService()
+          .updateNoteByIdForShare(widget.noteId, noteContent, widget.email);
     }
 
     //Navigator.pop(appcontext);
   }
-  
 
   Future<void> createTag() async {
     if (_tagnamecontroller.text.isNotEmpty) {
@@ -1484,5 +1498,40 @@ class ShowShareNoteState extends State<ShowShareNote> {
         loginState = false;
       }
     });
+  }
+
+  void _listenVoice() async {
+    if (!_isListening) {
+      bool available = await _speech.initialize(
+        onStatus: (value) => print('onStatus: $value'),
+        onError: (value) => print('onError: $value'),
+      );
+
+      if (available) {
+        setState(() => _isListening = true);
+        _speech.listen(
+            onResult: (value) => setState(() {
+                  int vitri = 0;
+                  for (var i = 0; i < lstFocusNode.length; i++) {
+                    if (lstFocusNode[i].hasFocus) {
+                      vitri = i;
+                      break;
+                    }
+                  }
+
+                  lstTxtController[vitri].text = value.recognizedWords;
+                  if (vitri == 0) {
+                    firsttxtfieldcont = value.recognizedWords;
+                  }
+
+                  if (value.hasConfidenceRating && value.confidence > 0) {
+                    _confidence = value.confidence;
+                  }
+                }));
+      }
+    } else {
+      setState(() => _isListening = false);
+      _speech.stop();
+    }
   }
 }

@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class NoteReceive{
   late List<dynamic> _content;
   late String _noteId;
-  late String _timeStamp;
+  late Timestamp _timeStamp;
   late String _title;
   late String _tagname;
   late String _owner;
@@ -39,9 +41,21 @@ class NoteReceive{
     _owner = value;
   }
 
-  String get timeStamp => _timeStamp;
 
-  set timeStamp(String value) {
+  Timestamp get timeStamp => _timeStamp;
+
+  String getTimeStamp(){
+    DateTime dateTime = _timeStamp.toDate();
+    String day = dateTime.day.toString();
+    String month = dateTime.month.toString();
+    String year = dateTime.year.toString();
+    String hour = dateTime.hour.toString().padLeft(2, '0');
+    String minute = dateTime.minute.toString().padLeft(2, '0');
+
+    return '$day/$month/$year $hour:$minute';
+  }
+
+  set timeStamp(Timestamp value) {
     _timeStamp = value;
   }
 

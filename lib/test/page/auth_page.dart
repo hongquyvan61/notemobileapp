@@ -50,6 +50,7 @@ class _AuthPageState extends State<AuthPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              const Spacer(),
               const Text(
                 'Login',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
@@ -118,9 +119,7 @@ class _AuthPageState extends State<AuthPage> {
                       child: const Text("Forgot Password?")),
                 ],
               ),
-              const SizedBox(
-                height: 30,
-              ),
+              const Spacer(),
               SizedBox(
                 width: Size.infinite.width,
                 height: 50,
@@ -201,7 +200,8 @@ class _AuthPageState extends State<AuthPage> {
                       },
                       child: Text("Sign Up"))
                 ],
-              )
+              ),
+              const Spacer()
             ],
           ),
         ),

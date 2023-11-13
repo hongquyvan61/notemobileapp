@@ -2,10 +2,12 @@
 
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class NoteContent {
   late List<File> _file;
   late List<dynamic> _content;
-  late String _timeStamp;
+  late Timestamp _timeStamp;
   late String _title;
   late String _tagname;
 
@@ -33,9 +35,19 @@ class NoteContent {
     };
   }
 
-  String get timeStamp => _timeStamp;
 
-  set timeStamp(String value) {
+  String getTimeStamp(){
+    DateTime dateTime = _timeStamp.toDate();
+    String day = dateTime.day.toString();
+    String month = dateTime.month.toString();
+    String year = dateTime.year.toString();
+    String hour = dateTime.hour.toString().padLeft(2, '0');
+    String minute = dateTime.minute.toString().padLeft(2, '0');
+
+    return '$day/$month/$year $hour:$minute';
+  }
+
+  set timeStamp(Timestamp value) {
     _timeStamp = value;
   }
 

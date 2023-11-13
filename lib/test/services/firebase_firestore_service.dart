@@ -53,11 +53,10 @@ class FireStorageService {
 
   Future<List<NoteReceive>> getAllNote() async {
     List<NoteReceive> notes = [];
-    final noteCollection = notesCollection
+    final noteCollection = await notesCollection
         .doc(currentUser)
         .collection("note")
-        .orderBy('timestamp', descending: true);
-    await noteCollection.get().then((value) {
+        .orderBy('timestamp', descending: true).get().then((value) {
       for (var docSnapshot in value.docs) {
         notes.add(NoteReceive.withValue(
             docSnapshot.get('content'),
@@ -175,7 +174,7 @@ class FireStorageService {
     return noteReceive;
   }
 
-  Future<List<NoteReceive>> getNoteByOwner(List<Receive> listReceive) async {
+  Future<List<NoteReceive>> getListNoteByOwner(List<Receive> listReceive) async {
     List<NoteReceive> listNote = [];
     NoteReceive noteReceive = NoteReceive();
     for (var element in listReceive) {
@@ -196,6 +195,28 @@ class FireStorageService {
     }
 
     return listNote;
+  }
+
+  Future<NoteReceive> getNoteByOwner(Receive receive) async {
+
+    NoteReceive noteReceive = NoteReceive();
+
+      final noteDocument = notesCollection
+          .doc(receive.owner)
+          .collection("note")
+          .doc(receive.noteId);
+      DocumentSnapshot doc = await noteDocument.get();
+      noteReceive = NoteReceive.withValue2(
+          doc.get('content'),
+          doc.id,
+          doc.get('timestamp'),
+          doc.get('title'),
+          doc.get('tagname'),
+          receive.owner,
+          receive.rule);
+
+
+    return noteReceive;
   }
 
   Future<void> deleteNoteById(String id) async {
@@ -376,7 +397,7 @@ class FireStorageService {
     final idReceive = notesCollection
         .doc(currentUser)
         .collection("receive")
-        .orderBy('hadseen', descending: false);
+        .orderBy('hadseen', descending: false).orderBy('timestamp', descending: true);
 
     await idReceive.get().then((value) {
       for (var element in value.docs) {
@@ -393,11 +414,10 @@ class FireStorageService {
   }
 
   Future<void> setTrueHasSeen(Receive receives) async {
-    final idReceive = notesCollection
+    final idReceive = await notesCollection
         .doc(currentUser)
         .collection("receive")
-        .doc(receives.noteId);
-    idReceive.update({'hadseen': true});
+        .doc(receives.noteId).update({'hadseen': true});
   }
 
   Future<void> insertCollection() async {

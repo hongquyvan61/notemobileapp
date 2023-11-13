@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:avatar_glow/avatar_glow.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -119,7 +120,8 @@ class NewNoteScreenState extends State<NewNoteScreen> {
   int vitrihinh = 0;
 
   late String NoteTitle = '';
-  late String currentDateTime;
+  late Timestamp currentDateTime;
+  late String currentDateTimeShow;
   late String firsttxtfieldcont;
 
   UserDAL uDAL = UserDAL();
@@ -195,8 +197,15 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     taglocal = TagModel(tag_name: "");
 
     initializeDateFormatting();
-    DateTime now = DateTime.now();
-    currentDateTime = DateFormat.yMd('vi_VN').add_jm().format(now);
+    DateTime dateTime = DateTime.now();
+
+    String day = dateTime.day.toString();
+    String month = dateTime.month.toString();
+    String year = dateTime.year.toString();
+    String hour = dateTime.hour.toString()..padLeft(2, '0');
+    String minute = dateTime.minute.toString().padLeft(2, '0');
+    currentDateTimeShow = '$day/$month/$year $hour:$minute';
+    currentDateTime = Timestamp.fromDate(dateTime);
 
     EasyLoading.instance
       ..indicatorType = EasyLoadingIndicatorType.chasingDots
@@ -657,17 +666,21 @@ class NewNoteScreenState extends State<NewNoteScreen> {
   Widget buildImageWidget(BuildContext context, int index) {
     Widget imageWidget = Stack(children: [
       noteContentList[index] is String
-          ? Image.network(
-              noteContentList[index],
-              width: 350,
-              height: 250,
-              fit: BoxFit.cover,
+          ? Transform.scale(
+              scale: 1,
+              child: Image.network(
+                noteContentList[index],
+
+                fit: BoxFit.cover,
+              ),
             )
-          : Image.file(
-              noteContentList[index]!,
-              width: 350,
-              height: 250,
-              fit: BoxFit.cover,
+          : Transform.scale(
+              scale: 1,
+              child: Image.file(
+                noteContentList[index]!,
+               
+                fit: BoxFit.cover,
+              ),
             ),
       Positioned(
           bottom: 0,
@@ -902,7 +915,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                           child: Align(
                             alignment: Alignment.centerRight,
                             child: Text(
-                              'Ngày tạo: ' + currentDateTime,
+                              'Ngày tạo: $currentDateTimeShow',
                               style:
                                   TextStyle(fontSize: 13, color: Colors.grey),
                             ),
@@ -1091,10 +1104,10 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                     //   //   child: const Icon(Icons.mic),
                     //   // ),
                     //    child: const CircleAvatar(
-              //                         backgroundColor: Colors.brown,
-              //                         radius: 30,
-              //                         child: const Icon(Icons.mic, color: Colors.white),
-              //                       ),
+                    //                         backgroundColor: Colors.brown,
+                    //                         radius: 30,
+                    //                         child: const Icon(Icons.mic, color: Colors.white),
+                    //                       ),
                     // ),
                   )
                 : null,
@@ -1678,46 +1691,37 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                               });
                         }
                         setState(() {});
-
-
-
-
                       },
                     ),
                   ],
                 ),
               ),
-            ))
-
-
-        );
+            )));
   }
 
   void _listenVoice() async {
-
     if (!_isListening) {
       bool available = await _speech.initialize(
         onStatus: (value) => print('onStatus: $value'),
         onError: (value) => print('onError: $value'),
       );
 
-
       if (available) {
         setState(() => _isListening = true);
         _speech.listen(
             onResult: (value) => setState(() {
-              int vitri = 0;
-              for (var i = 0; i < lstFocusNode.length; i++) {
-                              if (lstFocusNode[i].hasFocus) {
-                                vitri = i;
-                                break;
-                              }
-                            }
+                  int vitri = 0;
+                  for (var i = 0; i < lstFocusNode.length; i++) {
+                    if (lstFocusNode[i].hasFocus) {
+                      vitri = i;
+                      break;
+                    }
+                  }
 
-              lstTxtController[vitri].text = value.recognizedWords;
-              if(vitri == 0) {
-                firsttxtfieldcont = value.recognizedWords;
-              }
+                  lstTxtController[vitri].text = value.recognizedWords;
+                  if (vitri == 0) {
+                    firsttxtfieldcont = value.recognizedWords;
+                  }
 
                   if (value.hasConfidenceRating && value.confidence > 0) {
                     _confidence = value.confidence;

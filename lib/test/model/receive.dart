@@ -1,9 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Receive{
   late String _noteId;
   late String _owner;
   late String _rule;
   late String _email;
-  late String _timeStamp;
+  late Timestamp _timeStamp;
   bool _isNew = true;
   bool _hadSeen = false;
 
@@ -13,13 +15,21 @@ class Receive{
   Receive();
 
 
+  Timestamp get timeStamp => _timeStamp;
 
-  String get owner => _owner;
-
-  String get timeStamp => _timeStamp;
-
-  set timeStamp(String value) {
+  set timeStamp(Timestamp value) {
     _timeStamp = value;
+  }
+
+  String getTimeStamp(){
+    DateTime dateTime = _timeStamp.toDate();
+    String day = dateTime.day.toString();
+    String month = dateTime.month.toString();
+    String year = dateTime.year.toString();
+    String hour = dateTime.hour.toString().padLeft(2, '0');
+    String minute = dateTime.minute.toString().padLeft(2, '0');
+
+    return '$day/$month/$year $hour:$minute';
   }
 
   bool get hadSeen => _hadSeen;
@@ -27,6 +37,9 @@ class Receive{
   set hadSeen(bool value) {
     _hadSeen = value;
   }
+
+
+  String get owner => _owner;
 
   set owner(String value) {
     _owner = value;

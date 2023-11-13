@@ -1,5 +1,7 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
+
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +23,8 @@ class _NotificationPageState extends State<NotificationPage> {
   List<NoteReceive> listNote = [];
   NoteReceive noteReceive = NoteReceive();
   bool isSetStage = false;
+  bool completeLoad = false;
+  bool end = false;
 
   @override
   void initState() {
@@ -29,9 +33,33 @@ class _NotificationPageState extends State<NotificationPage> {
     super.initState();
   }
 
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    end = true;
+    super.dispose();
+  }
+
   String? currentUser = FirebaseAuth.instance.currentUser?.email;
 
   Widget isNewNotification(var document, int index) {
+    Receive receive = Receive();
+
+    receive.rule = document.get('rule');
+    receive.hadSeen = document.get('hadseen');
+    receive.isNew = document.get('isNew');
+    receive.owner = document.get('owner');
+    receive.timeStamp = document.get('timestamp');
+    receive.noteId = document.id;
+
+    DateTime dateTime = document.get('timestamp').toDate();
+    String day = dateTime.day.toString();
+    String month = dateTime.month.toString();
+    String year = dateTime.year.toString();
+    String hour = dateTime.hour.toString().padLeft(2, '0');
+    String minute = dateTime.minute.toString().padLeft(2, '0');
+
+
     return Padding(
       padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 1),
       child: Container(
@@ -52,17 +80,17 @@ class _NotificationPageState extends State<NotificationPage> {
           padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
           child: TextButton(
             style: TextButton.styleFrom(
-                foregroundColor: Colors.black,
-                textStyle: TextStyle(
-                  fontFamily: 'Roboto',
-                  fontWeight: FontWeight.normal,
-                  color: Color(0xFF57636C),
-                )),
-            onPressed: () {
-              setState(() {
-                listReceive[index].hadSeen = true;
-                updateHasSeen(listReceive[index]);
-              });
+              foregroundColor: Colors.black,
+              // textStyle: TextStyle(
+              //   fontFamily: 'Roboto',
+              //   fontWeight: FontWeight.normal,
+              //   color: Color(0xFF57636C),
+              // )
+            ),
+            onPressed: () async {
+              receive.hadSeen = true;
+
+              await updateHasSeen(receive);
 
               Navigator.push(
                   context,
@@ -86,33 +114,39 @@ class _NotificationPageState extends State<NotificationPage> {
                 ),
                 Expanded(
                   child: ListTile(
-                    title: Text('${document.get('owner')} đã chia sẻ ghi chú',
-                        style: TextStyle(
-                          fontFamily: 'Roboto',
-                          fontSize: 14,
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFF57636C),
-                        )),
+                    title: Text(
+                      '${document.get('owner')} đã chia sẻ ghi chú',
+                      // style: TextStyle(
+                      //   fontFamily: 'Roboto',
+                      //   fontSize: 14,
+                      //   fontWeight: FontWeight.w900,
+                      //   color: Color(0xFF57636C),
+                      // )
+                    ),
                     subtitle: listNote.length > index
-                        ? Text('\nTiêu đề: ${listNote[index].title}',
-                            style: TextStyle(
-                              fontFamily: 'Roboto',
-                              fontSize: 14,
-                              fontWeight: FontWeight.normal,
-                              color: Color(0xFF57636C),
-                            ))
+                        ? Text(
+                            '\nTiêu đề: ${listNote[index].title}',
+                            // style: TextStyle(
+                            //   fontFamily: 'Roboto',
+                            //   fontSize: 14,
+                            //   fontWeight: FontWeight.normal,
+                            //   color: Color(0xFF57636C),
+                            // )
+                          )
                         : Text(''),
                   ),
                 ),
                 Padding(
                   padding: EdgeInsetsDirectional.fromSTEB(12, 0, 0, 0),
-                  child: Text(document.get('timestamp'),
-                      style: TextStyle(
-                        fontFamily: 'Roboto',
-                        fontSize: 12,
-                        fontWeight: FontWeight.normal,
-                        color: Color(0xFF57636C),
-                      )),
+                  child: Text(
+                    '$day/$month/$year $hour:$minute',
+                    // style: TextStyle(
+                    //   fontFamily: 'Roboto',
+                    //   fontSize: 12,
+                    //   fontWeight: FontWeight.normal,
+                    //   color: Color(0xFF57636C),
+                    // )
+                  ),
                 ),
               ],
             ),
@@ -123,6 +157,15 @@ class _NotificationPageState extends State<NotificationPage> {
   }
 
   Widget isOldNotification(var document, int index) {
+
+    DateTime dateTime = document.get('timestamp').toDate();
+    String day = dateTime.day.toString();
+    String month = dateTime.month.toString();
+    String year = dateTime.year.toString();
+    String hour = dateTime.hour.toString().padLeft(2, '0');
+    String minute = dateTime.minute.toString().padLeft(2, '0');
+
+
     return Padding(
       padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 1),
       child: Container(
@@ -142,8 +185,8 @@ class _NotificationPageState extends State<NotificationPage> {
         child: Padding(
           padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
           child: TextButton(
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              await Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) => ShowShareNote(
@@ -165,21 +208,25 @@ class _NotificationPageState extends State<NotificationPage> {
                 ),
                 Expanded(
                   child: ListTile(
-                    title: Text('${document['owner']} đã chia sẻ ghi chú',
-                        style: TextStyle(
-                          fontFamily: 'Roboto',
-                          fontSize: 14,
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFF57636C),
-                        )),
+                    title: Text(
+                      '${document['owner']} đã chia sẻ ghi chú',
+                      // style: TextStyle(
+                      //   fontFamily: 'Roboto',
+                      //   fontSize: 14,
+                      //   fontWeight: FontWeight.w900,
+                      //   color: Color(0xFF57636C),
+                      // )
+                    ),
                     subtitle: listNote.length > index
-                        ? Text('\nTiêu đề: ${listNote[index].title}',
-                            style: TextStyle(
-                              fontFamily: 'Roboto',
-                              fontSize: 14,
-                              fontWeight: FontWeight.normal,
-                              color: Color(0xFF57636C),
-                            ))
+                        ? Text(
+                            '\nTiêu đề: ${listNote[index].title}',
+                            // style: TextStyle(
+                            //   fontFamily: 'Roboto',
+                            //   fontSize: 14,
+                            //   fontWeight: FontWeight.normal,
+                            //   color: Color(0xFF57636C),
+                            // )
+                          )
                         : SizedBox(
                             height: 0,
                             width: 0,
@@ -189,13 +236,13 @@ class _NotificationPageState extends State<NotificationPage> {
                 Padding(
                   padding: EdgeInsetsDirectional.fromSTEB(12, 0, 0, 0),
                   child: Text(
-                    document['timestamp'],
-                    style: TextStyle(
-                      fontFamily: 'Roboto',
-                      fontSize: 12,
-                      fontWeight: FontWeight.normal,
-                      color: Color(0xFF57636C),
-                    ),
+                    '$day/$month/$year $hour:$minute',
+                    // style: TextStyle(
+                    //   fontFamily: 'Roboto',
+                    //   fontSize: 12,
+                    //   fontWeight: FontWeight.normal,
+                    //   color: Color(0xFF57636C),
+                    // ),
                   ),
                 ),
               ],
@@ -212,45 +259,59 @@ class _NotificationPageState extends State<NotificationPage> {
         .collection('notes')
         .doc(currentUser)
         .collection('receive')
-        .orderBy('hadseen', descending: false)
+        .orderBy('hadseen', descending: false).orderBy('timestamp', descending: true)
         .snapshots();
     return StreamBuilder(
         stream: _userStream,
         builder: (context, snapshot) {
-          if (isSetStage == true) {
-            getNote();
-          }
+          getAllReceive();
 
           if (isSetStage == true) {
-            return Center(child: CircularProgressIndicator());
+            getListNote();
           }
 
           var documents = snapshot.data?.docs ?? [];
-          return Scaffold(
-            appBar: AppBar(
-              title: Text('Thông báo'),
-              centerTitle: true,
-            ),
-            body: ListView.builder(
-              itemBuilder: (context, index) {
-                var document = documents[index];
-                var test = document['hadseen'];
 
-                return test
-                    ? isOldNotification(document, index)
-                    : isNewNotification(document, index);
-              },
-              itemCount: documents.length,
-            ),
-          );
+          return completeLoad
+              ? Scaffold(
+                  appBar: AppBar(
+                    title: Text('Thông báo'),
+                    centerTitle: true,
+                  ),
+                  body: listNote.isNotEmpty
+                      ? ListView.builder(
+                          itemBuilder: (context, index) {
+                            var document = documents[index];
+                            var test = document['hadseen'];
+
+                            return test
+                                ? isOldNotification(document, index)
+                                : isNewNotification(document, index);
+                          },
+                          itemCount: documents.length,
+                        )
+                      : SizedBox(
+                          width: 0,
+                          height: 0,
+                        ),
+                )
+              : Scaffold(
+                  appBar: AppBar(
+                    title: Text('Thông báo'),
+                    centerTitle: true,
+                  ),
+                  body: Center(child: CircularProgressIndicator()),
+                );
         });
   }
 
   Future<void> getAllReceive() async {
     listReceive = await FireStorageService().getAllReceive().whenComplete(() {
-      setState(() {
-        isSetStage = true;
-      });
+      if(!end) {
+        setState(() {
+          isSetStage = true;
+        });
+      }
     });
   }
 
@@ -259,10 +320,19 @@ class _NotificationPageState extends State<NotificationPage> {
     setState(() {});
   }
 
-  Future<void> getNote() async {
-    listNote = await FireStorageService().getNoteByOwner(listReceive);
-    setState(() {
-      isSetStage = false;
-    });
+  Future<void> getListNote() async {
+    listNote = await FireStorageService().getListNoteByOwner(listReceive);
+    if (!end) {
+      setState(() {
+        isSetStage = false;
+        completeLoad = true;
+      });
+    }
+  }
+
+  Future<NoteReceive> getNote(Receive receive) async {
+    NoteReceive noteReceive = NoteReceive();
+    noteReceive = await FireStorageService().getNoteByOwner(receive);
+    return noteReceive;
   }
 }

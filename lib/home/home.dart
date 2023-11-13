@@ -755,8 +755,8 @@ class HomeScreenState extends State<HomeScreen> {
                       children: [
                         Text(
                           loginState
-                              ? noteList[index].timeStamp
-                              : foundedNote[index].date_created,
+                              ? noteList[index].getTimeStamp()
+                              : foundedNote[index].date_created.toString(),
                           style:
                               const TextStyle(fontSize: 12, color: Colors.grey),
                         ),
@@ -875,8 +875,8 @@ class HomeScreenState extends State<HomeScreen> {
                         padding: const EdgeInsets.only(right: 10),
                         child: Text(
                           loginState
-                              ? noteList[index].timeStamp
-                              : foundedNote[index].date_created,
+                              ? noteList[index].getTimeStamp()
+                              : foundedNote[index].date_created.toString(),
                           style:
                               const TextStyle(fontSize: 11, color: Colors.grey),
                         ),

@@ -52,6 +52,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
     String rule = note.rule;
     Map<String, dynamic> content = {};
 
+
     for (var element in note.content) {
       content = element;
       if (content.containsKey('text')) {
@@ -118,7 +119,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
                 child: Padding(
                   padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
                   child: Text(
-                    note.timeStamp,
+                    note.getTimeStamp(),
                     style: TextStyle(fontFamily: 'Roboto',fontWeight: FontWeight.w500, fontSize: 10),
                   ),
                 ),
@@ -225,7 +226,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
                 child: Padding(
                   padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
                   child: Text(
-                    note.timeStamp,
+                    note.getTimeStamp(),
                     style: TextStyle(fontFamily: 'Roboto', fontWeight: FontWeight.w500, fontSize: 10),
                   ),
                 ),
@@ -439,7 +440,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
   }
 
   Future<void> getNote() async {
-    listNote = await FireStorageService().getNoteByOwner(listReceive);
+    listNote = await FireStorageService().getListNoteByOwner(listReceive);
   }
 
   Future<List<NoteReceive>> getNoteShare() async {

@@ -23,22 +23,19 @@ import 'package:provider/provider.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:http/http.dart' as http;
 
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+}
+
 void main() async {
   InitDataBase.db = await InitDataBase().initDB();
   tz.initializeTimeZones();
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  FirebaseMessaging.onBackgroundMessage(
-      (message) => _firebaseMessagingBackgroundHandler(message));
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   InitDataBase.firebasedb = FirebaseDatabase.instance.ref();
-
-
   runApp(const MyApp());
-}
-
-@pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
 }
 
 class MyApp extends StatelessWidget {
@@ -47,8 +44,6 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-
-
     String? userEmail = FirebaseAuth.instance.currentUser?.email;
     FirebaseFirestore.instance
         .collection('notes')
@@ -67,8 +62,6 @@ class MyApp extends StatelessWidget {
             // NotificationService().showNotification(
             //     "Chia sẻ ghi chú", '$owner đã chia sẻ ghi chú với bạn', context as BuildContext);
 
-
-
             FireStorageService().setIsNewFalse(element.doc.id);
           } else {
             // isChange = false;
@@ -86,8 +79,9 @@ class MyApp extends StatelessWidget {
           // textTheme: GoogleFonts(
           //   Theme.of(context).textTheme
           // )
-          textTheme: GoogleFonts.merriweatherSansTextTheme(
-              Theme.of(context).textTheme)),
+          // textTheme: GoogleFonts.merriweatherSansTextTheme(
+          //     Theme.of(context).textTheme)
+      ),
       builder: EasyLoading.init(),
       home: const HomeScreen(),
       // home:  StreamBuilder<User?>(

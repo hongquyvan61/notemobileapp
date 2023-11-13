@@ -1,5 +1,6 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -518,8 +519,8 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
   }
 
   Future<void> updateInviteToUser() async {
-    DateTime now = DateTime.now();
-    String currentDateTime = DateFormat.yMd('vi_VN').add_jm().format(now);
+    DateTime dateTime = DateTime.now();
+    Timestamp currentDateTime = Timestamp.fromDate(dateTime);
     Receive receive = Receive();
     for (int i = 0; i < emails.length; i++) {
       receive.rule = dropDownValue[i];
@@ -531,8 +532,8 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
   }
 
   Future<void> updateInviteToUserFilter() async {
-    DateTime now = DateTime.now();
-    String currentDateTime = DateFormat.yMd('vi_VN').add_jm().format(now);
+    DateTime dateTime = DateTime.now();
+    Timestamp currentDateTime = Timestamp.fromDate(dateTime);
     Receive receive = Receive();
     for (int i = 0; i < emails.length; i++) {
       if (dropDownValueCheckUpdate[i] != dropDownValue[i]) {

@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class NoteModel {
   late int? note_id;
   late String title;
-  late String date_created;
+  late Timestamp date_created;
   late int user_id;
   late int? tag_id;
   late String? tag_name;
