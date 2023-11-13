@@ -1,20 +1,25 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
+import 'package:notemobileapp/home/home.dart';
 
 import '../../newnote/newnote.dart';
 
 class FirebaseDynamicLinkService{
   Future<String> createDynamicLink(bool short, String pagename, String noteid) async {
 
+    String owner = FirebaseAuth.instance.currentUser?.email?.toString() ?? "";
+
     final DynamicLinkParameters dynamicLinkParams = DynamicLinkParameters(
       //link: Uri.parse("https://www.notemobileapp.com/noteData?id=${noteid}"),
-      link: Uri.parse("https://notemobileapp.page.link/" + pagename + "?id=${noteid}"),
+      link: Uri.parse("http://localhost/noteweb/notedetail.html" + "?id=${noteid}&owner=${owner}"),
       uriPrefix: "https://notemobileapp.page.link",
-      androidParameters: const AndroidParameters(
+      androidParameters: AndroidParameters(
+        fallbackUrl: Uri.parse("https://www.google.com"),
         packageName: "com.example.notemobileapp",
-        minimumVersion: 30,
+        minimumVersion: 0,
       ),
+      
       
     );
 
@@ -31,6 +36,33 @@ class FirebaseDynamicLinkService{
   }
 
   Future<void> initDynamicLink(BuildContext context) async {
+
+    ///HANDLE TERMINATE STATE
+    final initialLink = await FirebaseDynamicLinks.instance.getInitialLink();
+
+    if (initialLink != null) {
+      String? id;
+      final Uri deepLink = initialLink.link;
+      if(deepLink.queryParameters.isNotEmpty){
+        id = deepLink.queryParameters['id'];
+      }
+      // Example of using the dynamic link to push the user to a different screen
+      Navigator.push(context,
+                      MaterialPageRoute(
+                        builder: (context) => NewNoteScreen(
+                                  noteId: id?.toString() ?? "",
+                                  isEdit: true,
+                                  email: FirebaseAuth.instance.currentUser?.email,
+                                )
+                      ),
+                    );
+    }
+
+    ///HANDLE TERMINATE STATE
+    
+    
+    ///HANDLE BACKGROUND STATE
+
     FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) {
       final Uri deeplink = dynamicLinkData.link;
 
@@ -49,7 +81,7 @@ class FirebaseDynamicLinkService{
                               MaterialPageRoute(
                                 builder: (context) => NewNoteScreen(
                                   noteId: id?.toString() ?? "",
-                                  isEdit: false,
+                                  isEdit: true,
                                   email: FirebaseAuth.instance.currentUser?.email,
                                 ),
                               ));
@@ -63,5 +95,7 @@ class FirebaseDynamicLinkService{
       // Handle errors
       debugPrint("Dynamic link error, error details: " + error.toString());
     });
+
+    ///HANDLE BACKGROUND STATE
   }
 }

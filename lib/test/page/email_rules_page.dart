@@ -4,6 +4,8 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:intl/intl.dart';
 import 'package:notemobileapp/router.dart';
 
@@ -35,6 +37,9 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
   TextEditingController sharewithMailController = TextEditingController();
 
   TextEditingController ErrorTextController = TextEditingController();
+
+  TextEditingController mailBodyController = TextEditingController();
+
   FocusNode _focusNode = FocusNode();
   List<Invite> invites = [];
 
@@ -47,9 +52,14 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
   ];
   bool isDelete = false;
   bool isInvalidMail = false;
+  
 
   @override
   void initState() {
+    EasyLoading.instance
+      ..indicatorType = EasyLoadingIndicatorType.chasingDots
+      ..loadingStyle = EasyLoadingStyle.dark;
+
     if (emails.isEmpty || users.isEmpty) {
       getAllEmailInvite();
       getAllUser();
@@ -275,171 +285,191 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
                     ],
                   ),
                 ],
-              ),
-              Container(
-                margin: const EdgeInsets.only(bottom: 50.0),
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: ElevatedButton.icon(
-                    icon: const Icon(
-                      Icons.mail,
-                      size: 16.0,
-                    ),
-                    onPressed: () {
-                      showDialog(
-                        barrierDismissible: false,
-                        context: context,
-                        builder: (context) {
-                          return StatefulBuilder(
-                            builder: (context, setState) {
-                              return Dialog(
-                                child: Container(
-                                  margin: EdgeInsets.all(10),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Center(
-                                        child: Text(
-                                          "Chia sẻ qua mail",
-                                          style: TextStyle(fontFamily: 'Roboto',fontSize: 18),
-                                        ),
-                                      ),
-                                      const SizedBox(
-                                        height: 15,
-                                      ),
-                                      Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceAround,
-                                          mainAxisSize: MainAxisSize.max,
+              )
+               ,
+               Container(
+                 margin: const EdgeInsets.only(bottom: 50.0),
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: ElevatedButton.icon(
+                          icon: const Icon(
+                            Icons.mail,
+                            size: 16.0,
+                          ),
+                          onPressed: (){
+                            showDialog(
+                              barrierDismissible: false,
+                              context: context, 
+                              builder: (context) {
+                                return StatefulBuilder(
+                                  builder: (context, setState) {
+                                    return Dialog(
+                                      child: Container(
+                                        margin: EdgeInsets.all(10),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Expanded(
-                                              child: ListTile(
-                                                title: Container(
-                                                  child: TextField(
-                                                    controller:
-                                                        sharewithMailController,
-                                                    style: const TextStyle(fontFamily: 'Roboto',
-                                                      fontSize: 13,
-                                                    ),
-                                                    decoration:
-                                                        const InputDecoration(
-                                                      hintText:
-                                                          "Nhập email của người muốn chia sẻ...",
-                                                    ),
-                                                    onTap: () {
-                                                      isInvalidMail = false;
-                                                      ErrorTextController.text =
-                                                          "";
-                                                      setState(() {});
-                                                    },
-                                                  ),
-                                                ),
-                                                trailing: ElevatedButton(
-                                                  onPressed: () async {
-                                                    RegExp regExp = RegExp(
-                                                        r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
-                                                    if (!regExp.hasMatch(
-                                                        sharewithMailController
-                                                            .text)) {
-                                                      isInvalidMail = true;
-                                                      ErrorTextController.text =
-                                                          "Email không đúng dịnh dạng, thử lại";
-                                                      setState(() {});
-                                                    } else {
-                                                      String dynamiclink =
-                                                          await FirebaseDynamicLinkService()
-                                                              .createDynamicLink(
-                                                                  false,
-                                                                  RoutePaths
-                                                                      .newnote,
-                                                                  widget
-                                                                      .noteId);
+                                            const Center(
+                                                  child: Text("Chia sẻ qua mail", style: TextStyle(fontFamily: 'Roboto', fontSize: 18),),
+                                            ),
 
-                                                      //debugPrint(dynamiclink);
+                                            const SizedBox(height: 15,),
 
-                                                      isInvalidMail = true;
-                                                      ErrorTextController.text =
-                                                          dynamiclink;
-                                                      setState(() {});
-                                                    }
-                                                  },
-                                                  style: ElevatedButton.styleFrom(
-                                                      shape:
-                                                          const StadiumBorder(),
-                                                      backgroundColor:
-                                                          const Color.fromARGB(
-                                                              255,
-                                                              97,
-                                                              115,
-                                                              239)),
-                                                  child: Text(
-                                                    'Chia sẻ',
-                                                    style:
-                                                        TextStyle(fontFamily: 'Roboto',fontSize: 15),
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                              mainAxisSize: MainAxisSize.max,
+                                              children: [
+                                                Expanded(
+                                                  child: ListTile(
+                                                    title: Container(
+                                                      child: TextField(
+                                                        controller: sharewithMailController,
+                                                        style: const TextStyle(
+                                                          fontFamily: 'Roboto',
+                                                          fontSize: 13,
+                                                        ),
+                                                        decoration: const InputDecoration(
+                                                            hintText: "Nhập email của người muốn chia sẻ...",
+                                                        ),
+                                                        onTap: () {
+                                                          isInvalidMail = false;
+                                                          ErrorTextController.text = "";
+                                                          setState(() {
+                                                              
+                                                          });
+                                                        },
+                                                      ),
+                                                    ),
+                                                
+                                                    trailing: ElevatedButton(
+                                                        onPressed: () async {
+                                                          RegExp regExp = RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
+                                                          if (!regExp.hasMatch(sharewithMailController.text)) {
+                                                            isInvalidMail = true;
+                                                            ErrorTextController.text = "Email không đúng dịnh dạng, thử lại";
+                                                          }
+                                                          if(mailBodyController.text.isEmpty){
+                                                            isInvalidMail = true;
+                                                            String emptymailerror = "\n" + "Nội dung mail đang bị bỏ trống!";
+                                                            ErrorTextController.text += emptymailerror;
+                                                          }
+                                                          if(isInvalidMail){
+                                                            setState(() {
+                                                              
+                                                            });
+                                                          }
+
+                                                          if(isInvalidMail == false){
+                                                            String dynamiclink = await FirebaseDynamicLinkService().createDynamicLink(true, RoutePaths.newnote, widget.noteId);
+
+                                                            sendEmail(dynamiclink);
+                                                          }
+                                                        },
+                                                        style: ElevatedButton.styleFrom(
+                                                            shape: const StadiumBorder(),
+                                                            backgroundColor:
+                                                                const Color.fromARGB(255, 97, 115, 239)
+                                                        ),
+                                                        child: Text(
+                                                          'Chia sẻ',
+                                                          style: TextStyle(fontFamily: 'Roboto', fontSize: 15),
+                                                        ),
+                                                      
+                                                    ),
                                                   ),
-                                                ),
-                                              ),
-                                            )
-                                          ]),
-                                      const SizedBox(
-                                        height: 10,
-                                      ),
-                                      isInvalidMail
-                                          ? TextField(
+                                                )
+                                                
+                                              ]
+                                            ),
+
+                                            const SizedBox(height: 10,),
+
+                                            isInvalidMail ? 
+                                            TextField(
                                               enabled: true,
                                               controller: ErrorTextController,
-                                              style: const TextStyle(fontFamily: 'Roboto',
-                                                  fontSize: 13,
-                                                  color: Colors.red),
-                                              decoration: const InputDecoration(
-                                                  border: InputBorder.none))
-                                          : const Text(""),
-                                      Expanded(
-                                        flex: 0,
-                                        child: Container(
-                                          width: 300,
-                                          child: ElevatedButton(
-                                              onPressed: () {
-                                                isInvalidMail = false;
-                                                ErrorTextController.text = "";
-                                                sharewithMailController.text =
-                                                    "";
-                                                Navigator.of(context).pop();
-                                              },
-                                              style: ElevatedButton.styleFrom(
-                                                shape: const StadiumBorder(),
-                                                backgroundColor: Color.fromARGB(
-                                                    255, 97, 115, 239),
-                                                side: const BorderSide(
-                                                  width: 1.0,
-                                                  color: Colors.grey,
-                                                ),
-                                              ),
-                                              child: Text("THOÁT", style: TextStyle(
+                                              style: const TextStyle(
                                                 fontFamily: 'Roboto',
-                                              ),)),
+                                                fontSize: 13,
+                                                color: Colors.red
+                                              ),
+                                              decoration: const InputDecoration(
+                                                border: InputBorder.none
+                                              )
+                                            )
+                                            :
+                                            const Text(""),
+
+                                            TextField(
+                                              controller: mailBodyController,
+                                              keyboardType: TextInputType.multiline,
+                                              maxLines: null,
+                                              showCursor: true,
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                              ),
+                                              decoration: const InputDecoration(
+                                                hintText: "Nhập nội dung mail ở đây...",
+                                                hintStyle: TextStyle(
+                                                  fontStyle: FontStyle.italic
+                                                ),
+                                                enabledBorder: OutlineInputBorder(
+                                                    borderSide: BorderSide(
+                                                      width: 0.5,
+                                                ))
+                                              )
+                                            ),
+
+                                            const SizedBox(height: 10,),
+
+                                            Expanded(
+                                                  flex: 0,
+                                                  child: Container(
+                                                    width: 300,
+                                                    child: ElevatedButton(
+                                                      onPressed: (){
+                                                        isInvalidMail = false;
+                                                        ErrorTextController.text = "";
+                                                        sharewithMailController.text = "";
+                                                        Navigator.of(context).pop();
+                                                      }, 
+                                                      style: ElevatedButton.styleFrom(
+                                                        shape: const StadiumBorder(),
+                                                        backgroundColor: Color.fromARGB(255, 97, 115, 239),
+                                                        side: const BorderSide(
+                                                          width: 1.0,
+                                                          color: Colors.grey,
+                                                        ),
+                                                      ),
+                                                      child: Text("THOÁT", style: TextStyle(
+                                                        fontFamily: 'Roboto',
+                                                      ))
+                                                    ),
+                                                  ),
+                                            )
+                                          ],
                                         ),
-                                      )
-                                    ],
-                                  ),
-                                ),
+                                      ),
+                                      
+                                  );
+                                }
                               );
-                            },
-                          );
-                        },
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                        shape: const StadiumBorder(),
-                        backgroundColor:
-                            const Color.fromARGB(255, 97, 115, 239)),
-                    label: const Text(
-                      'Chia sẻ qua mail',
-                      style: TextStyle(fontFamily: 'Roboto',fontSize: 16),
-                    ),
-                  ),
-                ),
-              ),
+                              },
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                              shape: const StadiumBorder(),
+                              backgroundColor:
+                                  const Color.fromARGB(255, 97, 115, 239)),
+                          label: const Text(
+                            'Chia sẻ qua mail',
+                            style: TextStyle(fontFamily: 'Roboto',fontSize: 16),
+                          ),
+                        )
+                      )
+                    
+               ),
+              
             ]),
           ),
         ),
@@ -658,21 +688,53 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
     return regExp.hasMatch(email);
   }
 
-  bool checkUpdate() {
+   bool checkUpdate() {
     if (listEquals(dropDownValue, dropDownValueCheckUpdate)) {
       return true;
     }
     return false;
   }
 
-// void isValidEmail_Dialog(String email) {
-//   RegExp regExp = RegExp(r'^[\w-]+(\.[\w-]+)*@([\w-]+\.)+[a-zA-Z]{2,7}$');
-//   if (!regExp.hasMatch(email)) {
-//     isInvalidMail = true;
-//     ErrorTextController.text = "Email không đúng dịnh dạng, thử lại";
-//     setState(() {
+  Future<void> sendEmail(String dynamiclink) async {
+    String mailBody = mailBodyController.text + "\n\n" + "Đường dẫn để xem ghi chú online:" + "\n\n" + dynamiclink;
+    String mailSubject = FirebaseAuth.instance.currentUser?.email?.toString() ?? "";
+  
+    final Email email = Email(
+      body: mailBody,
+      subject: mailSubject + " chia sẻ ghi chú",
+      recipients: [sharewithMailController.text],
+      attachmentPaths: [],
+      isHTML: false,
+    );
 
-//     });
-//   }
-// }
+    String platformResponse;
+
+    try {
+      await EasyLoading.show(
+        status: "Đang gửi mail...",
+        maskType: EasyLoadingMaskType.none,
+      );
+
+      await FlutterEmailSender.send(email);
+
+      await EasyLoading.dismiss();
+      
+      platformResponse = 'success';
+    } catch (error) {
+      debugPrint(error.toString());
+      platformResponse = error.toString();
+    }
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: platformResponse == 'success' ? 
+        Text("Mail đã được gửi thành công!") 
+        : 
+        Text("Quá trình gửi mail xảy ra lỗi, hãy chia sẻ lại!"),
+      ),
+    );
+  }
+
 }
