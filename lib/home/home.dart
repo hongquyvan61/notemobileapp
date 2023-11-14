@@ -1060,7 +1060,6 @@ class HomeScreenState extends State<HomeScreen> {
 
   checkLogin() {
 
-
     FirebaseAuth.instance.authStateChanges().listen((User? user) {
       if (user != null) {
         loginState = true;

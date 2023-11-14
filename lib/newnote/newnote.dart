@@ -810,7 +810,15 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                     ),
                     onPressed: () async {
                       if (widget.email != "") {
-                        updateNote();
+                        await EasyLoading.show(
+                          status: "Đang cập nhật ghi chú...",
+                          maskType: EasyLoadingMaskType.black,
+                        );
+
+                        await updateNote();
+
+                        await EasyLoading.dismiss();
+
                         Navigator.of(context).pop('RELOAD_LIST');
                       } else {
                         updateNoteToLocal();

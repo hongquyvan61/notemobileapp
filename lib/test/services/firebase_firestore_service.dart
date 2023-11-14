@@ -39,18 +39,6 @@ class FireStorageService {
     return idNote.id;
   }
 
-  Future<void> saveTags(Tag tag) async {
-    final idtag = notesCollection.doc(currentUser).collection("tag").doc();
-
-    await idtag.set(tag.toMap());
-  }
-
-  Future<void> saveTagsForShare(Tag tag, String owner) async {
-    final idtag = notesCollection.doc(owner).collection("tag").doc();
-
-    await idtag.set(tag.toMap());
-  }
-
   Future<List<NoteReceive>> getAllNote() async {
     List<NoteReceive> notes = [];
     final noteCollection = await notesCollection
@@ -145,6 +133,51 @@ class FireStorageService {
     });
 
     return tags;
+  }
+
+  Future<void> updateTagById(String id, Tag t) async {
+    final tagDocument = notesCollection.doc(currentUser).collection("tag").doc(id);
+
+    DocumentSnapshot doc = await tagDocument.get();
+    String oldname = doc.get('tag_name');
+
+    await tagDocument.update(t.toMap());
+
+    List<NoteReceive> notes = await getAllNote();
+    for(int i = 0 ; i < notes.length ; i++){
+      if(notes[i].tagname == oldname){
+        notesCollection.doc(currentUser).collection('note').doc(notes[i].noteId).update({'tagname' : t.tagname});
+      }
+    }
+  }
+
+  Future<void> saveTags(Tag tag) async {
+    final idtag = notesCollection.doc(currentUser).collection("tag").doc();
+
+    await idtag.set(tag.toMap());
+  }
+
+  Future<void> deleteTagById(String id) async {
+    final tagDocument =  notesCollection.doc(currentUser).collection("tag").doc(id);
+
+    DocumentSnapshot doc = await tagDocument.get();
+    String name = doc.get('tag_name');
+
+    await tagDocument.delete();
+
+    List<NoteReceive> notes = await getAllNote();
+    for(int i = 0 ; i < notes.length ; i++){
+      if(notes[i].tagname == name){
+        notesCollection.doc(currentUser).collection('note').doc(notes[i].noteId).update({'tagname' : ""});
+      }
+    }
+
+  }
+
+  Future<void> saveTagsForShare(Tag tag, String owner) async {
+    final idtag = notesCollection.doc(owner).collection("tag").doc();
+
+    await idtag.set(tag.toMap());
   }
 
   Future<NoteReceive> getNoteById(String id) async {

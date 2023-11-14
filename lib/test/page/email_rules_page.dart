@@ -351,7 +351,14 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
                                                           }
                                                           if(mailBodyController.text.isEmpty){
                                                             isInvalidMail = true;
-                                                            String emptymailerror = "\n" + "Nội dung mail đang bị bỏ trống!";
+                                                            String emptymailerror = "";
+                                                            if(ErrorTextController.text.isNotEmpty){
+                                                               emptymailerror = "\n" + "Nội dung mail đang bị bỏ trống!";
+                                                            }
+                                                            else{
+                                                              emptymailerror = "Nội dung mail đang bị bỏ trống!";
+                                                            }
+                                                            
                                                             ErrorTextController.text += emptymailerror;
                                                           }
                                                           if(isInvalidMail){
@@ -387,7 +394,7 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
 
                                             isInvalidMail ? 
                                             TextField(
-                                              enabled: true,
+                                              enabled: false,
                                               controller: ErrorTextController,
                                               style: const TextStyle(
                                                 fontFamily: 'Roboto',

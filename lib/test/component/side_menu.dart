@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:notemobileapp/test/page/tag_page.dart';
 import 'package:provider/provider.dart';
 
 
@@ -53,8 +54,9 @@ class _NavBarState extends State<NavBar> {
                 ),
                 AppDrawerTile(index: 0, onTap: updateSelected(0)),
                 AppDrawerTile(index: 1, onTap: updateSelected(1)),
+                AppDrawerTile(index: 2, onTap: updateSelected(2)),
                 canReset
-                    ? AppDrawerTile(index: 2, onTap: updateSelected(2))
+                    ? AppDrawerTile(index: 3, onTap: updateSelected(3))
                     : Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
                         child: ListTile(
@@ -78,7 +80,7 @@ class _NavBarState extends State<NavBar> {
                           ),
                         ),
                       ),
-                AppDrawerTile(index: 3, onTap: updateSelected(3)),
+                AppDrawerTile(index: 4, onTap: updateSelected(4)),
               ],
             )
           : ListView(
@@ -92,7 +94,8 @@ class _NavBarState extends State<NavBar> {
                     ),
                   ),
                 ),
-                AppDrawerTile(index: 4, onTap: updateSelected(4))
+                AppDrawerTile(index: 2, onTap: updateSelected(2)),
+                AppDrawerTile(index: 5, onTap: updateSelected(5))
               ],
             ),
     );
@@ -116,10 +119,18 @@ class _NavBarState extends State<NavBar> {
         Navigator.pop(context);
         Navigator.pushNamed(context, RoutePaths.shareNotePage);
       case 2:
-        dialogResetPassWord();
+        Navigator.pop(context);
+        Navigator.push(context,
+          MaterialPageRoute(
+                          builder: (context) => TagScreen(email: FirebaseAuth.instance.currentUser?.email == null ? "" : FirebaseAuth.instance.currentUser?.email),
+                        )
+        );
+        
       case 3:
-        confirmLogOut();
+        dialogResetPassWord();
       case 4:
+        confirmLogOut();
+      case 5:
         Navigator.pushNamed(context, RoutePaths.login);
     }
   }
@@ -267,6 +278,7 @@ class AppDrawerTile extends StatelessWidget {
   static final drawerItemIcon = [
     Icons.notifications,
     Icons.share,
+    Icons.turned_in_outlined,
     Icons.lock_reset,
     Icons.logout,
     Icons.login,
@@ -275,6 +287,7 @@ class AppDrawerTile extends StatelessWidget {
   static final drawerItemText = [
     'Thông báo',
     'Chia sẻ ghi chú',
+    'Nhãn',
     'Đổi mật khẩu',
     'Đăng xuất',
     'Đăng nhập',

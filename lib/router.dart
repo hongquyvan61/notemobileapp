@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:notemobileapp/home/home.dart';
 import 'package:notemobileapp/newnote/newnote.dart';
 import 'package:notemobileapp/test/page/auth_page.dart';
-import 'package:notemobileapp/test/page/email_rules_page.dart';
 import 'package:notemobileapp/test/page/notification_page.dart';
 import 'package:notemobileapp/test/page/share_note_page.dart';
 import 'package:notemobileapp/test/page/sign_up_page.dart';
+import 'package:notemobileapp/test/page/tag_page.dart';
 import 'package:notemobileapp/test/page/verify_email.dart';
 import 'package:notemobileapp/test/test_page.dart';
 
@@ -19,6 +19,7 @@ class RoutePaths {
   static const notificationPage = 'notificationPage';
   static const shareNotePage = 'shareNotePage';
   static const shareNoteManager = 'shareNoteManager';
+  static const tagPage = 'tagscreen';
 }
 
 class RouterCustom {
@@ -47,6 +48,11 @@ class RouterCustom {
         return MaterialPageRoute(builder: (_) => const VerifyEmailPage());
       case RoutePaths.notificationPage:
         return MaterialPageRoute(builder: (_) => const NotificationPage());
+      case RoutePaths.tagPage:
+        return MaterialPageRoute(
+            builder: (_) => const TagScreen(email: "")
+            );
+
       case RoutePaths.shareNotePage:
         return MaterialPageRoute(
             builder: (_) => const ShareNotePage(
