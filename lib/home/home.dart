@@ -1206,38 +1206,38 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> downloadImage(String url, String localUrl) async {
-    //   String fullPath = localUrl;
-    //   String prefix = "/data/user/0/com.example.notemobileapp/cache/";
-    //   String name = '';
-    //
-    //   if (fullPath.startsWith(prefix)) {
-    //     // Sử dụng substring để cắt bỏ phần prefix
-    //     name = fullPath.substring(prefix.length);
-    //
-    //   }
-    //
-    //
-    //   try {
-    //     String imageURL =
-    //         url; // Thay đổi URL bằng đường dẫn tới ảnh trên Firebase Storage
-    //     firebase_storage.Reference ref =
-    //     firebase_storage.FirebaseStorage.instance.ref(imageURL);
-    //
-    //     final Directory appDocDir = await getTemporaryDirectory();
-    //     final File localFile = File('${appDocDir.path}/$name');
-    //     if (!await localFile.exists()) {
-    //
-    //       ref.getData().then((data) {
-    //         localFile.writeAsBytes(data!);
-    //         print('Image downloaded to: ${localFile.path}');
-    //       });
-    //
-    //
-    //     } else {
-    //       print('Image already exists locally at: ${localFile.path}');
-    //     }
-    //   } catch (e) {
-    //     print('Error downloading image: $e');
-    //   }
+      String fullPath = localUrl;
+      String prefix = "/data/user/0/com.example.notemobileapp/cache/";
+      String name = '';
+
+      if (fullPath.startsWith(prefix)) {
+        // Sử dụng substring để cắt bỏ phần prefix
+        name = fullPath.substring(prefix.length);
+
+      }
+
+
+      try {
+        String imageURL =
+            url; // Thay đổi URL bằng đường dẫn tới ảnh trên Firebase Storage
+        firebase_storage.Reference ref =
+        firebase_storage.FirebaseStorage.instance.ref(imageURL);
+
+        final Directory appDocDir = await getTemporaryDirectory();
+        final File localFile = File('${appDocDir.path}/$name');
+        if (!await localFile.exists()) {
+
+          ref.getData().then((data) {
+            localFile.writeAsBytes(data!);
+            print('Image downloaded to: ${localFile.path}');
+          });
+
+
+        } else {
+          print('Image already exists locally at: ${localFile.path}');
+        }
+      } catch (e) {
+        print('Error downloading image: $e');
+      }
   }
 }

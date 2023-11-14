@@ -8,12 +8,13 @@ class StorageService {
   String? currentUser = FirebaseAuth.instance.currentUser?.email;
 
   Future<String> uploadImage(File file) async {
+    final metadata = SettableMetadata(contentType: "image/jpeg");
     Reference storageReference = firebaseStorage
         .ref()
         .child('images/${DateTime.now().millisecondsSinceEpoch}');
     // Tải lên hình ảnh lên Firebase Storage
-    UploadTask uploadTask = storageReference.putFile(file);
-    TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => null);
+    UploadTask uploadTask = storageReference.putFile(file, metadata);
+    TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => print('Image uploaded'));
     // Lấy URL của hình ảnh sau khi tải lên
     String imageUrl = await taskSnapshot.ref.getDownloadURL();
     return imageUrl;

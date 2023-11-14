@@ -32,7 +32,8 @@ class FireStorageService {
     return idNote.id;
   }
 
-  Future<String> saveContentNotesForShare(NoteContent noteContent, String owner) async {
+  Future<String> saveContentNotesForShare(
+      NoteContent noteContent, String owner) async {
     final idNote = notesCollection.doc(owner).collection("note").doc();
     await idNote.set(noteContent.toMap());
     debugPrint('Insert count');
@@ -44,7 +45,9 @@ class FireStorageService {
     final noteCollection = await notesCollection
         .doc(currentUser)
         .collection("note")
-        .orderBy('timestamp', descending: true).get().then((value) {
+        .orderBy('timestamp', descending: true)
+        .get()
+        .then((value) {
       for (var docSnapshot in value.docs) {
         notes.add(NoteReceive.withValue(
             docSnapshot.get('content'),
@@ -136,7 +139,8 @@ class FireStorageService {
   }
 
   Future<void> updateTagById(String id, Tag t) async {
-    final tagDocument = notesCollection.doc(currentUser).collection("tag").doc(id);
+    final tagDocument =
+        notesCollection.doc(currentUser).collection("tag").doc(id);
 
     DocumentSnapshot doc = await tagDocument.get();
     String oldname = doc.get('tag_name');
@@ -144,9 +148,13 @@ class FireStorageService {
     await tagDocument.update(t.toMap());
 
     List<NoteReceive> notes = await getAllNote();
-    for(int i = 0 ; i < notes.length ; i++){
-      if(notes[i].tagname == oldname){
-        notesCollection.doc(currentUser).collection('note').doc(notes[i].noteId).update({'tagname' : t.tagname});
+    for (int i = 0; i < notes.length; i++) {
+      if (notes[i].tagname == oldname) {
+        notesCollection
+            .doc(currentUser)
+            .collection('note')
+            .doc(notes[i].noteId)
+            .update({'tagname': t.tagname});
       }
     }
   }
@@ -158,7 +166,8 @@ class FireStorageService {
   }
 
   Future<void> deleteTagById(String id) async {
-    final tagDocument =  notesCollection.doc(currentUser).collection("tag").doc(id);
+    final tagDocument =
+        notesCollection.doc(currentUser).collection("tag").doc(id);
 
     DocumentSnapshot doc = await tagDocument.get();
     String name = doc.get('tag_name');
@@ -166,12 +175,15 @@ class FireStorageService {
     await tagDocument.delete();
 
     List<NoteReceive> notes = await getAllNote();
-    for(int i = 0 ; i < notes.length ; i++){
-      if(notes[i].tagname == name){
-        notesCollection.doc(currentUser).collection('note').doc(notes[i].noteId).update({'tagname' : ""});
+    for (int i = 0; i < notes.length; i++) {
+      if (notes[i].tagname == name) {
+        notesCollection
+            .doc(currentUser)
+            .collection('note')
+            .doc(notes[i].noteId)
+            .update({'tagname': ""});
       }
     }
-
   }
 
   Future<void> saveTagsForShare(Tag tag, String owner) async {
@@ -207,7 +219,8 @@ class FireStorageService {
     return noteReceive;
   }
 
-  Future<List<NoteReceive>> getListNoteByOwner(List<Receive> listReceive) async {
+  Future<List<NoteReceive>> getListNoteByOwner(
+      List<Receive> listReceive) async {
     List<NoteReceive> listNote = [];
     NoteReceive noteReceive = NoteReceive();
     for (var element in listReceive) {
@@ -231,23 +244,21 @@ class FireStorageService {
   }
 
   Future<NoteReceive> getNoteByOwner(Receive receive) async {
-
     NoteReceive noteReceive = NoteReceive();
 
-      final noteDocument = notesCollection
-          .doc(receive.owner)
-          .collection("note")
-          .doc(receive.noteId);
-      DocumentSnapshot doc = await noteDocument.get();
-      noteReceive = NoteReceive.withValue2(
-          doc.get('content'),
-          doc.id,
-          doc.get('timestamp'),
-          doc.get('title'),
-          doc.get('tagname'),
-          receive.owner,
-          receive.rule);
-
+    final noteDocument = notesCollection
+        .doc(receive.owner)
+        .collection("note")
+        .doc(receive.noteId);
+    DocumentSnapshot doc = await noteDocument.get();
+    noteReceive = NoteReceive.withValue2(
+        doc.get('content'),
+        doc.id,
+        doc.get('timestamp'),
+        doc.get('title'),
+        doc.get('tagname'),
+        receive.owner,
+        receive.rule);
 
     return noteReceive;
   }
@@ -266,18 +277,21 @@ class FireStorageService {
     //Kiểm tra xem invite có trống hay không (người dùng chưa bấm vào share)
     if (collectionSnapshot.docs.isNotEmpty) {
       DocumentSnapshot doc = await inviteDocument.doc(id).get();
-      Map<String, dynamic>? docData = doc.data() as Map<String, dynamic>?;
-      Map<String, dynamic>? rulesData = {};
-
-      if (docData!.containsKey('rules')) {
-        rulesData = docData['rules'];
-        rulesData?.forEach((key, value) async {
-          if (key != 'timestamp') {
-            receives.email = key;
-            receives.noteId = id;
-            await deleteReceive(receives);
+      if (doc.exists) {
+        Map<String, dynamic>? docData = doc.data() as Map<String, dynamic>?;
+        Map<String, dynamic>? rulesData = {};
+        if (docData!.isNotEmpty) {
+          if (docData.containsKey('rules')) {
+            rulesData = docData['rules'];
+            rulesData?.forEach((key, value) async {
+              if (key != 'timestamp') {
+                receives.email = key;
+                receives.noteId = id;
+                await deleteReceive(receives);
+              }
+            });
           }
-        });
+        }
       }
     }
 
@@ -293,9 +307,9 @@ class FireStorageService {
     await noteDocument.update(noteContent.toMap());
   }
 
-  Future<void> updateNoteByIdForShare(String id, NoteContent noteContent, String owner) async {
-    final noteDocument =
-    notesCollection.doc(owner).collection("note").doc(id);
+  Future<void> updateNoteByIdForShare(
+      String id, NoteContent noteContent, String owner) async {
+    final noteDocument = notesCollection.doc(owner).collection("note").doc(id);
     await noteDocument.update(noteContent.toMap());
   }
 
@@ -306,9 +320,9 @@ class FireStorageService {
     noteDocument.update(map);
   }
 
-  Future<void> updateCloudImageURLForShare(String id, List<dynamic> contents, String owner) async {
-    final noteDocument =
-        notesCollection.doc(owner).collection("note").doc(id);
+  Future<void> updateCloudImageURLForShare(
+      String id, List<dynamic> contents, String owner) async {
+    final noteDocument = notesCollection.doc(owner).collection("note").doc(id);
     Map<Object, Object?> map = {"content": contents};
     noteDocument.update(map);
   }
@@ -379,7 +393,8 @@ class FireStorageService {
     for (QueryDocumentSnapshot document in inviteColection.docs) {
       checkNull = document.data() as Map<String, dynamic>?;
       temp = await getNoteById(document.id);
-      if (checkNull!.containsKey('rules') && checkNull['rules'].length > 1) { // check nếu như người dùng xoá hết email share và values chỉ còn timestamp
+      if (checkNull!.containsKey('rules') && checkNull['rules'].length > 1) {
+        // check nếu như người dùng xoá hết email share và values chỉ còn timestamp
         rules = document.get('rules');
         temp.rules = rules;
       }
@@ -406,14 +421,15 @@ class FireStorageService {
     await idReceive.set(receive.toMap(), SetOptions(merge: true));
 
     token = await getToken(receive.email);
-    await FireBaseMessageService().messageFromServer(token, receive.noteId, receive.owner, receive.rule);
+    await FireBaseMessageService()
+        .messageFromServer(token, receive.noteId, receive.owner, receive.rule);
     debugPrint('Insert successful');
   }
 
   Future<void> setIsNewFalse(String idInvite) async {
-    final idReceive =
-        notesCollection.doc(currentUser).collection("receive").doc(idInvite);
-    await idReceive.update({'isNew': false});
+    // final idReceive =
+    //     notesCollection.doc(currentUser).collection("receive").doc(idInvite);
+    // await idReceive.update({'isNew': false});
   }
 
   Future<List<String>> getAllEmailUser() async {
@@ -430,7 +446,8 @@ class FireStorageService {
     final idReceive = notesCollection
         .doc(currentUser)
         .collection("receive")
-        .orderBy('hadseen', descending: false).orderBy('timestamp', descending: true);
+        .orderBy('hadseen', descending: false)
+        .orderBy('timestamp', descending: true);
 
     await idReceive.get().then((value) {
       for (var element in value.docs) {
@@ -450,7 +467,8 @@ class FireStorageService {
     final idReceive = await notesCollection
         .doc(currentUser)
         .collection("receive")
-        .doc(receives.noteId).update({'hadseen': true});
+        .doc(receives.noteId)
+        .update({'hadseen': true});
   }
 
   Future<void> insertCollection() async {
@@ -459,9 +477,7 @@ class FireStorageService {
   }
 
   Future<void> addToken(dynamic token) async {
-
-      await notesCollection.doc(currentUser).set({'token' : token});
-
+    await notesCollection.doc(currentUser).set({'token': token});
   }
 
   Future<String> getToken(String user) async {
@@ -469,7 +485,8 @@ class FireStorageService {
     DocumentSnapshot documentSnapshot = await notesCollection.doc(user).get();
     if (documentSnapshot.exists) {
       // Dữ liệu tồn tại
-      Map<String, dynamic> data = documentSnapshot.data() as Map<String, dynamic>;
+      Map<String, dynamic> data =
+          documentSnapshot.data() as Map<String, dynamic>;
       result = data['token'];
     } else {
       // Dữ liệu không tồn tại
