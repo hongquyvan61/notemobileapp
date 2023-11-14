@@ -8,6 +8,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 //import 'package:flutter_quill/flutter_quill.dart' hide Text;
@@ -266,10 +267,19 @@ class NewNoteScreenState extends State<NewNoteScreen> {
   }
 
   Future getImage() async {
-    final image = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (image == null) return;
+    final imageFromCache = await ImagePicker().pickImage(source: ImageSource.gallery);
+    final File fileCache = File(imageFromCache!.path);
 
-    final imageTemp = File(image.path);
+    final directory = await getApplicationDocumentsDirectory();
+    String pathAppDoc = directory.path;
+
+    String destinationPath = '$pathAppDoc/${fileCache.uri.pathSegments.last}';
+    await fileCache.copy(destinationPath);
+    
+
+
+
+    final imageTemp = File(destinationPath);
 
     _image = imageTemp;
 

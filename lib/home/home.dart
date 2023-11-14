@@ -8,6 +8,7 @@ import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 
 //import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:notemobileapp/DAL/NoteContentDAL.dart';
@@ -1206,38 +1207,44 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> downloadImage(String url, String localUrl) async {
-      String fullPath = localUrl;
-      String prefix = "/data/user/0/com.example.notemobileapp/cache/";
-      String name = '';
 
-      if (fullPath.startsWith(prefix)) {
-        // Sử dụng substring để cắt bỏ phần prefix
-        name = fullPath.substring(prefix.length);
+    final directory = await getApplicationDocumentsDirectory();
+    String pathAppDoc = directory.path;
 
-      }
+    String prefix = "/data/user/0/com.example.notemobileapp/app_flutter/";
+    String name = localUrl.substring(prefix.length);
+    String destinationPath = '$pathAppDoc/$name';
 
+    final DefaultCacheManager cacheManager = DefaultCacheManager();
+    final File file = await cacheManager.getSingleFile(url);
 
-      try {
-        String imageURL =
-            url; // Thay đổi URL bằng đường dẫn tới ảnh trên Firebase Storage
-        firebase_storage.Reference ref =
-        firebase_storage.FirebaseStorage.instance.ref(imageURL);
-
-        final Directory appDocDir = await getTemporaryDirectory();
-        final File localFile = File('${appDocDir.path}/$name');
-        if (!await localFile.exists()) {
-
-          ref.getData().then((data) {
-            localFile.writeAsBytes(data!);
-            print('Image downloaded to: ${localFile.path}');
-          });
-
-
-        } else {
-          print('Image already exists locally at: ${localFile.path}');
-        }
-      } catch (e) {
-        print('Error downloading image: $e');
-      }
+      // Lưu vào thư mục flutter của ứng dụng
+    final File localFile = await file.copy(destinationPath);
+      //
+      //
+      //
+      //
+      // try {
+      //   String imageURL =
+      //       url;
+      //   firebase_storage.Reference ref =
+      //   firebase_storage.FirebaseStorage.instance.ref(imageURL);
+      //
+      //   final Directory appDocDir = await getTemporaryDirectory();
+      //   final File localFile = File('${appDocDir.path}/$name');
+      //   if (!await localFile.exists()) {
+      //
+      //     ref.getData().then((data) {
+      //       localFile.writeAsBytes(data!);
+      //       print('Image downloaded to: ${localFile.path}');
+      //     });
+      //
+      //
+      //   } else {
+      //     print('Image already exists locally at: ${localFile.path}');
+      //   }
+      // } catch (e) {
+      //   print('Error downloading image: $e');
+      // }
   }
 }
