@@ -156,7 +156,7 @@ class Auth {
       ///UPLOAD DANH SACH NOTE VA NOTE CONTENTS
       ///UPLOAD DANH SACH NOTE VA NOTE CONTENTS
       ///UPLOAD DANH SACH NOTE VA NOTE CONTENTS
-      List<NoteModel> NotesAtLocal = await noteDAL.getAllNotesByUserID(-1, InitDataBase.db);
+      List<NoteModel> NotesAtLocal = await noteDAL.getAllNotes(InitDataBase.db);
       List<Map<String, dynamic>> contents = [];
       NoteContent note = NoteContent();
 
@@ -165,7 +165,7 @@ class Auth {
           contents = await ncontentDAL.getAllNoteContentsById_Cloud(InitDataBase.db, NotesAtLocal[i].note_id?.toInt() ?? 0);
           note.content = contents;
           note.title = NotesAtLocal[i].title;
-          note.timeStamp = NotesAtLocal[i].date_created;
+          note.timeStamp = NotesAtLocal[i].convertDateCreate();
           
           note.tagname = await tagDAL.getTagNameByID(NotesAtLocal[i].tag_id?.toInt() ?? 0, InitDataBase.db);
           

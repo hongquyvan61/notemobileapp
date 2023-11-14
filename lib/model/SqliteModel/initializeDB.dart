@@ -29,7 +29,7 @@ class InitDataBase {
           db.execute('CREATE TABLE tag(tag_id INTEGER PRIMARY KEY AUTOINCREMENT, tag_name TEXT, user_id INTEGER,' + 
           'FOREIGN KEY (user_id) references users(user_id) ON UPDATE RESTRICT ON DELETE RESTRICT)');
 
-          db.execute('CREATE TABLE note(note_id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, date_created TEXT, user_id INTEGER, tag_id INTEGER,' + 
+          db.execute('CREATE TABLE note(note_id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, date_created INTEGER, user_id INTEGER, tag_id INTEGER,' +
               'FOREIGN KEY (user_id) references users(user_id) ON UPDATE RESTRICT ON DELETE RESTRICT,' + 
               'FOREIGN KEY (tag_id) references tag(tag_id) ON UPDATE RESTRICT ON DELETE RESTRICT)  ');
           

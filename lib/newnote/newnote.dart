@@ -346,7 +346,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
         await nDAL.getNoteByID(userid, int.parse(noteID), InitDataBase.db);
     if (tmp.isNotEmpty && isEdit) {
       _noteTitleController.text = tmp[0].title;
-      currentDateTime = tmp[0].date_created;
+      currentDateTime = tmp[0].convertDateCreate();
 
       taglocal!.tag_name = tmp[0].tag_name?.toString() ?? "";
 
@@ -469,11 +469,11 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     late NoteModel md;
     if (taglocal == null) {
       md = NoteModel(
-          title: NoteTitle, date_created: currentDateTime, user_id: -1);
+          title: NoteTitle, date_created: currentDateTime.millisecondsSinceEpoch, user_id: -1);
     } else {
       md = NoteModel(
           title: NoteTitle,
-          date_created: currentDateTime,
+          date_created: currentDateTime.millisecondsSinceEpoch,
           user_id: -1,
           tag_id: taglocal!.tag_id);
     }

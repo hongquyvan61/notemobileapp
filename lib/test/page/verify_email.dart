@@ -157,7 +157,7 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
           contents = await ncontentDAL.getAllNoteContentsById_Cloud(InitDataBase.db, NotesAtLocal[i].note_id?.toInt() ?? 0);
           note.content = contents;
           note.title = NotesAtLocal[i].title;
-          note.timeStamp = NotesAtLocal[i].date_created;
+          note.timeStamp = NotesAtLocal[i].convertDateCreate();
           
           //note.tagname = await tagDAL.getTagNameByID(NotesAtLocal[i].tag_id?.toInt() ?? 0, InitDataBase.db);
           note.tagname = NotesAtLocal[i].tag_name?.toString() ?? "";
