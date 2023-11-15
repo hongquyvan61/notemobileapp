@@ -58,7 +58,7 @@ class NoteDAL {
 
   Future<bool> updateTagInNote(int noteid, TagModel? tag, Database db) async {
     int checkupdate = -1;
-    if(tag!.tag_id == null){
+    if(tag == null || tag!.tag_id == null){
       checkupdate  = await db.rawUpdate("update note set tag_id=null where note_id=?",[noteid]);
     }
     else{

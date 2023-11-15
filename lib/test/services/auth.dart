@@ -211,5 +211,7 @@ class Auth {
       });
 
     }
+
+    await tagDAL.deleteAllTags(InitDataBase.db);
   }
 }

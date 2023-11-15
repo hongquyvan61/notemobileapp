@@ -679,6 +679,10 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     if (isSuccess == false) {
       debugPrint("Xoa note xay ra loi!!!!!!");
     }
+
+    setState(() {
+      
+    });
   }
 
   Widget buildImageWidget(BuildContext context, int index) {
@@ -973,7 +977,10 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                               child: Row(
                                 children: [
                                   Expanded(
-                                    child: ElevatedButton(
+                                    child: 
+                                    loginState ? 
+
+                                    ElevatedButton(
                                       onPressed: () {
                                         Navigator.push(
                                             context,
@@ -1002,7 +1009,11 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                                           ),
                                         ),
                                       ),
-                                    ),
+                                    )
+
+                                    :
+
+                                    SizedBox()
                                   ),
                                   SizedBox(
                                     width: 5,
