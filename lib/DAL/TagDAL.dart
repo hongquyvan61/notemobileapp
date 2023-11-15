@@ -1,8 +1,12 @@
+import 'package:notemobileapp/DAL/NoteDAL.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../model/SqliteModel/NoteModel.dart';
 import '../model/SqliteModel/TagModel.dart';
 
 class TagDAL{
+  NoteDAL nDAL = NoteDAL();
+
   Future<String> getTagNameByID(int tagid, Database db) async {
     
     if(tagid == 0) return "";
@@ -43,5 +47,18 @@ class TagDAL{
   Future<bool> insertTag(TagModel md, int uid, Database db) async {
     int check = await db.rawInsert("insert into tag(tag_name, user_id) values(?,?)",[md.tag_name,uid]);
     return check != 0 ? true : false;
+  }
+
+  Future<bool> updateTagNameById(int uid, int tagid, String newname, Database db) async {
+    int checkupt = await db.rawUpdate("update tag set tag_name=? where tag_id=? and user_id=?",[newname, tagid,uid]);
+    return checkupt != 0 ? true : false;
+  }
+
+  Future<bool> deleteTagById(int tagid, int uid, Database db) async {
+    int checkupt = await db.rawUpdate("update note set tag_id=null where tag_id=? and user_id=?",[tagid,uid]);
+
+    
+    int del = await db.rawDelete("delete from tag where tag_id=?",[tagid]);
+    return del != 0 ? true : false;
   }
 }

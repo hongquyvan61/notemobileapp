@@ -212,7 +212,9 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     EasyLoading.instance
       ..indicatorType = EasyLoadingIndicatorType.chasingDots
       ..loadingStyle = EasyLoadingStyle.dark;
+
     _speech = stt.SpeechToText();
+    
     checkLogin();
     CheckInternetConnection();
 
@@ -359,6 +361,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
       _noteTitleController.text = tmp[0].title;
       currentDateTime = tmp[0].convertDateCreate();
 
+      taglocal!.tag_id = tmp[0].tag_id?.toInt() ?? null;
       taglocal!.tag_name = tmp[0].tag_name?.toString() ?? "";
 
       List<NoteContentModel> contents = await ncontentDAL
@@ -746,6 +749,8 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                         //XOA TEXT FIELD NGAY SAU HINH NEU TEXT FIELD TRONG KHI EDIT GHI CHU
 
                         noteContentList.removeAt(index);
+
+                        UpdateNoteContentList.removeAt(index);
 
                         UpdateNoteModel delmodel = UpdateNoteModel(
                             notecontent_id:

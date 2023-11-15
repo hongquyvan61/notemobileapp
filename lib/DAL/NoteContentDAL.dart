@@ -98,7 +98,7 @@ class NoteContentDAL {
     }
 
     Future<String> getBriefContentofNote(int? noteid, Database db) async{
-      List<Map> result = await db.rawQuery("select textcontent from notecontent where note_id=? and textcontent is not null limit 1",[noteid]);
+      List<Map> result = await db.rawQuery("select textcontent from notecontent where note_id=? and textcontent != '' limit 1",[noteid]);
       String briefcontent = result[0]['textcontent'];
       return briefcontent;
     }

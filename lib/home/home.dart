@@ -139,6 +139,7 @@ class HomeScreenState extends State<HomeScreen> {
       }
 
       InitiateListOfNote();
+
       if (loginState) {
         InitiateListOfTag();
       } else {
@@ -351,7 +352,7 @@ class HomeScreenState extends State<HomeScreen> {
         fit: BoxFit.cover,
       );
     } else {
-      if (listofTitleImage[index].path == "") {
+      if (listofTitleImage.isEmpty || listofTitleImage[index].path == "") {
         return null;
       }
       return Image.file(
@@ -967,37 +968,37 @@ class HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
 
-                            // loginState ?
-                            //
-                            // Expanded(
-                            //   flex: 1,
-                            //   child: DropdownMenu<TagReceive>(
-                            //     initialSelection: lsttags.isEmpty ? null : lsttags[0],
-                            //     controller: filterTagController,
-                            //     label: const Text('Nhãn'),
-                            //     dropdownMenuEntries: tagListEntries,
-                            //     onSelected: (TagReceive? tag) {
-                            //       filtertag(tag);
-                            //
-                            //     },
-                            //   ),
-                            // )
-                            //
-                            // :
-                            //
-                            // Expanded(
-                            //   flex: 1,
-                            //   child: DropdownMenu<TagModel>(
-                            //     initialSelection: lsttagsLocal.isEmpty ? null : lsttagsLocal[0],
-                            //     controller: filterTagLocalController,
-                            //     label: const Text('Nhãn'),
-                            //     dropdownMenuEntries: tagListEntriesLocal,
-                            //     onSelected: (TagModel? tag) {
-                            //       filtertagAtLocal(tag);
-                            //
-                            //     },
-                            //   ),
-                            // )
+                            loginState ?
+                            
+                            Expanded(
+                              flex: 1,
+                              child: DropdownMenu<TagReceive>(
+                                initialSelection: lsttags.isEmpty ? null : lsttags[0],
+                                controller: filterTagController,
+                                label: const Text('Nhãn'),
+                                dropdownMenuEntries: tagListEntries,
+                                onSelected: (TagReceive? tag) {
+                                  filtertag(tag);
+                            
+                                },
+                              ),
+                            )
+                            
+                            :
+                            
+                            Expanded(
+                              flex: 1,
+                              child: DropdownMenu<TagModel>(
+                                initialSelection: lsttagsLocal.isEmpty ? null : lsttagsLocal[0],
+                                controller: filterTagLocalController,
+                                label: const Text('Nhãn'),
+                                dropdownMenuEntries: tagListEntriesLocal,
+                                onSelected: (TagModel? tag) {
+                                  filtertagAtLocal(tag);
+                            
+                                },
+                              ),
+                            )
                           ],
                         ),
                         const SizedBox(

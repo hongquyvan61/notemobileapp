@@ -371,6 +371,8 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
                                                             String dynamiclink = await FirebaseDynamicLinkService().createDynamicLink(true, RoutePaths.newnote, widget.noteId);
 
                                                             sendEmail(dynamiclink);
+
+                                                            Navigator.of(context).pop();
                                                           }
                                                         },
                                                         style: ElevatedButton.styleFrom(

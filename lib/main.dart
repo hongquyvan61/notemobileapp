@@ -22,7 +22,6 @@ import 'package:notemobileapp/test/services/firebase_message_service.dart';
 import 'package:path/path.dart';
 import 'package:provider/provider.dart';
 import 'package:timezone/data/latest.dart' as tz;
-import 'package:http/http.dart' as http;
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {

@@ -87,6 +87,7 @@ class TagScreenState extends State<TagScreen>{
                                 style: const TextStyle(
                                   fontSize: 15,
                                 ),
+
                                 decoration: const InputDecoration(
                                     hintText: "Tìm kiếm nhãn...",
                                     prefixIcon: Icon(Icons.search),
@@ -97,22 +98,36 @@ class TagScreenState extends State<TagScreen>{
                                         borderSide: BorderSide(
                                       width: 0.5,
                                     ))),
+
                                 onChanged: (value) async {
                                   if (value == "") {
                                     await EasyLoading.show(
                                             status:"Đang tải danh sách nhãn của bạn...",
                                             maskType: EasyLoadingMaskType.none,
                                           );
-                                    lsttags = await FireStorageService().getAllTags();
+
+                                    if(loginState){
+                                      lsttags = await FireStorageService().getAllTags();
+                                    }
+                                    else{
+                                      lsttagslocal = await tagDAL.getAllTagsByUserID(-1, InitDataBase.db);
+                                    }
 
                                     await EasyLoading.dismiss();
+
                                   } else {
                                     await EasyLoading.show(
                                             status: "Đang tìm kiếm...",
                                             maskType: EasyLoadingMaskType.none,
                                           );
-                                    lsttags = lsttags.where((element) => element.tagname.toLowerCase().contains(value)).toList();
-                                    
+
+                                    if(loginState){
+                                      lsttags = lsttags.where((element) => element.tagname.toLowerCase().contains(value)).toList();
+                                    }
+                                    else{
+                                      lsttagslocal = lsttagslocal.where((element) => element.tag_name.toLowerCase().contains(value)).toList();
+                                    }
+
                                     await EasyLoading.dismiss();
                                   }
 
@@ -127,7 +142,12 @@ class TagScreenState extends State<TagScreen>{
                   itemCount: loginState == true ? lsttags.length : lsttagslocal.length,
                   itemBuilder: (context, index) {
                     TextEditingController updatenamecontroller = TextEditingController();
-                    updatenamecontroller.text = lsttags[index].tagname;
+                    if(loginState){
+                      updatenamecontroller.text = lsttags[index].tagname;
+                    }
+                    else{
+                      updatenamecontroller.text = lsttagslocal[index].tag_name;
+                    }
                     return Container(
                             padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                             child: ListTile(
@@ -195,7 +215,12 @@ class TagScreenState extends State<TagScreen>{
                                                                                 child: ElevatedButton(
                                                                                   onPressed: (){
                                                                                     Navigator.of(context).pop("");
-                                                                                    updatenamecontroller.text = lsttags[index].tagname;
+                                                                                    if(loginState){
+                                                                                      updatenamecontroller.text = lsttags[index].tagname;
+                                                                                    }
+                                                                                    else{
+                                                                                      updatenamecontroller.text = lsttagslocal[index].tag_name;
+                                                                                    }
                                                                                   },
                                                                                   style: ElevatedButton.styleFrom(
                                                                                       shape:
@@ -245,11 +270,37 @@ class TagScreenState extends State<TagScreen>{
                                                             },
                                                           );
 
-                                                          if(newTagName != lsttags[index].tagname && newTagName != "" && newTagName != null){
-                                                            updateTag(lsttags[index].tagid, newTagName?.toString() ?? "");
-
+                                                          if(loginState){
+                                                            if(newTagName != lsttags[index].tagname && newTagName != "" && newTagName != null){
+                                                              updateTag(lsttags[index].tagid, newTagName?.toString() ?? "");
                                                             
-                                                          }  
+                                                            }
+                                                          }
+                                                          else{
+                                                            if(newTagName != lsttagslocal[index].tag_name && newTagName != "" && newTagName != null){
+                                                              
+                                                              await EasyLoading.show(
+                                                                status: "Đang cập nhật thông tin...",
+                                                                maskType: EasyLoadingMaskType.none,
+                                                              );
+
+                                                              bool success = await tagDAL.updateTagNameById(-1, lsttagslocal[index].tag_id?.toInt() ?? -1, newTagName?.toString() ?? "", InitDataBase.db);
+                                                              if(success){
+                                                                debugPrint("Cập nhật tag name thành công!");
+                                                              }
+                                                              else{
+                                                                debugPrint("Cập nhật tag name bị lỗi!!!!!");
+                                                              }
+
+                                                              lsttagslocal = await tagDAL.getAllTagsByUserID(-1, InitDataBase.db);
+
+                                                              await EasyLoading.dismiss();
+
+                                                              setState(() {
+                                                                
+                                                              });
+                                                            }
+                                                          }
                                                        },
                                                        icon: const Icon(Icons.edit,
                                                         color: Colors.grey,
@@ -263,10 +314,36 @@ class TagScreenState extends State<TagScreen>{
                                                                   context,
                                                                   "Bạn có muốn xoá nhãn này không? Tất cả ghi chú được gán nhãn này sẽ được gỡ nhãn!",
                                                                   "Xoá ghi chú");
-                                                          if(deleteornot){
-                                                            deleteTag(lsttags[index].tagid);
+                                                          if(loginState){
+                                                            if(deleteornot){
+                                                              deleteTag(lsttags[index].tagid);
+                                                            }
                                                           }
-                                                          
+                                                          else{
+                                                            if(deleteornot){
+                                                              await EasyLoading.show(
+                                                                status: "Đang cập nhật thông tin...",
+                                                                maskType: EasyLoadingMaskType.none,
+                                                              );
+
+                                                              bool success = await tagDAL.deleteTagById(lsttagslocal[index].tag_id?.toInt() ?? -1, -1, InitDataBase.db);
+                                                              
+                                                              if(success){
+                                                                debugPrint("Xoá tag thành công!");
+                                                              }
+                                                              else{
+                                                                debugPrint("Xoá tag bị lỗi!!!!!");
+                                                              }
+
+                                                              lsttagslocal = await tagDAL.getAllTagsByUserID(-1, InitDataBase.db);
+
+                                                              await EasyLoading.dismiss();
+
+                                                              setState(() {
+                                                                
+                                                              });
+                                                            }
+                                                          }
                                                        },
                                                        icon: const Icon(Icons.delete,
                                                         color: Colors.red,
@@ -319,7 +396,13 @@ class TagScreenState extends State<TagScreen>{
                     ),
                     trailing: IconButton(
                                 onPressed: () async {
-                                 createTag();
+                                  if(loginState){
+                                    createTag();
+                                  }
+                                  else{
+                                    createTagAtLocal();
+
+                                  }
                                  
                                 },
                                 icon: const Icon(Icons.check,
@@ -399,6 +482,7 @@ class TagScreenState extends State<TagScreen>{
     });
   }
 
+
   Future<void> createTag() async {
     if (_tagnamecontroller.text.isNotEmpty) {
       await EasyLoading.show(
@@ -419,6 +503,32 @@ class TagScreenState extends State<TagScreen>{
       _tagnamecontroller.text = "";
 
       setState(() {});
+    }
+  }
+
+
+  Future<void> createTagAtLocal() async {
+    if (_tagnamecontroller.text.isNotEmpty) {
+      TagModel tagmodel = TagModel(tag_name: _tagnamecontroller.text);
+
+      bool checkinsert = await tagDAL.insertTag(tagmodel, -1, InitDataBase.db);
+
+      checkinsert
+          ? debugPrint("Tao nhan thanh cong!")
+          : debugPrint("Tao nhan that bai, xay ra loi!");
+
+      _tagnamecontroller.text = "";
+
+      isCreatedNewTag = false;
+      
+      lsttagslocal = await tagDAL.getAllTagsByUserID(-1, InitDataBase.db);
+
+      await EasyLoading.dismiss();
+
+      setState(() {
+        
+      });
+
     }
   }
 

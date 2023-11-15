@@ -54,4 +54,5 @@ class NoteModel {
   String toString() {
     return 'NoteModel{note_id: $note_id, title: $title, date_created: $date_created, user_id: $user_id, tag_name: $tag_name}';
   }
+
 }
