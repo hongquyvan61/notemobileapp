@@ -62,7 +62,7 @@ class NoteDAL {
       checkupdate  = await db.rawUpdate("update note set tag_id=null where note_id=?",[noteid]);
     }
     else{
-      String tagname = await TagDAL().getTagNameByID(tag!.tag_id?.toInt() ?? -1, InitDataBase.db);
+      String tagname = await TagDAL().getTagNameByID(tag.tag_id?.toInt() ?? -1, InitDataBase.db);
       
       if(tagname.isNotEmpty){
         checkupdate  = await db.rawUpdate("update note set tag_id=? where note_id=?",[tag!.tag_id?.toInt() ?? -1,noteid]);

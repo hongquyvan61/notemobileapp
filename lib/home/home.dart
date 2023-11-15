@@ -1199,13 +1199,15 @@ class HomeScreenState extends State<HomeScreen> {
           if (noteList[i].content[j].containsKey("local_image") && !File(
               noteList[i].content[j]["local_image"])
               .existsSync()) {
-            downloadImage(noteList[i].content[j + 1]['image'],
+            downloadImage(noteList[i].content[j]['image'],
                 noteList[i].content[j]["local_image"]);
           }
         }
       }
     }
   }
+
+
 
   Future<void> downloadImage(String url, String localUrl) async {
 

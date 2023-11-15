@@ -4,6 +4,9 @@ import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 class NetworkConnectivity {
+
+
+
   NetworkConnectivity._();
   static final _instance = NetworkConnectivity._();
   static NetworkConnectivity get instance => _instance;
@@ -28,5 +31,20 @@ class NetworkConnectivity {
     }
     _controller.sink.add({result: isOnline});
   }
+
+  Future<bool> getConnectivityText() async {
+
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.mobile) {
+      return true;
+    } else if (connectivityResult == ConnectivityResult.wifi) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   void disposeStream() => _controller.close();
+
+  NetworkConnectivity();
 }

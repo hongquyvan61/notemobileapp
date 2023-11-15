@@ -7,8 +7,10 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:notemobileapp/newnote/newnote.dart';
 import 'package:notemobileapp/newnote/showShareNote.dart';
+import 'package:notemobileapp/test/component/toast.dart';
 import 'package:notemobileapp/test/notifi_service.dart';
 import 'package:notemobileapp/test/services/change_invite_state.dart';
+import 'package:notemobileapp/test/services/internet_connection.dart';
 import 'package:provider/provider.dart';
 
 import '../model/note_receive.dart';
@@ -17,7 +19,9 @@ import '../services/firebase_firestore_service.dart';
 
 class ShareNotePage extends StatefulWidget {
   const ShareNotePage({super.key, required this.navNotification});
+
   final bool navNotification;
+
   @override
   State<ShareNotePage> createState() => _ShareNotePageState();
 }
@@ -33,25 +37,34 @@ class _ShareNotePageState extends State<ShareNotePage> {
       FlutterLocalNotificationsPlugin();
   String test = '';
   bool isShare = true;
+  bool connectInternet = false;
 
   @override
   void initState() {
-    if(widget.navNotification){
+    if (widget.navNotification) {
       setState(() {
         isShare = false;
       });
     }
+
     // TODO: implement initState
     super.initState();
     getAllReceive();
   }
 
+  Future<void> checkConnect() async {
+    connectInternet = await NetworkConnectivity().getConnectivityText();
+    setState(() {});
+  }
+
   Widget cardWidget(NoteReceive note) {
+
+
     String contentString = '';
     String urlImage = '';
+
     String rule = note.rule;
     Map<String, dynamic> content = {};
-
 
     for (var element in note.content) {
       content = element;
@@ -65,14 +78,17 @@ class _ShareNotePageState extends State<ShareNotePage> {
       }
     }
 
-
     return GestureDetector(
       onTap: () {
         Navigator.push(
             context,
             MaterialPageRoute(
                 builder: (context) => ShowShareNote(
-                    noteId: note.noteId, isEdit: true, email: note.owner, rule: rule,)));
+                      noteId: note.noteId,
+                      isEdit: true,
+                      email: note.owner,
+                      rule: rule,
+                    )));
       },
       child: Card(
         clipBehavior: Clip.antiAliasWithSaveLayer,
@@ -105,22 +121,35 @@ class _ShareNotePageState extends State<ShareNotePage> {
               urlImage != ''
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        urlImage,
-                        width: 300,
-                        height: 200,
-                        fit: BoxFit.cover,
-                      ),
+                      child: connectInternet
+                          ? Image.network(
+                              urlImage,
+                              width: 300,
+                              height: 200,
+                              fit: BoxFit.cover,
+                            )
+                          : SizedBox(
+                              height: 0,
+                              width: 0,
+                            ),
                     )
-                  : SizedBox(height: 0, width: 0,),
-              Divider(thickness: 1,),
+                  : SizedBox(
+                      height: 0,
+                      width: 0,
+                    ),
+              Divider(
+                thickness: 1,
+              ),
               Align(
                 alignment: AlignmentDirectional(1.00, 0.00),
                 child: Padding(
                   padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
                   child: Text(
                     note.getTimeStamp(),
-                    style: TextStyle(fontFamily: 'Roboto',fontWeight: FontWeight.w500, fontSize: 10),
+                    style: TextStyle(
+                        fontFamily: 'Roboto',
+                        fontWeight: FontWeight.w500,
+                        fontSize: 10),
                   ),
                 ),
               ),
@@ -130,7 +159,10 @@ class _ShareNotePageState extends State<ShareNotePage> {
                   padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
                   child: Text(
                     note.owner,
-                    style: TextStyle(fontFamily: 'Roboto' ,fontWeight: FontWeight.w500, fontSize: 10),
+                    style: TextStyle(
+                        fontFamily: 'Roboto',
+                        fontWeight: FontWeight.w500,
+                        fontSize: 10),
                   ),
                 ),
               )
@@ -212,22 +244,35 @@ class _ShareNotePageState extends State<ShareNotePage> {
               urlImage != ''
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        urlImage,
-                        width: 300,
-                        height: 200,
-                        fit: BoxFit.cover,
-                      ),
+                      child: connectInternet
+                          ? Image.network(
+                              urlImage,
+                              width: 300,
+                              height: 200,
+                              fit: BoxFit.cover,
+                            )
+                          : SizedBox(
+                              width: 0,
+                              height: 0,
+                            ),
                     )
-                  : SizedBox(width: 0, height: 0,),
-              Divider(thickness: 1,),
+                  : SizedBox(
+                      width: 0,
+                      height: 0,
+                    ),
+              Divider(
+                thickness: 1,
+              ),
               Align(
                 alignment: AlignmentDirectional(1.00, 0.00),
                 child: Padding(
                   padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
                   child: Text(
                     note.getTimeStamp(),
-                    style: TextStyle(fontFamily: 'Roboto', fontWeight: FontWeight.w500, fontSize: 10),
+                    style: TextStyle(
+                        fontFamily: 'Roboto',
+                        fontWeight: FontWeight.w500,
+                        fontSize: 10),
                   ),
                 ),
               ),
@@ -237,7 +282,10 @@ class _ShareNotePageState extends State<ShareNotePage> {
                   padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
                   child: Text(
                     userShared,
-                    style: TextStyle(fontFamily: 'Roboto',fontWeight: FontWeight.w500, fontSize: 10),
+                    style: TextStyle(
+                        fontFamily: 'Roboto',
+                        fontWeight: FontWeight.w500,
+                        fontSize: 10),
                   ),
                 ),
               ),
@@ -385,6 +433,9 @@ class _ShareNotePageState extends State<ShareNotePage> {
                   : FutureBuilder(
                       future: getAllReceive(),
                       builder: (context, snapshot) {
+                        if(!connectInternet){
+                          ToastComponent().showToast('Không có kết nối internet. Vui lòng kiểm tra lại mạng');
+                        }
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
                           // Nếu đang tải dữ liệu, hiển thị màn hình xoay
@@ -434,6 +485,8 @@ class _ShareNotePageState extends State<ShareNotePage> {
   }
 
   Future<List<NoteReceive>> getAllReceive() async {
+    await checkConnect();
+
     listReceive = await FireStorageService().getAllReceive();
     await getNote();
     return listNote;
@@ -449,9 +502,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
     return idNote;
   }
 
-  Future<void> refresh () async {
-    setState(() {
-
-    });
+  Future<void> refresh() async {
+    setState(() {});
   }
 }

@@ -25,19 +25,21 @@ class StorageService {
     await storageReference.delete();
   }
 
-  void deleteListImage(List<dynamic> listUrlImage) {
-    listUrlImage.forEach((element) async {
-      Map<String, dynamic> a = element;
-      if (a.containsKey('image')) {
-        Reference storageReference = firebaseStorage.refFromURL(a['image']);
-        await storageReference.delete();
-      }
-      if(a.containsKey('local_image')){
-        if(a["local_image"] != ""){
-          await File(a["local_image"]).delete();
+  Future<void> deleteListImage(List<dynamic> listUrlImage) async {
+    List temp = listUrlImage;
+    for(Map<String, dynamic> data in temp) {
+
+        if (data.containsKey('image')) {
+          Reference storageReference = firebaseStorage.refFromURL(data['image']);
+          await storageReference.delete();
         }
-      }
-    });
+        if (data.containsKey('local_image')) {
+          if (data["local_image"] != "") {
+            await File(data["local_image"]).delete();
+          }
+        }
+
+    }
   }
 
   void deleteListOnlineImage(List<dynamic> listUrlImage){

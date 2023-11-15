@@ -1,6 +1,7 @@
 // ignore_for_file: sort_child_properties_last, prefer_const_constructors
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -158,6 +159,7 @@ class _NavBarState extends State<NavBar> {
         TextButton(
           child: Text("Đăng xuất"),
           onPressed: () {
+            deleteAllImageAtLocal();
             googleSignIn.signOut();
             FirebaseAuth.instance.signOut();
             _email = null;
@@ -179,6 +181,21 @@ class _NavBarState extends State<NavBar> {
         builder: (BuildContext context) {
           return alert;
         });
+  }
+
+  void deleteAllImageAtLocal() {
+    String directoryPath = "/data/user/0/com.example.notemobileapp/app_flutter/";
+    Directory directory = Directory(directoryPath);
+    if (directory.existsSync()) {
+      directory.listSync().forEach((entity) {
+        if (entity is File && (entity.path.endsWith('.jpg') || entity.path.endsWith('.png'))) {
+          entity.deleteSync();
+          print('Đã xoá file: ${entity.path}');
+        }
+      });
+    } else {
+      print('Thư mục không tồn tại: $directoryPath');
+    }
   }
 
   void dialogResetPassWord() {

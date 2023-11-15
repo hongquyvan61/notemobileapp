@@ -269,51 +269,52 @@ class NewNoteScreenState extends State<NewNoteScreen> {
   }
 
   Future getImage() async {
-    final imageFromCache = await ImagePicker().pickImage(source: ImageSource.gallery);
-    final File fileCache = File(imageFromCache!.path);
+    final imageFromCache =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
 
-    final directory = await getApplicationDocumentsDirectory();
-    String pathAppDoc = directory.path;
+    if (imageFromCache != null) {
+      final File fileCache = File(imageFromCache.path);
 
-    String destinationPath = '$pathAppDoc/${fileCache.uri.pathSegments.last}';
-    await fileCache.copy(destinationPath);
-    
+      final directory = await getApplicationDocumentsDirectory();
+      String pathAppDoc = directory.path;
 
+      String destinationPath = '$pathAppDoc/${fileCache.uri.pathSegments.last}';
+      await fileCache.copy(destinationPath);
 
+      final imageTemp = File(destinationPath);
 
-    final imageTemp = File(destinationPath);
+      _image = imageTemp;
 
-    _image = imageTemp;
+      if (widget.isEdit == false) {
+        noteContentList.add(_image);
+        FocusNode fcnTxtField = FocusNode();
+        TextEditingController txtFieldController = TextEditingController();
+        Widget nextTextField = textFieldWidget(txtFieldController, fcnTxtField);
+        lstFocusNode.add(fcnTxtField);
+        lstTxtController.add(txtFieldController);
+        noteContentList.add(nextTextField);
+        SaveNoteContentList.add(imageTemp);
+        SaveNoteContentList.add(txtFieldController);
+      } else {
+        noteContentList.add(_image);
+        FocusNode fcnTxtField = FocusNode();
+        TextEditingController txtFieldController = TextEditingController();
+        Widget nextTextField = textFieldWidget(txtFieldController, fcnTxtField);
+        lstFocusNode.add(fcnTxtField);
+        lstTxtController.add(txtFieldController);
+        noteContentList.add(nextTextField);
+        UpdateNoteContentList.add(imageTemp);
 
-    if (widget.isEdit == false) {
-      noteContentList.add(_image);
-      FocusNode fcnTxtField = FocusNode();
-      TextEditingController txtFieldController = TextEditingController();
-      Widget nextTextField = textFieldWidget(txtFieldController, fcnTxtField);
-      lstFocusNode.add(fcnTxtField);
-      lstTxtController.add(txtFieldController);
-      noteContentList.add(nextTextField);
-      SaveNoteContentList.add(imageTemp);
-      SaveNoteContentList.add(txtFieldController);
-    } else {
-      noteContentList.add(_image);
-      FocusNode fcnTxtField = FocusNode();
-      TextEditingController txtFieldController = TextEditingController();
-      Widget nextTextField = textFieldWidget(txtFieldController, fcnTxtField);
-      lstFocusNode.add(fcnTxtField);
-      lstTxtController.add(txtFieldController);
-      noteContentList.add(nextTextField);
-      UpdateNoteContentList.add(imageTemp);
+        UpdateNoteModel updtmodel =
+            UpdateNoteModel(notecontent_id: null, type: "insert_img");
+        UpdateNoteModel updtmodel2 =
+            UpdateNoteModel(notecontent_id: null, type: "insert_text");
 
-      UpdateNoteModel updtmodel =
-          UpdateNoteModel(notecontent_id: null, type: "insert_img");
-      UpdateNoteModel updtmodel2 =
-          UpdateNoteModel(notecontent_id: null, type: "insert_text");
+        lstupdatecontents.add(updtmodel);
+        lstupdatecontents.add(updtmodel2);
 
-      lstupdatecontents.add(updtmodel);
-      lstupdatecontents.add(updtmodel2);
-
-      UpdateNoteContentList.add(txtFieldController);
+        UpdateNoteContentList.add(txtFieldController);
+      }
     }
 
     setState(() {});
@@ -466,7 +467,8 @@ class NewNoteScreenState extends State<NewNoteScreen> {
         if (SaveNoteContentList[i] is File) {
           file = File(SaveNoteContentList[i].path);
           urlImageCloud = await StorageService().uploadImage(file);
-          CloudContents.insert(i + 1, {'image': urlImageCloud});
+          // CloudContents.insert(i + 1, {'image': urlImageCloud});
+          CloudContents[i].addAll({'image': urlImageCloud});
         }
       }
 
@@ -827,14 +829,14 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                   ),
                   onPressed: () async {
                     if (widget.email != "") {
-                      await EasyLoading.show(
-                        status: "Đang cập nhật ghi chú...",
-                        maskType: EasyLoadingMaskType.black,
-                      );
+                      // await EasyLoading.show(
+                      //   status: "Đang cập nhật ghi chú...",
+                      //   maskType: EasyLoadingMaskType.black,
+                      // );
 
-                      await updateNote();
+                      updateNote();
 
-                      await EasyLoading.dismiss();
+                      // await EasyLoading.dismiss();
 
                       Navigator.of(context).pop('RELOAD_LIST');
                     } else {
@@ -1843,7 +1845,8 @@ class NewNoteScreenState extends State<NewNoteScreen> {
           String temp = await StorageService().uploadImage(noteContentList[i]);
           index = imageText.indexWhere(
               (element) => element["local_image"] == noteContentList[i].path);
-          imageText.insert(index + 1, {'image': temp});
+          // imageText.insert(index + 1, {'image': temp});
+          imageText[index].addAll({'image': temp});
         }
       }
 
@@ -1855,11 +1858,10 @@ class NewNoteScreenState extends State<NewNoteScreen> {
   }
 
   Future<void> deleteNote() async {
-    await FireStorageService().deleteNoteById(widget.noteId);
     if (isConnected) {
-      StorageService().deleteListImage(note.content);
+      await StorageService().deleteListImage(note.content);
     }
-
+    await FireStorageService().deleteNoteById(widget.noteId);
     setState(() {
       loading = false;
     });
