@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
@@ -67,6 +68,9 @@ class HomeScreenState extends State<HomeScreen> {
 
   List<TagModel> lsttagsLocal = [];
   List<DropdownMenuEntry<TagModel>> tagListEntriesLocal = [];
+
+  TagModel? selectedtagLocal;
+  TagReceive? selectedtag;
 
   TextEditingController filterTagController = TextEditingController();
   TextEditingController filterTagLocalController = TextEditingController();
@@ -163,7 +167,7 @@ class HomeScreenState extends State<HomeScreen> {
       debugPrint("Khong co dang nhap!");
 
       listofnote = await nDAL.getAllNotes(InitDataBase.db).catchError(
-            (Object e, StackTrace stackTrace) {
+        (Object e, StackTrace stackTrace) {
           debugPrint(e.toString());
         },
       );
@@ -187,7 +191,7 @@ class HomeScreenState extends State<HomeScreen> {
       //SUA USERID O DAY
       //SUA USERID O DAY
       listofnote = await nDAL.getAllNotes(InitDataBase.db).catchError(
-            (Object e, StackTrace stackTrace) {
+        (Object e, StackTrace stackTrace) {
           debugPrint(e.toString());
         },
       );
@@ -249,17 +253,18 @@ class HomeScreenState extends State<HomeScreen> {
 
         noteList = noteList
             .where((note) =>
-            note.title.toLowerCase().contains(inputWord.toLowerCase()))
+                note.title.toLowerCase().contains(inputWord.toLowerCase()))
             .toList();
       } else {
         results = listofnote
             .where((note) =>
-            note.title.toLowerCase().contains(inputWord.toLowerCase()))
+                note.title.toLowerCase().contains(inputWord.toLowerCase()))
             .toList();
       }
       // we use the toLowerCase() method to make it case-insensitive
     }
-    if (loginState) {} else {
+    if (loginState) {
+    } else {
       foundedNote = results;
       listofTitleImage = await generateListTitleImage(foundedNote);
     }
@@ -320,7 +325,7 @@ class HomeScreenState extends State<HomeScreen> {
     foundedNote.clear();
 
     foundedNote =
-    await nDAL.getNotesWithTagname(-1, selected.tag_name, InitDataBase.db);
+        await nDAL.getNotesWithTagname(-1, selected.tag_name, InitDataBase.db);
 
     listofTitleImage = await generateListTitleImage(foundedNote);
     setState(() {});
@@ -330,27 +335,27 @@ class HomeScreenState extends State<HomeScreen> {
   Widget? displayImagefromCloudOrLocal_list(int index) {
     if (loginState) {
       Map? map = noteList[index].content.firstWhere(
-              (element) => element.containsKey("local_image"),
+          (element) => element.containsKey("local_image"),
           orElse: () => null);
       Map? mapImage = noteList[index].content.firstWhere(
-              (element) => element.containsKey("image"),
+          (element) => element.containsKey("image"),
           orElse: () => null);
 
       return map == null
           ? null
           : File(map["local_image"]).existsSync()
-          ? Image.file(
-        File(map["local_image"]),
-        width: 290,
-        height: 200,
-        fit: BoxFit.cover,
-      )
-          : Image.network(
-        mapImage?['image'],
-        width: 290,
-        height: 200,
-        fit: BoxFit.cover,
-      );
+              ? Image.file(
+                  File(map["local_image"]),
+                  width: 290,
+                  height: 200,
+                  fit: BoxFit.cover,
+                )
+              : Image.network(
+                  mapImage?['image'],
+                  width: 290,
+                  height: 200,
+                  fit: BoxFit.cover,
+                );
     } else {
       if (listofTitleImage.isEmpty || listofTitleImage[index].path == "") {
         return null;
@@ -367,16 +372,16 @@ class HomeScreenState extends State<HomeScreen> {
   Widget? displayImagefromCloudOrLocal_grid(int index) {
     if (loginState) {
       Map? map = noteList[index].content.firstWhere(
-              (element) => element.containsKey("local_image"),
+          (element) => element.containsKey("local_image"),
           orElse: () => null);
       return map == null
           ? null
           : Image.file(
-        File(map["local_image"]),
-        width: 140,
-        height: 60,
-        fit: BoxFit.cover,
-      );
+              File(map["local_image"]),
+              width: 140,
+              height: 60,
+              fit: BoxFit.cover,
+            );
     } else {
       if (listofTitleImage[index].path == "") {
         return null;
@@ -393,7 +398,7 @@ class HomeScreenState extends State<HomeScreen> {
   int settingimgflex(int index) {
     if (loginState) {
       Map? map = noteList[index].content.firstWhere(
-              (element) => element.containsKey("local_image"),
+          (element) => element.containsKey("local_image"),
           orElse: () => null);
       return map == null ? 0 : 3;
     }
@@ -403,7 +408,7 @@ class HomeScreenState extends State<HomeScreen> {
   int settingBriefContentflex(int index) {
     if (loginState) {
       Map? map = noteList[index].content.firstWhere(
-              (element) => element.containsKey("local_image"),
+          (element) => element.containsKey("local_image"),
           orElse: () => null);
       return map == null ? 4 : 1;
     }
@@ -413,7 +418,7 @@ class HomeScreenState extends State<HomeScreen> {
   int settingBriefContentMaxLines(int index) {
     if (loginState) {
       Map? map = noteList[index].content.firstWhere(
-              (element) => element.containsKey("local_image"),
+          (element) => element.containsKey("local_image"),
           orElse: () => null);
       return map == null ? 5 : 1;
     }
@@ -673,15 +678,15 @@ class HomeScreenState extends State<HomeScreen> {
   Widget buildExpandedImage_Grid(int index) {
     if (loginState) {
       return noteList[index].content.firstWhere(
-              (element) => element.containsKey("local_image"),
-          orElse: () => null) !=
-          null
+                  (element) => element.containsKey("local_image"),
+                  orElse: () => null) !=
+              null
           ? Expanded(
-        flex: settingimgflex(index),
-        child: ClipRRect(
-            borderRadius: BorderRadius.circular(8.0),
-            child: displayImagefromCloudOrLocal_grid(index)),
-      )
+              flex: settingimgflex(index),
+              child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8.0),
+                  child: displayImagefromCloudOrLocal_grid(index)),
+            )
           : Text("");
     } else {
       if (listofTitleImage[index].path != "") {
@@ -701,7 +706,7 @@ class HomeScreenState extends State<HomeScreen> {
     if (noteList.isNotEmpty || foundedNote.isNotEmpty) {
       return ListView.separated(
         separatorBuilder: (BuildContext context, int index) =>
-        const Divider(height: 15),
+            const Divider(height: 15),
         itemCount: loginState ? noteList.length : foundedNote.length,
         itemBuilder: (BuildContext context, int index) {
           return Container(
@@ -723,7 +728,6 @@ class HomeScreenState extends State<HomeScreen> {
               child: Column(
                 children: [
                   ListTile(
-
                     ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
                     ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
                     ///CODE SU KIEN NHAN VAO DE CHUYEN SANG MAN HINH EDIT NOTE
@@ -731,18 +735,17 @@ class HomeScreenState extends State<HomeScreen> {
                       final resultFromNewNote = await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              NewNoteScreen(
-                                noteId: loginState
-                                    ? noteList[index].noteId
-                                    : (foundedNote[index]
-                                    .note_id
-                                    ?.toInt()
-                                    .toString() ??
+                          builder: (context) => NewNoteScreen(
+                            noteId: loginState
+                                ? noteList[index].noteId
+                                : (foundedNote[index]
+                                        .note_id
+                                        ?.toInt()
+                                        .toString() ??
                                     0.toString()),
-                                isEdit: true,
-                                email: email == null ? "" : email?.toString(),
-                              ),
+                            isEdit: true,
+                            email: email == null ? "" : email?.toString(),
+                          ),
                         ),
                       );
                       if (loginState) {
@@ -769,7 +772,7 @@ class HomeScreenState extends State<HomeScreen> {
                               ? noteList[index].getTimeStamp()
                               : foundedNote[index].dateCreateToString(),
                           style:
-                          const TextStyle(fontSize: 12, color: Colors.grey),
+                              const TextStyle(fontSize: 12, color: Colors.grey),
                         ),
                         buildTagName(index)
                       ],
@@ -826,18 +829,16 @@ class HomeScreenState extends State<HomeScreen> {
                           final resultfromNewNote = await Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  NewNoteScreen(
-                                      email: email == null ? "" : email
-                                          ?.toString(),
-                                      noteId: loginState
-                                          ? noteList[index].noteId
-                                          : (foundedNote[index]
-                                          .note_id
-                                          ?.toInt()
-                                          .toString() ??
+                              builder: (context) => NewNoteScreen(
+                                  email: email == null ? "" : email?.toString(),
+                                  noteId: loginState
+                                      ? noteList[index].noteId
+                                      : (foundedNote[index]
+                                              .note_id
+                                              ?.toInt()
+                                              .toString() ??
                                           0.toString()),
-                                      isEdit: true),
+                                  isEdit: true),
                             ),
                           );
                           if (loginState) {
@@ -873,7 +874,7 @@ class HomeScreenState extends State<HomeScreen> {
                       child: Text(
                         loginState
                             ? noteList[index].content.firstWhere((element) =>
-                            element.containsKey("text"))["text"]
+                                element.containsKey("text"))["text"]
                             : listofBriefContent[index],
                         style: const TextStyle(fontSize: 11),
                         overflow: TextOverflow.ellipsis,
@@ -891,7 +892,7 @@ class HomeScreenState extends State<HomeScreen> {
                               ? noteList[index].getTimeStamp()
                               : foundedNote[index].date_created.toString(),
                           style:
-                          const TextStyle(fontSize: 11, color: Colors.grey),
+                              const TextStyle(fontSize: 11, color: Colors.grey),
                         ),
                       ))
                 ],
@@ -920,7 +921,7 @@ class HomeScreenState extends State<HomeScreen> {
               title: const Text(
                 'Ghi chú của tôi',
                 style:
-                TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                    TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
               ),
               actions: [
                 IconButton(
@@ -959,46 +960,102 @@ class HomeScreenState extends State<HomeScreen> {
                                     prefixIcon: Icon(Icons.search),
                                     filled: true,
                                     fillColor:
-                                    Color.fromARGB(255, 239, 241, 243),
+                                        Color.fromARGB(255, 239, 241, 243),
                                     enabledBorder: OutlineInputBorder(
                                         borderSide: BorderSide(
-                                          width: 0.5,
-                                        ))),
+                                      width: 0.5,
+                                    ))),
                                 onChanged: (value) => filterlist(value),
                               ),
                             ),
 
-                            loginState ?
-                            
-                            Expanded(
-                              flex: 1,
-                              child: DropdownMenu<TagReceive>(
-                                initialSelection: lsttags.isEmpty ? null : lsttags[0],
-                                controller: filterTagController,
-                                label: const Text('Nhãn'),
-                                dropdownMenuEntries: tagListEntries,
-                                onSelected: (TagReceive? tag) {
-                                  filtertag(tag);
-                            
-                                },
-                              ),
-                            )
-                            
-                            :
-                            
-                            Expanded(
-                              flex: 1,
-                              child: DropdownMenu<TagModel>(
-                                initialSelection: lsttagsLocal.isEmpty ? null : lsttagsLocal[0],
-                                controller: filterTagLocalController,
-                                label: const Text('Nhãn'),
-                                dropdownMenuEntries: tagListEntriesLocal,
-                                onSelected: (TagModel? tag) {
-                                  filtertagAtLocal(tag);
-                            
-                                },
-                              ),
-                            )
+                            loginState
+                                ? Expanded(
+                                    flex: 0,
+                                    child: DropdownButton2<TagReceive>(
+                                      hint: Text('Lọc theo nhãn'),
+                                      items: lsttags
+                                          .map((TagReceive item) =>
+                                              DropdownMenuItem<TagReceive>(
+                                                value: item,
+                                                child: Text(
+                                                  item.tagname,
+                                                  style: const TextStyle(
+                                                    fontFamily: 'Roboto',
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.black,
+                                                  ),
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ))
+                                          .toList(),
+                                      onChanged: (value) {
+                                        filtertag(value);
+
+                                        selectedtag = value;
+                                        setState(() {});
+                                      },
+                                      value: selectedtag,
+                                    ))
+                                : Expanded(
+                                    flex: 0,
+                                    child: DropdownButton2<TagModel>(
+                                      hint: Text('Lọc theo nhãn'),
+                                      items: lsttagsLocal
+                                          .map((TagModel item) =>
+                                              DropdownMenuItem<TagModel>(
+                                                value: item,
+                                                child: Text(
+                                                  item.tag_name,
+                                                  style: const TextStyle(
+                                                    fontFamily: 'Roboto',
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.black,
+                                                  ),
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ))
+                                          .toList(),
+                                      onChanged: (value) {
+                                        filtertagAtLocal(value);
+
+                                        selectedtagLocal = value;
+                                        setState(() {});
+                                      },
+                                      value: selectedtagLocal,
+                                    ))
+                            // loginState
+                            //     ? Expanded(
+                            //         flex: 1,
+                            //         child: DropdownMenu<TagReceive>(
+                            //           initialSelection:
+                            //               lsttags.isEmpty ? null : lsttags[0],
+                            //           controller: filterTagController,
+                            //           label: const Text('Nhãn'),
+                            //           dropdownMenuEntries: tagListEntries,
+                            //           onSelected: (TagReceive? tag) {
+                            //             filtertag(tag);
+                            //           },
+                            //         ),
+                            //       )
+                            //     : Expanded(
+                            //         flex: 1,
+                            //         child: DropdownMenu<TagModel>(
+                            //           initialSelection: lsttagsLocal.isEmpty
+                            //               ? null
+                            //               : lsttagsLocal[0],
+                            //           controller: filterTagLocalController,
+                            //           label: const Text('Nhãn'),
+                            //           dropdownMenuEntries: tagListEntriesLocal,
+                            //           onSelected: (TagModel? tag) {
+                            //             filtertagAtLocal(tag);
+                            //           },
+                            //         ),
+                            //       )
                           ],
                         ),
                         const SizedBox(
@@ -1007,24 +1064,24 @@ class HomeScreenState extends State<HomeScreen> {
                         Expanded(
                           child: listState == true
                               ? RefreshIndicator(
-                              onRefresh: () async {
-                                if (loginState) {
-                                  await refreshNoteListFromCloud();
-                                } else {
-                                  await reloadNoteListAtLocal(
-                                      "RELOAD_LIST");
-                                }
-                              },
-                              child: buildListView())
+                                  onRefresh: () async {
+                                    if (loginState) {
+                                      await refreshNoteListFromCloud();
+                                    } else {
+                                      await reloadNoteListAtLocal(
+                                          "RELOAD_LIST");
+                                    }
+                                  },
+                                  child: buildListView())
                               : RefreshIndicator(
-                              onRefresh: () async {
-                                if (loginState) {
-                                  refreshNoteListFromCloud();
-                                } else {
-                                  reloadNoteListAtLocal("RELOAD_LIST");
-                                }
-                              },
-                              child: buildGridView()),
+                                  onRefresh: () async {
+                                    if (loginState) {
+                                      refreshNoteListFromCloud();
+                                    } else {
+                                      reloadNoteListAtLocal("RELOAD_LIST");
+                                    }
+                                  },
+                                  child: buildGridView()),
                         ),
                       ]),
                     ),
@@ -1041,13 +1098,11 @@ class HomeScreenState extends State<HomeScreen> {
                             final resultFromNewNote = await Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    NewNoteScreen(
-                                      noteId: '',
-                                      isEdit: false,
-                                      email: email == null ? "" : email
-                                          ?.toString(),
-                                    ),
+                                builder: (context) => NewNoteScreen(
+                                  noteId: '',
+                                  isEdit: false,
+                                  email: email == null ? "" : email?.toString(),
+                                ),
                               ),
                             );
                             if (loginState) {
@@ -1059,7 +1114,7 @@ class HomeScreenState extends State<HomeScreen> {
                           style: ElevatedButton.styleFrom(
                               shape: const StadiumBorder(),
                               backgroundColor:
-                              const Color.fromARGB(255, 97, 115, 239)),
+                                  const Color.fromARGB(255, 97, 115, 239)),
                           label: const Text(
                             'Tạo ghi chú',
                             style: TextStyle(fontSize: 16),
@@ -1090,7 +1145,9 @@ class HomeScreenState extends State<HomeScreen> {
     noteList = await FireStorageService().getAllNote();
     if (mounted) {
       setState(() {});
-      checkImageAtLocal();
+      if (loginState) {
+        checkImageAtLocal();
+      }
     }
     // for (int i = 0; i < noteList.length; i++) {
     //   if(noteList[i].content.elementAtOrNull(1) != null){
@@ -1114,7 +1171,7 @@ class HomeScreenState extends State<HomeScreen> {
 
     if (lsttags.isNotEmpty) {
       TagReceive tr = TagReceive();
-      tr.tagname = "notag";
+      tr.tagname = "Không nhãn";
       tr.tagid = "notag";
 
       tagListEntries.add(DropdownMenuEntry<TagReceive>(
@@ -1123,7 +1180,7 @@ class HomeScreenState extends State<HomeScreen> {
       ));
 
       TagReceive trall = TagReceive();
-      trall.tagname = "all";
+      trall.tagname = "Tất cả";
       trall.tagid = "all";
 
       tagListEntries.add(DropdownMenuEntry<TagReceive>(
@@ -1148,6 +1205,10 @@ class HomeScreenState extends State<HomeScreen> {
       lsttags.add(tr);
     }
 
+    if (lsttags.isNotEmpty) {
+      selectedtag = lsttags[0];
+    }
+
     if (mounted) {
       setState(() {});
     }
@@ -1158,14 +1219,14 @@ class HomeScreenState extends State<HomeScreen> {
     tagListEntriesLocal.clear();
 
     if (lsttagsLocal.isNotEmpty) {
-      TagModel tr = TagModel(tag_id: -2, tag_name: "notag");
+      TagModel tr = TagModel(tag_id: -2, tag_name: "Không nhãn");
 
       tagListEntriesLocal.add(DropdownMenuEntry<TagModel>(
         value: tr,
         label: "Không nhãn",
       ));
 
-      TagModel trall = TagModel(tag_id: -3, tag_name: "all");
+      TagModel trall = TagModel(tag_id: -3, tag_name: "Tất cả");
 
       tagListEntriesLocal.add(DropdownMenuEntry<TagModel>(
         value: trall,
@@ -1187,6 +1248,10 @@ class HomeScreenState extends State<HomeScreen> {
       lsttagsLocal.add(tr);
     }
 
+    if (lsttagsLocal.isNotEmpty) {
+      selectedtagLocal = lsttagsLocal[0];
+    }
+
     if (mounted) {
       setState(() {});
     }
@@ -1196,10 +1261,9 @@ class HomeScreenState extends State<HomeScreen> {
     if (noteList.isNotEmpty) {
       for (int i = 0; i < noteList.length; i++) {
         for (int j = 0; j < noteList[i].content.length; j++) {
-          if (noteList[i].content[j].containsKey("local_image") && !File(
-              noteList[i].content[j]["local_image"])
-              .existsSync()) {
-            downloadImage(noteList[i].content[j]['image'],
+          if (noteList[i].content[j].containsKey("local_image") &&
+              !File(noteList[i].content[j]["local_image"]).existsSync()) {
+            await downloadImage(noteList[i].content[j]['image'],
                 noteList[i].content[j]["local_image"]);
           }
         }
@@ -1207,10 +1271,7 @@ class HomeScreenState extends State<HomeScreen> {
     }
   }
 
-
-
   Future<void> downloadImage(String url, String localUrl) async {
-
     final directory = await getApplicationDocumentsDirectory();
     String pathAppDoc = directory.path;
 
@@ -1221,33 +1282,36 @@ class HomeScreenState extends State<HomeScreen> {
     final DefaultCacheManager cacheManager = DefaultCacheManager();
     final File file = await cacheManager.getSingleFile(url);
 
-      // Lưu vào thư mục flutter của ứng dụng
+    // Lưu vào thư mục flutter của ứng dụng
     final File localFile = await file.copy(destinationPath);
-      //
-      //
-      //
-      //
-      // try {
-      //   String imageURL =
-      //       url;
-      //   firebase_storage.Reference ref =
-      //   firebase_storage.FirebaseStorage.instance.ref(imageURL);
-      //
-      //   final Directory appDocDir = await getTemporaryDirectory();
-      //   final File localFile = File('${appDocDir.path}/$name');
-      //   if (!await localFile.exists()) {
-      //
-      //     ref.getData().then((data) {
-      //       localFile.writeAsBytes(data!);
-      //       print('Image downloaded to: ${localFile.path}');
-      //     });
-      //
-      //
-      //   } else {
-      //     print('Image already exists locally at: ${localFile.path}');
-      //   }
-      // } catch (e) {
-      //   print('Error downloading image: $e');
-      // }
+    if (file.existsSync()) {
+      file.delete();
+    }
+    //
+    //
+    //
+    //
+    // try {
+    //   String imageURL =
+    //       url;
+    //   firebase_storage.Reference ref =
+    //   firebase_storage.FirebaseStorage.instance.ref(imageURL);
+    //
+    //   final Directory appDocDir = await getTemporaryDirectory();
+    //   final File localFile = File('${appDocDir.path}/$name');
+    //   if (!await localFile.exists()) {
+    //
+    //     ref.getData().then((data) {
+    //       localFile.writeAsBytes(data!);
+    //       print('Image downloaded to: ${localFile.path}');
+    //     });
+    //
+    //
+    //   } else {
+    //     print('Image already exists locally at: ${localFile.path}');
+    //   }
+    // } catch (e) {
+    //   print('Error downloading image: $e');
+    // }
   }
 }

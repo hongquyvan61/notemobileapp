@@ -116,8 +116,6 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
     });
 
     if (_isEmailVerified) {
-
-
       uploadNoteToCloud();
       FireStorageService().insertCollection();
       ToastComponent().showToast("Email của bạn đã được xác thực thành công !");

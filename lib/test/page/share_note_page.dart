@@ -46,6 +46,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
         isShare = false;
       });
     }
+    checkConnect();
 
     // TODO: implement initState
     super.initState();
@@ -485,10 +486,11 @@ class _ShareNotePageState extends State<ShareNotePage> {
   }
 
   Future<List<NoteReceive>> getAllReceive() async {
-    await checkConnect();
+    // await checkConnect();
 
     listReceive = await FireStorageService().getAllReceive();
     await getNote();
+
     return listNote;
   }
 
@@ -503,6 +505,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
   }
 
   Future<void> refresh() async {
+    checkConnect();
     setState(() {});
   }
 }

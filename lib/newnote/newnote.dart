@@ -8,11 +8,11 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 //import 'package:flutter_quill/flutter_quill.dart' hide Text;
-import 'package:intl/intl.dart';
+
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:notemobileapp/DAL/FB_DAL.dart/FB_Note.dart';
@@ -315,6 +315,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
 
         UpdateNoteContentList.add(txtFieldController);
       }
+      fileCache.delete();
     }
 
     setState(() {});
