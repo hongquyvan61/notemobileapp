@@ -972,7 +972,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                   child: widget.isEdit && (isEditCompleted == true)
                       ? Row(
                           children: [
-                            Expanded(flex: 1, child: SizedBox()),
+                            loginState ? Expanded(flex: 1, child: SizedBox()) : SizedBox(width: 0,height: 0,),
                             Expanded(
                               flex: 2,
                               child: Row(
@@ -1807,20 +1807,14 @@ class NewNoteScreenState extends State<NewNoteScreen> {
       // }
     }
 
-    await FireStorageService().updateCloudImageURL(id, note.content);
+    // await FireStorageService().updateCloudImageURL(id, note.content);
     setState(() {});
 
     await EasyLoading.dismiss();
   }
 
   Future<void> updateNote() async {
-    // showDialog(
-    //     context: appcontext,
-    //     builder: (context) {
-    //       return Center(
-    //         child: CircularProgressIndicator(),
-    //       );
-    //     });
+
     note = await FireStorageService().getNoteById(widget.noteId);
 
     NoteContent noteContent = NoteContent();
@@ -1846,7 +1840,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     //////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
     /////////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
 
-    await FireStorageService().updateNoteById(widget.noteId, noteContent);
+    // await FireStorageService().updateNoteById(widget.noteId, noteContent);
 
     late int index;
     if (isConnected) {
@@ -1855,10 +1849,12 @@ class NewNoteScreenState extends State<NewNoteScreen> {
       for (int i = 0; i < noteContentList.length; i++) {
         if (noteContentList[i] is File) {
           String temp = await StorageService().uploadImage(noteContentList[i]);
+
           index = imageText.indexWhere(
-              (element) => element["local_image"] == noteContentList[i].path);
+                  (element) => element["local_image"] == noteContentList[i].path);
           // imageText.insert(index + 1, {'image': temp});
           imageText[index].addAll({'image': temp});
+
         }
       }
 

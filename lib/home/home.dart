@@ -20,6 +20,7 @@ import 'package:notemobileapp/newnote/newnote.dart';
 import 'package:notemobileapp/router.dart';
 import 'package:notemobileapp/test/services/firebase_dynamic_link.dart';
 import 'package:notemobileapp/test/services/firebase_firestore_service.dart';
+import 'package:notemobileapp/test/services/firebase_store_service.dart';
 import 'package:path_provider/path_provider.dart';
 
 //import 'package:notemobileapp/test/services/firebase_store_service.dart';
@@ -124,7 +125,7 @@ class HomeScreenState extends State<HomeScreen> {
     await FireBaseMessageService().getToken().then((value) async {
       token = value.toString();
     });
-    FireStorageService().addToken(token);
+
 
     _networkConnectivity.initialise();
     _networkConnectivity.myStream.listen((source) {
@@ -145,6 +146,7 @@ class HomeScreenState extends State<HomeScreen> {
       InitiateListOfNote();
 
       if (loginState) {
+        FireStorageService().addToken(token);
         InitiateListOfTag();
       } else {
         InitiateListOfTagAtLocal();
@@ -1272,46 +1274,7 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> downloadImage(String url, String localUrl) async {
-    final directory = await getApplicationDocumentsDirectory();
-    String pathAppDoc = directory.path;
+    StorageService().downloadImage(url, localUrl);
 
-    String prefix = "/data/user/0/com.example.notemobileapp/app_flutter/";
-    String name = localUrl.substring(prefix.length);
-    String destinationPath = '$pathAppDoc/$name';
-
-    final DefaultCacheManager cacheManager = DefaultCacheManager();
-    final File file = await cacheManager.getSingleFile(url);
-
-    // Lưu vào thư mục flutter của ứng dụng
-    final File localFile = await file.copy(destinationPath);
-    if (file.existsSync()) {
-      file.delete();
-    }
-    //
-    //
-    //
-    //
-    // try {
-    //   String imageURL =
-    //       url;
-    //   firebase_storage.Reference ref =
-    //   firebase_storage.FirebaseStorage.instance.ref(imageURL);
-    //
-    //   final Directory appDocDir = await getTemporaryDirectory();
-    //   final File localFile = File('${appDocDir.path}/$name');
-    //   if (!await localFile.exists()) {
-    //
-    //     ref.getData().then((data) {
-    //       localFile.writeAsBytes(data!);
-    //       print('Image downloaded to: ${localFile.path}');
-    //     });
-    //
-    //
-    //   } else {
-    //     print('Image already exists locally at: ${localFile.path}');
-    //   }
-    // } catch (e) {
-    //   print('Error downloading image: $e');
-    // }
   }
 }

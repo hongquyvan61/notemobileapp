@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:path_provider/path_provider.dart';
 
 class StorageService {
   final FirebaseStorage firebaseStorage = FirebaseStorage.instance;
@@ -42,7 +44,7 @@ class StorageService {
     }
   }
 
-  void deleteListOnlineImage(List<dynamic> listUrlImage){
+  Future<void> deleteListOnlineImage(List<dynamic> listUrlImage) async{
     listUrlImage.forEach((element) async {
       Map<String, dynamic> a = element;
       if (a.containsKey('image')) {
@@ -50,5 +52,23 @@ class StorageService {
         await storageReference.delete();
       }
     });
+  }
+
+  Future<void> downloadImage(String url, String localUrl) async {
+    final directory = await getApplicationDocumentsDirectory();
+    String pathAppDoc = directory.path;
+
+    String prefix = "/data/user/0/com.example.notemobileapp/app_flutter/";
+    String name = localUrl.substring(prefix.length);
+    String destinationPath = '$pathAppDoc/$name';
+
+    final DefaultCacheManager cacheManager = DefaultCacheManager();
+    final File file = await cacheManager.getSingleFile(url);
+
+    // Lưu vào thư mục flutter của ứng dụng
+    final File localFile = await file.copy(destinationPath);
+    if (file.existsSync()) {
+      file.delete();
+    }
   }
 }

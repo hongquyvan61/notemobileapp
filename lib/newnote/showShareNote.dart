@@ -255,42 +255,53 @@ class ShowShareNoteState extends State<ShowShareNote> {
   }
 
   Future getImage() async {
-    final image = await ImagePicker().pickImage(source: ImageSource.gallery);
-    if (image == null) return;
+    final imageFromCache =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
 
-    final imageTemp = File(image.path);
+    if (imageFromCache != null) {
+      final File fileCache = File(imageFromCache.path);
 
-    _image = imageTemp;
+      final directory = await getApplicationDocumentsDirectory();
+      String pathAppDoc = directory.path;
 
-    if (widget.isEdit == false) {
-      noteContentList.add(_image);
-      FocusNode fcnTxtField = FocusNode();
-      TextEditingController txtFieldController = TextEditingController();
-      Widget nextTextField = textFieldWidget(txtFieldController, fcnTxtField);
-      lstFocusNode.add(fcnTxtField);
-      lstTxtController.add(txtFieldController);
-      noteContentList.add(nextTextField);
-      SaveNoteContentList.add(imageTemp);
-      SaveNoteContentList.add(txtFieldController);
-    } else {
-      noteContentList.add(_image);
-      FocusNode fcnTxtField = FocusNode();
-      TextEditingController txtFieldController = TextEditingController();
-      Widget nextTextField = textFieldWidget(txtFieldController, fcnTxtField);
-      lstFocusNode.add(fcnTxtField);
-      lstTxtController.add(txtFieldController);
-      noteContentList.add(nextTextField);
-      UpdateNoteContentList.add(imageTemp);
+      String destinationPath = '$pathAppDoc/${fileCache.uri.pathSegments.last}';
+      await fileCache.copy(destinationPath);
 
-      UpdateNoteModel updtmodel =
-          UpdateNoteModel(notecontent_id: null, type: "insert_img");
-      UpdateNoteModel updtmodel2 =
-          UpdateNoteModel(notecontent_id: null, type: "insert_text");
+      final imageTemp = File(destinationPath);
 
-      lstupdatecontents.add(updtmodel);
-      lstupdatecontents.add(updtmodel2);
+      _image = imageTemp;
 
-      UpdateNoteContentList.add(txtFieldController);
+      if (widget.isEdit == false) {
+        noteContentList.add(_image);
+        FocusNode fcnTxtField = FocusNode();
+        TextEditingController txtFieldController = TextEditingController();
+        Widget nextTextField = textFieldWidget(txtFieldController, fcnTxtField);
+        lstFocusNode.add(fcnTxtField);
+        lstTxtController.add(txtFieldController);
+        noteContentList.add(nextTextField);
+        SaveNoteContentList.add(imageTemp);
+        SaveNoteContentList.add(txtFieldController);
+      } else {
+        noteContentList.add(_image);
+        FocusNode fcnTxtField = FocusNode();
+        TextEditingController txtFieldController = TextEditingController();
+        Widget nextTextField = textFieldWidget(txtFieldController, fcnTxtField);
+        lstFocusNode.add(fcnTxtField);
+        lstTxtController.add(txtFieldController);
+        noteContentList.add(nextTextField);
+        UpdateNoteContentList.add(imageTemp);
+
+        UpdateNoteModel updtmodel =
+            UpdateNoteModel(notecontent_id: null, type: "insert_img");
+        UpdateNoteModel updtmodel2 =
+            UpdateNoteModel(notecontent_id: null, type: "insert_text");
+
+        lstupdatecontents.add(updtmodel);
+        lstupdatecontents.add(updtmodel2);
+
+        UpdateNoteContentList.add(txtFieldController);
+      }
+      fileCache.delete();
     }
 
     setState(() {});
@@ -1385,6 +1396,20 @@ class ShowShareNoteState extends State<ShowShareNote> {
           .getNoteShareByIdForShare(widget.noteId, widget.email);
       _noteTitleController.text = note.title;
 
+      //Dowload hinh ve local
+      List<dynamic> contentNote = note.content;
+
+      for(int i = 0; i < contentNote.length; i++){
+        if(contentNote[i].containsKey('image')){
+          if (contentNote[i].containsKey("local_image") &&
+              !File(contentNote[i]["local_image"]).existsSync()){
+            await StorageService().downloadImage(contentNote[i]["image"], contentNote[i]["local_image"]);
+          }
+        }
+      }
+
+      //Dowload hinh ve local
+
       tag!.tagname = note.tagname;
 
       currentDateTime = note.timeStamp;
@@ -1394,9 +1419,9 @@ class ShowShareNoteState extends State<ShowShareNote> {
           bool exists = await File(temp["local_image"]).exists();
           if (exists) {
             noteContentList.add(File(temp['local_image']));
+          } else if (temp.containsKey('image')) {
+            noteContentList.add(temp['image']);
           }
-        } else if (temp.containsKey('image')) {
-          noteContentList.add(temp['image']);
         }
 
         if (temp.containsKey('text')) {
@@ -1411,8 +1436,8 @@ class ShowShareNoteState extends State<ShowShareNote> {
       }
     }
 
-    await FireStorageService()
-        .updateCloudImageURLForShare(id, note.content, widget.email);
+    // await FireStorageService()
+    //     .updateCloudImageURLForShare(id, note.content, widget.email);
     setState(() {});
 
     await EasyLoading.dismiss();
@@ -1445,19 +1470,20 @@ class ShowShareNoteState extends State<ShowShareNote> {
     //////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
     /////////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
 
-    await FireStorageService()
-        .updateNoteByIdForShare(widget.noteId, noteContent, widget.email);
+    // await FireStorageService()
+    //     .updateNoteByIdForShare(widget.noteId, noteContent, widget.email);
 
     late int index;
     if (isConnected) {
-      StorageService().deleteListOnlineImage(note.content);
+      await StorageService().deleteListOnlineImage(note.content);
 
       for (int i = 0; i < noteContentList.length; i++) {
         if (noteContentList[i] is File) {
           String temp = await StorageService().uploadImage(noteContentList[i]);
           index = imageText.indexWhere(
               (element) => element["local_image"] == noteContentList[i].path);
-          imageText.insert(index + 1, {'image': temp});
+          // imageText.insert(index + 1, {'image': temp});
+          imageText[index].addAll({'image': temp});
         }
       }
 

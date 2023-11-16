@@ -108,6 +108,7 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
                     onChanged: (value) {
                       setState(() {
                         dropDownValue[index] = value!;
+                        setAddList(index, value);
                         if (!checkUpdate()) {
                           updated = true;
                         } else {
@@ -242,6 +243,7 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
                   Expanded(
                     child: RefreshIndicator(
                         onRefresh: () async {
+                          addList = [];
                           getAllEmailInvite();
                           getAllUser();
                         },
@@ -490,7 +492,7 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
   Future<void> getAllEmailInvite() async {
     emails.clear();
     dropDownValue.clear();
-    dropDownValueCheckUpdate.clear;
+    dropDownValueCheckUpdate = [];
     InviteReceive inviteReceive = InviteReceive();
     inviteReceive = await FireStorageService().getInviteById(widget.noteId);
     emailsMap = inviteReceive.rules;
@@ -527,18 +529,18 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
     await FireStorageService().updateInvite(invite);
   }
 
-  Future<void> updateInviteToUser() async {
-    DateTime dateTime = DateTime.now();
-    Timestamp currentDateTime = Timestamp.fromDate(dateTime);
-    Receive receive = Receive();
-    for (int i = 0; i < emails.length; i++) {
-      receive.rule = dropDownValue[i];
-      receive.email = emails[i];
-      receive.noteId = widget.noteId;
-      receive.timeStamp = currentDateTime;
-      await FireStorageService().addInviteToUser(receive);
-    }
-  }
+  // Future<void> updateInviteToUser() async {
+  //   DateTime dateTime = DateTime.now();
+  //   Timestamp currentDateTime = Timestamp.fromDate(dateTime);
+  //   Receive receive = Receive();
+  //   for (int i = 0; i < emails.length; i++) {
+  //     receive.rule = dropDownValue[i];
+  //     receive.email = emails[i];
+  //     receive.noteId = widget.noteId;
+  //     receive.timeStamp = currentDateTime;
+  //     await FireStorageService().addInviteToUser(receive);
+  //   }
+  // }
 
   Future<void> updateInviteToUserFilter() async {
     DateTime dateTime = DateTime.now();
@@ -553,6 +555,12 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
         await FireStorageService().addInviteToUser(receive);
       }
     }
+
+    setState(() {
+
+    });
+
+
 
     if(addList.isNotEmpty){
       for (var element in addList) {
@@ -745,6 +753,19 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
         Text("Quá trình gửi mail xảy ra lỗi, hãy chia sẻ lại!"),
       ),
     );
+  }
+
+  void setAddList(int index, String rule) {
+
+    for(int i = 0; i < addList.length; i++){
+      addList[i].forEach((key, value) {
+        if(key == emails[index]){
+          addList[i].update(key, (value) => rule);
+        }
+      });
+    }
+
+
   }
 
 }
