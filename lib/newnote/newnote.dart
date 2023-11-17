@@ -29,7 +29,7 @@ import 'package:notemobileapp/test/services/firebase_store_service.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:speech_to_text/speech_to_text.dart';
 import 'package:notemobileapp/DAL/UserDAL.dart';
 
 import 'package:notemobileapp/DAL/NoteDAL.dart';
@@ -67,12 +67,12 @@ class NewNoteScreenState extends State<NewNoteScreen> {
   late BuildContext appcontext;
 
   File? _image;
-  late stt.SpeechToText _speech;
+  //late stt.SpeechToText _speech;
   bool _isListening = false;
   double _confidence = 1.0;
   bool loading = false;
 
-  // SpeechToText speechToText = SpeechToText();
+  SpeechToText speechToText = SpeechToText();
 
   static FocusNode fcnFirstTxtField = FocusNode();
   static TextEditingController firstTxtFieldController =
@@ -213,7 +213,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
       ..indicatorType = EasyLoadingIndicatorType.chasingDots
       ..loadingStyle = EasyLoadingStyle.dark;
 
-    _speech = stt.SpeechToText();
+    //_speech = stt.SpeechToText();
     
     checkLogin();
     CheckInternetConnection();
@@ -834,14 +834,14 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                   ),
                   onPressed: () async {
                     if (widget.email != "") {
-                      // await EasyLoading.show(
-                      //   status: "Đang cập nhật ghi chú...",
-                      //   maskType: EasyLoadingMaskType.black,
-                      // );
+                      await EasyLoading.show(
+                        status: "Đang cập nhật ghi chú...",
+                        maskType: EasyLoadingMaskType.black,
+                      );
 
                       updateNote();
 
-                      // await EasyLoading.dismiss();
+                      await EasyLoading.dismiss();
 
                       Navigator.of(context).pop('RELOAD_LIST');
                     } else {
@@ -861,7 +861,15 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                   ),
                   onPressed: () async {
                     if (widget.email != "") {
+                      await EasyLoading.show(
+                        status: "Đang tạo ghi chú...",
+                        maskType: EasyLoadingMaskType.black,
+                      );
+
                       uploadNoteToCloud();
+
+                      await EasyLoading.dismiss();
+                      
                       Navigator.of(context).pop('RELOAD_LIST');
                     } else {
                       saveNoteToLocal();
@@ -1090,63 +1098,73 @@ class NewNoteScreenState extends State<NewNoteScreen> {
           floatingActionButton:
               (isEditCompleted == false) || widget.isEdit == false
                   ? AvatarGlow(
-                      animate: _isListening,
-                      glowColor: Theme.of(context).primaryColor,
+                      animate: MicroIsListening,
+                      glowColor: Colors.deepOrange,
                       duration: const Duration(microseconds: 2000),
-                      repeat: true,
-                      child: FloatingActionButton(
-                        onPressed: () {
-                          _listenVoice();
+                      // child: FloatingActionButton(
+                      //   onPressed: () {
+                      //     _listenVoice();
+                      //   },
+                      //   child: Icon(_isListening ? Icons.mic : Icons.mic_none),
+                      // ),
+                      child: GestureDetector(
+                        onTapDown: (details) async {
+                          var available = await speechToText.initialize();
+                          var vitri;
+                          if (available) {
+                            setState(() {
+                              MicroIsListening = true;
+                              speechToText.listen(onResult: (result) {
+                                setState(() {
+                                  for (var i = 0; i < lstFocusNode.length; i++) {
+                                    if (lstFocusNode[i].hasFocus) {
+                                      vitri = i;
+                                      break;
+                                    }
+                                  }
+
+                                  lstTxtController[vitri].text = result.recognizedWords;
+                                  if (vitri == 0) {
+                                    firsttxtfieldcont = result.recognizedWords;
+                                  }
+
+                                  if (result.hasConfidenceRating && result.confidence > 0) {
+                                    _confidence = result.confidence;
+                                  }
+
+                                  MicroIsListening = false;
+                                  // if (result.finalResult) {
+                                  //   String doanvannoi = result.recognizedWords;
+                                  //   lstTxtController[vitri].text += doanvannoi;
+                                  //   if (vitri == 0) {
+                                  //     firsttxtfieldcont = doanvannoi;
+                                  //   }
+                                  //   MicroIsListening = false;
+                                  // }
+                                });
+                              });
+                            });
+                          }
                         },
-                        child: Icon(_isListening ? Icons.mic : Icons.mic_none),
-                      ),
-                      // child: GestureDetector(
-                      //   onTapDown: (details) async {
-                      //     var available = await speechToText.initialize();
-                      //     var vitri;
-                      //     if (available) {
-                      //       setState(() {
-                      //         MicroIsListening = true;
-                      //         speechToText.listen(onResult: (result) {
-                      //           setState(() {
-                      //             for (var i = 0; i < lstFocusNode.length; i++) {
-                      //               if (lstFocusNode[i].hasFocus) {
-                      //                 vitri = i;
-                      //                 break;
-                      //               }
-                      //             }
-                      //             if (result.finalResult) {
-                      //               String doanvannoi = result.recognizedWords;
-                      //               lstTxtController[vitri].text += doanvannoi;
-                      //               if (vitri == 0) {
-                      //                 firsttxtfieldcont = doanvannoi;
-                      //               }
-                      //               MicroIsListening = false;
-                      //             }
-                      //           });
-                      //         });
-                      //       });
-                      //     }
-                      //   },
-                      //
-                      //   onTapUp: (details) {
-                      //     setState(() {
-                      //       MicroIsListening = false;
-                      //     });
-                      //     speechToText.stop();
-                      //   },
+                      
+                        onTapUp: (details) {
+                          setState(() {
+                            MicroIsListening = false;
+                          });
+                          speechToText.stop();
+                        },
                       //   // child: FloatingActionButton(
                       //   //   onPressed: (){},
                       //   //   tooltip: 'Nhận diện giọng nói',
                       //   //   elevation: _isVisible ? 0.0 : null,
                       //   //   child: const Icon(Icons.mic),
                       //   // ),
-                      //    child: const CircleAvatar(
-                      //                         backgroundColor: Colors.brown,
-                      //                         radius: 30,
-                      //                         child: const Icon(Icons.mic, color: Colors.white),
-                      //                       ),
-                      // ),
+                         child: const CircleAvatar(
+                                              backgroundColor: Colors.brown,
+                                              radius: 30,
+                                              child: const Icon(Icons.mic, color: Colors.white),
+                          ),
+                      ),
                     )
                   : null,
           floatingActionButtonLocation: _fabLocation,
@@ -1715,38 +1733,38 @@ class NewNoteScreenState extends State<NewNoteScreen> {
   }
 
   void _listenVoice() async {
-    if (!_isListening) {
-      bool available = await _speech.initialize(
-        onStatus: (value) => print('onStatus: $value'),
-        onError: (value) => print('onError: $value'),
-      );
+    // if (!_isListening) {
+    //   bool available = await _speech.initialize(
+    //     onStatus: (value) => print('onStatus: $value'),
+    //     onError: (value) => print('onError: $value'),
+    //   );
 
-      if (available) {
-        setState(() => _isListening = true);
-        _speech.listen(
-            onResult: (value) => setState(() {
-                  int vitri = 0;
-                  for (var i = 0; i < lstFocusNode.length; i++) {
-                    if (lstFocusNode[i].hasFocus) {
-                      vitri = i;
-                      break;
-                    }
-                  }
+    //   if (available) {
+    //     setState(() => _isListening = true);
+    //     _speech.listen(
+    //         onResult: (value) => setState(() {
+    //               int vitri = 0;
+    //               for (var i = 0; i < lstFocusNode.length; i++) {
+    //                 if (lstFocusNode[i].hasFocus) {
+    //                   vitri = i;
+    //                   break;
+    //                 }
+    //               }
 
-                  lstTxtController[vitri].text = value.recognizedWords;
-                  if (vitri == 0) {
-                    firsttxtfieldcont = value.recognizedWords;
-                  }
+    //               lstTxtController[vitri].text = value.recognizedWords;
+    //               if (vitri == 0) {
+    //                 firsttxtfieldcont = value.recognizedWords;
+    //               }
 
-                  if (value.hasConfidenceRating && value.confidence > 0) {
-                    _confidence = value.confidence;
-                  }
-                }));
-      }
-    } else {
-      setState(() => _isListening = false);
-      _speech.stop();
-    }
+    //               if (value.hasConfidenceRating && value.confidence > 0) {
+    //                 _confidence = value.confidence;
+    //               }
+    //             }));
+    //   }
+    // } else {
+    //   setState(() => _isListening = false);
+    //   _speech.stop();
+    // }
   }
 
   Future<void> getTagsByID() async {
@@ -1840,7 +1858,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     //////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
     /////////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
 
-    // await FireStorageService().updateNoteById(widget.noteId, noteContent);
+    await FireStorageService().updateNoteById(widget.noteId, noteContent);
 
     late int index;
     if (isConnected) {

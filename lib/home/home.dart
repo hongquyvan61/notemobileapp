@@ -592,10 +592,14 @@ class HomeScreenState extends State<HomeScreen> {
               const Icon(Icons.turned_in_outlined,
                   size: 13, color: Color.fromARGB(255, 97, 115, 239)),
               const SizedBox(width: 5),
-              Text(
-                noteList[index].tagname,
-                style: TextStyle(
-                    fontSize: 12, color: Color.fromARGB(255, 97, 115, 239)),
+              Expanded(
+                flex: 1,
+                child: Text(
+                  noteList[index].tagname,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                      fontSize: 12, color: Color.fromARGB(255, 97, 115, 239)),
+                ),
               ),
             ],
           ),
@@ -963,10 +967,12 @@ class HomeScreenState extends State<HomeScreen> {
                                     filled: true,
                                     fillColor:
                                         Color.fromARGB(255, 239, 241, 243),
-                                    enabledBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                      width: 0.5,
-                                    ))),
+                                    border: InputBorder.none
+                                    // enabledBorder: OutlineInputBorder(
+                                    //     borderSide: BorderSide(
+                                    //   width: 0.5,
+                                    // ))
+                                  ),
                                 onChanged: (value) => filterlist(value),
                               ),
                             ),
@@ -974,61 +980,65 @@ class HomeScreenState extends State<HomeScreen> {
                             loginState
                                 ? Expanded(
                                     flex: 0,
-                                    child: DropdownButton2<TagReceive>(
-                                      hint: Text('Lọc theo nhãn'),
-                                      items: lsttags
-                                          .map((TagReceive item) =>
-                                              DropdownMenuItem<TagReceive>(
-                                                value: item,
-                                                child: Text(
-                                                  item.tagname,
-                                                  style: const TextStyle(
-                                                    fontFamily: 'Roboto',
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.black,
+                                    child: DropdownButtonHideUnderline(
+                                      child: DropdownButton2<TagReceive>(
+                                        hint: Text('Lọc theo nhãn'),
+                                        items: lsttags
+                                            .map((TagReceive item) =>
+                                                DropdownMenuItem<TagReceive>(
+                                                  value: item,
+                                                  child: Text(
+                                                    item.tagname,
+                                                    style: const TextStyle(
+                                                      fontFamily: 'Roboto',
+                                                      fontSize: 15,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: Colors.black,
+                                                    ),
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
                                                   ),
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                              ))
-                                          .toList(),
-                                      onChanged: (value) {
-                                        filtertag(value);
-
-                                        selectedtag = value;
-                                        setState(() {});
-                                      },
-                                      value: selectedtag,
+                                                ))
+                                            .toList(),
+                                        onChanged: (value) {
+                                          filtertag(value);
+                                    
+                                          selectedtag = value;
+                                          setState(() {});
+                                        },
+                                        value: selectedtag,
+                                      ),
                                     ))
                                 : Expanded(
                                     flex: 0,
-                                    child: DropdownButton2<TagModel>(
-                                      hint: Text('Lọc theo nhãn'),
-                                      items: lsttagsLocal
-                                          .map((TagModel item) =>
-                                              DropdownMenuItem<TagModel>(
-                                                value: item,
-                                                child: Text(
-                                                  item.tag_name,
-                                                  style: const TextStyle(
-                                                    fontFamily: 'Roboto',
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.bold,
-                                                    color: Colors.black,
+                                    child: DropdownButtonHideUnderline(
+                                      child: DropdownButton2<TagModel>(
+                                        hint: Text('Lọc theo nhãn'),
+                                        items: lsttagsLocal
+                                            .map((TagModel item) =>
+                                                DropdownMenuItem<TagModel>(
+                                                  value: item,
+                                                  child: Text(
+                                                    item.tag_name,
+                                                    style: const TextStyle(
+                                                      fontFamily: 'Roboto',
+                                                      fontSize: 15,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: Colors.black,
+                                                    ),
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
                                                   ),
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                              ))
-                                          .toList(),
-                                      onChanged: (value) {
-                                        filtertagAtLocal(value);
-
-                                        selectedtagLocal = value;
-                                        setState(() {});
-                                      },
-                                      value: selectedtagLocal,
+                                                ))
+                                            .toList(),
+                                        onChanged: (value) {
+                                          filtertagAtLocal(value);
+                                    
+                                          selectedtagLocal = value;
+                                          setState(() {});
+                                        },
+                                        value: selectedtagLocal,
+                                      ),
                                     ))
                             // loginState
                             //     ? Expanded(
@@ -1169,40 +1179,40 @@ class HomeScreenState extends State<HomeScreen> {
 
   Future<void> InitiateListOfTag() async {
     lsttags = await FireStorageService().getTagsForFilter();
-    tagListEntries.clear();
+    //tagListEntries.clear();
 
     if (lsttags.isNotEmpty) {
       TagReceive tr = TagReceive();
       tr.tagname = "Không nhãn";
       tr.tagid = "notag";
 
-      tagListEntries.add(DropdownMenuEntry<TagReceive>(
-        value: tr,
-        label: "Không nhãn",
-      ));
+      // tagListEntries.add(DropdownMenuEntry<TagReceive>(
+      //   value: tr,
+      //   label: "Không nhãn",
+      // ));
 
       TagReceive trall = TagReceive();
       trall.tagname = "Tất cả";
       trall.tagid = "all";
 
-      tagListEntries.add(DropdownMenuEntry<TagReceive>(
-        value: trall,
-        label: "Tất cả",
-      ));
+      // tagListEntries.add(DropdownMenuEntry<TagReceive>(
+      //   value: trall,
+      //   label: "Tất cả",
+      // ));
 
       lsttags.insert(0, tr);
       lsttags.insert(0, trall);
 
-      for (int i = 2; i < lsttags.length; i++) {
-        tagListEntries.add(DropdownMenuEntry<TagReceive>(
-            value: lsttags[i], label: lsttags[i].tagname));
-      }
+      // for (int i = 2; i < lsttags.length; i++) {
+      //   tagListEntries.add(DropdownMenuEntry<TagReceive>(
+      //       value: lsttags[i], label: lsttags[i].tagname));
+      // }
     } else {
       TagReceive tr = TagReceive();
       tr.tagname = "*Chưa tạo nhãn*";
       tr.tagid = "";
 
-      tagListEntries.add(DropdownMenuEntry(value: tr, label: tr.tagname));
+      //tagListEntries.add(DropdownMenuEntry(value: tr, label: tr.tagname));
 
       lsttags.add(tr);
     }
@@ -1218,34 +1228,34 @@ class HomeScreenState extends State<HomeScreen> {
 
   Future<void> InitiateListOfTagAtLocal() async {
     lsttagsLocal = await tagDAL.getTagsForFilter_Local(-1, InitDataBase.db);
-    tagListEntriesLocal.clear();
+    //tagListEntriesLocal.clear();
 
     if (lsttagsLocal.isNotEmpty) {
       TagModel tr = TagModel(tag_id: -2, tag_name: "Không nhãn");
 
-      tagListEntriesLocal.add(DropdownMenuEntry<TagModel>(
-        value: tr,
-        label: "Không nhãn",
-      ));
+      // tagListEntriesLocal.add(DropdownMenuEntry<TagModel>(
+      //   value: tr,
+      //   label: "Không nhãn",
+      // ));
 
       TagModel trall = TagModel(tag_id: -3, tag_name: "Tất cả");
 
-      tagListEntriesLocal.add(DropdownMenuEntry<TagModel>(
-        value: trall,
-        label: "Tất cả",
-      ));
+      // tagListEntriesLocal.add(DropdownMenuEntry<TagModel>(
+      //   value: trall,
+      //   label: "Tất cả",
+      // ));
 
       lsttagsLocal.insert(0, tr);
       lsttagsLocal.insert(0, trall);
 
-      for (int i = 2; i < lsttagsLocal.length; i++) {
-        tagListEntriesLocal.add(DropdownMenuEntry<TagModel>(
-            value: lsttagsLocal[i], label: lsttagsLocal[i].tag_name));
-      }
+      // for (int i = 2; i < lsttagsLocal.length; i++) {
+      //   tagListEntriesLocal.add(DropdownMenuEntry<TagModel>(
+      //       value: lsttagsLocal[i], label: lsttagsLocal[i].tag_name));
+      // }
     } else {
       TagModel tr = TagModel(tag_id: -4, tag_name: "*Chưa tạo nhãn*");
 
-      tagListEntriesLocal.add(DropdownMenuEntry(value: tr, label: tr.tag_name));
+      //tagListEntriesLocal.add(DropdownMenuEntry(value: tr, label: tr.tag_name));
 
       lsttagsLocal.add(tr);
     }
