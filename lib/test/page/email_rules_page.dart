@@ -30,6 +30,9 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
   String? userEmail = FirebaseAuth.instance.currentUser?.email;
   List<String> emails = []; //Chứa email invite để lấy ra hiển thị
   Map<String, dynamic> emailsMap = {}; //check trùng email đã mời
+
+  List<String> lsttimestamp = []; //CHỨA THỜI GIAN CẬP NHẬT CÁC QUYỀN
+  
   bool updated = false;
   List<String> dropDownValue = [];
   List<String> dropDownValueCheckUpdate = [];
@@ -83,7 +86,7 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
                 emails[index],
               ),
               subtitle: Text(
-                'Subtitle goes here...',
+                lsttimestamp[index],
               ),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -499,8 +502,9 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
     inviteReceive.rules.forEach((key, value) {
       if (!key.contains('timestamp')) {
         emails.add(key);
-        dropDownValue.add(value);
-        dropDownValueCheckUpdate.add(value);
+        lsttimestamp.add(value['timestamp']);
+        dropDownValue.add(value['permission']);
+        dropDownValueCheckUpdate.add(value['permission']);
       }
     });
     setState(() {});
@@ -509,8 +513,11 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
   Future<void> addInviteTemp() async {
     String key = _textEditingController.text;
     String rule = 'Chỉ xem';
+    DateTime now = DateTime.now();
+    String currentDateTime = DateFormat.yMd('vi_VN').add_jm().format(now);
     setState(() {
       emails.add(key);
+      lsttimestamp.add(currentDateTime);
       dropDownValue.add(rule);
       dropDownValueCheckUpdate.add(rule);
       addList.add({key: rule});
@@ -521,10 +528,16 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
     DateTime now = DateTime.now();
     String currentDateTime = DateFormat.yMd('vi_VN').add_jm().format(now);
     Invite invite = Invite();
+    Map<String, String> permissionmap;
     for (int i = 0; i < emails.length; i++) {
-      invite.rules.addAll({emails[i]: dropDownValue[i]});
+      permissionmap = {"permission" : dropDownValue[i]};
+      permissionmap.addAll({'timestamp': currentDateTime});
+
+      invite.rules.addAll({emails[i]: permissionmap});
+
+      //invite.rules.addAll({emails[i]: dropDownValue[i]});
     }
-    invite.rules.addAll({'timestamp': currentDateTime});
+    //invite.rules.addAll({'timestamp' : currentDateTime});
     invite.noteId = widget.noteId;
     await FireStorageService().updateInvite(invite);
   }

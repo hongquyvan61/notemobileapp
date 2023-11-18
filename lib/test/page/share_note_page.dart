@@ -1,6 +1,5 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -93,7 +92,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
       },
       child: Card(
         clipBehavior: Clip.antiAliasWithSaveLayer,
-        color: Colors.yellow,
+        color: Color.fromARGB(255, 250, 236, 115),
         elevation: 4,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
@@ -113,6 +112,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
               ),
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
+                
                 child: Text(
                   contentString,
                   maxLines: 5,
@@ -126,7 +126,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
                           ? Image.network(
                               urlImage,
                               width: 300,
-                              height: 200,
+                              height: 100,
                               fit: BoxFit.cover,
                             )
                           : SizedBox(
@@ -216,7 +216,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
       },
       child: Card(
         clipBehavior: Clip.antiAliasWithSaveLayer,
-        color: Colors.yellow,
+        color: Color.fromARGB(255, 250, 236, 115),
         elevation: 4,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
@@ -304,6 +304,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
       child: Scaffold(
         key: scaffoldKey,
         appBar: AppBar(
+          backgroundColor: Color.fromARGB(131, 0, 0, 0),
           title: Text(
             'Chia sẻ ghi chú',
             style: TextStyle(

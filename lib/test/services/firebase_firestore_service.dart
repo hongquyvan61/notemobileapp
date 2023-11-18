@@ -393,7 +393,7 @@ class FireStorageService {
     for (QueryDocumentSnapshot document in inviteColection.docs) {
       checkNull = document.data() as Map<String, dynamic>?;
       temp = await getNoteById(document.id);
-      if (checkNull!.containsKey('rules') && checkNull['rules'].length > 1) {
+      if (checkNull!.containsKey('rules')) {
         // check nếu như người dùng xoá hết email share và values chỉ còn timestamp
         rules = document.get('rules');
         temp.rules = rules;

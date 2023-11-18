@@ -1,14 +1,14 @@
 class Invite{
   late String _noteId;
-  late Map<String, String> _rules = {};
+  late Map<String, dynamic> _rules = {};
 
   Invite.withValue(this._noteId, this._rules);
   Invite();
 
 
-  Map<String, String> get rules => _rules;
+  Map<String, dynamic> get rules => _rules;
 
-  set rules(Map<String, String> value) {
+  set rules(Map<String, dynamic> value) {
     _rules = value;
   }
 
