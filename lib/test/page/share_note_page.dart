@@ -1,5 +1,8 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
+
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -7,11 +10,7 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:notemobileapp/newnote/newnote.dart';
 import 'package:notemobileapp/newnote/showShareNote.dart';
 import 'package:notemobileapp/test/component/toast.dart';
-import 'package:notemobileapp/test/notifi_service.dart';
-import 'package:notemobileapp/test/services/change_invite_state.dart';
 import 'package:notemobileapp/test/services/internet_connection.dart';
-import 'package:provider/provider.dart';
-
 import '../model/note_receive.dart';
 import '../model/receive.dart';
 import '../services/firebase_firestore_service.dart';
@@ -62,7 +61,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
 
     String contentString = '';
     String urlImage = '';
-
+    String localImage = '';
     String rule = note.rule;
     Map<String, dynamic> content = {};
 
@@ -72,6 +71,9 @@ class _ShareNotePageState extends State<ShareNotePage> {
         contentString += content['text'];
       } else if (content.containsKey('image')) {
         urlImage = content['image'];
+        if(File(content['local_image']).existsSync()){
+          localImage = content['local_image'];
+        }
       }
       if (urlImage != '') {
         break;
@@ -122,7 +124,15 @@ class _ShareNotePageState extends State<ShareNotePage> {
               urlImage != ''
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: connectInternet
+                      child: localImage.isNotEmpty ?
+                      Image.file(
+                        File(localImage),
+                        width: 300,
+                        height: 200,
+                        fit: BoxFit.cover,
+                      ) :
+
+                      connectInternet
                           ? Image.network(
                               urlImage,
                               width: 300,
@@ -177,6 +187,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
   Widget cardWidgetShare(NoteReceive note) {
     String contentString = '';
     String urlImage = '';
+    String localImage = '';
     Map<String, dynamic> content = {};
     String userShared = '';
 
@@ -199,6 +210,9 @@ class _ShareNotePageState extends State<ShareNotePage> {
         contentString += content['text'];
       } else if (content.containsKey('image')) {
         urlImage = content['image'];
+        if(File(content['local_image']).existsSync()){
+          localImage = content['local_image'];
+        }
       }
       if (urlImage != '') {
         break;
@@ -244,18 +258,26 @@ class _ShareNotePageState extends State<ShareNotePage> {
               ),
               urlImage != ''
                   ? ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: connectInternet
-                          ? Image.network(
-                              urlImage,
-                              width: 300,
-                              height: 200,
-                              fit: BoxFit.cover,
-                            )
-                          : SizedBox(
-                              width: 0,
-                              height: 0,
-                            ),
+                borderRadius: BorderRadius.circular(8),
+                child: localImage.isNotEmpty ?
+                Image.file(
+                  File(localImage),
+                  width: 300,
+                  height: 200,
+                  fit: BoxFit.cover,
+                ) :
+
+                connectInternet
+                    ? Image.network(
+                  urlImage,
+                  width: 300,
+                  height: 200,
+                  fit: BoxFit.cover,
+                )
+                    : SizedBox(
+                  height: 0,
+                  width: 0,
+                ),
                     )
                   : SizedBox(
                       width: 0,

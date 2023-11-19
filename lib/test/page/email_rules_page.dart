@@ -140,14 +140,16 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
                           setState(() {
                             emailsMap.remove(emails[index]);
                             deleteListTemp.add(emails[index]);
-                            emails.removeAt(index);
+
                             dropDownValue.removeAt(index);
+                            lsttimestamp.removeAt(index);
                             dropDownValueCheckUpdate.removeAt(index);
                             for (int i = 0; i < addList.length; i++) {
                               if (addList[i].containsKey(emails[index])) {
                                 addList.removeAt(i);
                               }
                             }
+                            emails.removeAt(index);
                             isDelete = true;
                             updated = true;
                           });
@@ -247,6 +249,7 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
                     child: RefreshIndicator(
                         onRefresh: () async {
                           addList = [];
+                          lsttimestamp = [];
                           getAllEmailInvite();
                           getAllUser();
                         },

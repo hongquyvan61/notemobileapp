@@ -55,7 +55,8 @@ Future<void> main() async {
 
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   InitDataBase.firebasedb = FirebaseDatabase.instance.ref();
-
+  NotificationService().initNotification();
+  tz.initializeTimeZones();
   runApp(const MyApp());
 }
 
