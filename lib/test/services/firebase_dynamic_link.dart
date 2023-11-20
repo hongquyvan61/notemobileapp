@@ -2,8 +2,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:notemobileapp/home/home.dart';
+import 'package:notemobileapp/newnote/showShareNote.dart';
 
 import '../../newnote/newnote.dart';
+import '../../router.dart';
 
 class FirebaseDynamicLinkService{
   Future<String> createDynamicLink(bool short, String pagename, String noteid) async {
@@ -42,18 +44,25 @@ class FirebaseDynamicLinkService{
 
     if (initialLink != null) {
       String? id;
+      String? owner;
       final Uri deepLink = initialLink.link;
       if(deepLink.queryParameters.isNotEmpty){
         id = deepLink.queryParameters['id'];
+        owner = deepLink.queryParameters['owner'];
       }
       // Example of using the dynamic link to push the user to a different screen
+
+      Navigator.of(context).pushNamedAndRemoveUntil(
+              RoutePaths.start, (Route<dynamic> route) => false);
+      
       Navigator.push(context,
                       MaterialPageRoute(
-                        builder: (context) => NewNoteScreen(
-                                  noteId: id?.toString() ?? "",
-                                  isEdit: true,
-                                  email: FirebaseAuth.instance.currentUser?.email,
-                                )
+                        builder: (context) => ShowShareNote(
+                          noteId: id?.toString() ?? "", 
+                          isEdit: true, 
+                          email: owner?.toString() ?? "", 
+                          rule: 'Chỉ xem'
+                        )
                       ),
                     );
     }
@@ -70,21 +79,25 @@ class FirebaseDynamicLinkService{
 
       if(queryparams.isNotEmpty){
         String? id = deeplink.queryParameters['id'];
+        String? owner = deeplink.queryParameters['owner'];
 
         try{
 
              /////////SAU NAY THAY NEW NOTE SCREEN BANG SCREEN KHAC
              /////////SAU NAY THAY NEW NOTE SCREEN BANG SCREEN KHAC
              /////////SAU NAY THAY NEW NOTE SCREEN BANG SCREEN KHAC
-             Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => NewNoteScreen(
-                                  noteId: id?.toString() ?? "",
-                                  isEdit: true,
-                                  email: FirebaseAuth.instance.currentUser?.email,
-                                ),
-                              ));
+            Navigator.of(context).pushNamed(RoutePaths.start);
+      
+            Navigator.push(context,
+                      MaterialPageRoute(
+                        builder: (context) => ShowShareNote(
+                          noteId: id?.toString() ?? "", 
+                          isEdit: true, 
+                          email: owner?.toString() ?? "", 
+                          rule: 'Chỉ xem'
+                        )
+                      ),
+                    );
         }
         catch(e){
           debugPrint(e.toString());

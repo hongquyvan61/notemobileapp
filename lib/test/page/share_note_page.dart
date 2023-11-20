@@ -128,7 +128,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
                       Image.file(
                         File(localImage),
                         width: 300,
-                        height: 200,
+                        height: 100,
                         fit: BoxFit.cover,
                       ) :
 
@@ -263,7 +263,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
                 Image.file(
                   File(localImage),
                   width: 300,
-                  height: 200,
+                  height: 100,
                   fit: BoxFit.cover,
                 ) :
 
@@ -271,7 +271,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
                     ? Image.network(
                   urlImage,
                   width: 300,
-                  height: 200,
+                  height: 100,
                   fit: BoxFit.cover,
                 )
                     : SizedBox(

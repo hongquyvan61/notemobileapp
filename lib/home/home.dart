@@ -799,9 +799,22 @@ class HomeScreenState extends State<HomeScreen> {
         },
       );
     }
-    return const Center(
-      child: Text(
-          "Danh sách ghi chú trống hoặc do chưa kịp hiển thị danh sách, xin đợi chút hoặc kéo thả để tải lại danh sách!"),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const Image(
+          image: AssetImage('images/emptynote.jpg'),
+          width: 140,
+          height: 140,
+          fit: BoxFit.cover,
+        ),
+        const SizedBox(height: 20,),
+        Container(
+          margin: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+          child: const Text("Danh sách ghi chú trống hoặc do chưa kịp hiển thị danh sách, xin đợi chút hoặc kéo thả để tải lại danh sách!")
+        ),
+      ],
     );
   }
 
@@ -906,9 +919,23 @@ class HomeScreenState extends State<HomeScreen> {
         },
       );
     }
-    return const Center(
-      child: Text(
-          "Danh sách ghi chú trống hoặc do chưa kịp hiển thị danh sách, xin đợi chút hoặc kéo thả để tải lại danh sách!"),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        const Image(
+          image: AssetImage('images/emptynote.jpg'),
+          width: 140,
+          height: 140,
+          fit: BoxFit.cover,
+          
+        ),
+        const SizedBox(height: 20,),
+        Container(
+          margin: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+          child: const Text("Danh sách ghi chú trống hoặc do chưa kịp hiển thị danh sách, xin đợi chút hoặc kéo thả để tải lại danh sách!")
+        ),
+      ],
     );
   }
 
@@ -918,7 +945,8 @@ class HomeScreenState extends State<HomeScreen> {
       create: (context) => CountdownState(),
       child: SafeArea(
         child: Scaffold(
-            backgroundColor: const Color.fromARGB(63, 249, 253, 255),
+            //backgroundColor: const Color.fromARGB(63, 249, 253, 255),
+            backgroundColor: Color.fromARGB(255, 255, 255, 255),
             drawer: const NavBar(),
             appBar: AppBar(
               backgroundColor: const Color.fromARGB(0, 0, 0, 0),

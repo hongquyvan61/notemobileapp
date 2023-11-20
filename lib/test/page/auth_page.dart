@@ -176,7 +176,7 @@ class _AuthPageState extends State<AuthPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Image.asset(
-                              "assets/images/google.png",
+                              "images/google.png",
                               height: 30,
                             ),
                             SizedBox(

@@ -171,9 +171,23 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
             );
           });
     } else {
-      return const Center(
-        child: Text(
-            "Danh sách lời mời trống hoặc do chưa kịp hiển thị danh sách, xin đợi chút hoặc kéo thả để tải lại danh sách!"),
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Image(
+            image: AssetImage('images/facts.png'),
+            width: 140,
+            height: 140,
+            fit: BoxFit.cover,
+            
+          ),
+          const SizedBox(height: 20,),
+          Container(
+            margin: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+            child: const Text("Danh sách lời mời trống hoặc do chưa kịp hiển thị danh sách, xin đợi chút hoặc kéo thả để tải lại danh sách!")
+          ),
+        ],
       );
     }
   }
@@ -233,9 +247,15 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
                         deleteReceive();
                       }
                     }
+                    if(updated == false){
+                      Navigator.of(context).pop();
+                    }
+                    
                     setState(() {
                       updated = false;
                     });
+                    
+                    
                   },
                   icon: !updated ? Icon(Icons.check) : Icon(Icons.save))
             ],
@@ -572,9 +592,11 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
       }
     }
 
-    setState(() {
+    if(mounted){
+      setState(() {
 
-    });
+      });
+    }
 
 
 

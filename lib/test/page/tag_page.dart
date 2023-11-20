@@ -138,7 +138,10 @@ class TagScreenState extends State<TagScreen>{
 
               Expanded(
                 flex: 5,
-                child: ListView.builder(
+                child: 
+                lsttags.isNotEmpty || lsttagslocal.isNotEmpty
+                ?
+                ListView.builder(
                   itemCount: loginState == true ? lsttags.length : lsttagslocal.length,
                   itemBuilder: (context, index) {
                     TextEditingController updatenamecontroller = TextEditingController();
@@ -374,7 +377,28 @@ class TagScreenState extends State<TagScreen>{
                                   ),
                     );
                   },
-                ),
+                )
+                
+                :
+                
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Image(
+                      image: AssetImage('images/tag.png'),
+                      width: 140,
+                      height: 140,
+                      fit: BoxFit.cover,
+                      
+                    ),
+                    const SizedBox(height: 20,),
+                    Container(
+                      margin: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                      child: const Text("Không có nhãn nào, hãy tạo nhãn mới nào!")
+                    ),
+                  ],
+                )
               )
               ,
               Expanded(
