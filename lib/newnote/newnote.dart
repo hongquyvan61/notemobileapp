@@ -51,14 +51,17 @@ import '../test/ttspeech_config.dart';
 
 class NewNoteScreen extends StatefulWidget {
   const NewNoteScreen(
-      {Key? key,
+      {
+      Key? key,
       required this.noteId,
       required this.isEdit,
-      required this.email})
+      required this.email,
+      })
       : super(key: key);
 
   final String noteId;
   final bool isEdit;
+
 
   final String? email;
 
@@ -329,6 +332,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     }
 
     setState(() {});
+
   }
 
   Future<bool> showAlertDialog(
@@ -713,6 +717,9 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                 fit: BoxFit.cover,
               ),
             ),
+      
+      widget.isEdit == true && isEditCompleted == false ?
+
       Positioned(
           bottom: 0,
           right: 0,
@@ -781,7 +788,12 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                   }
                 }
                 setState(() {});
-              }))
+              }
+            )
+      )
+
+      :
+      const SizedBox()
     ]);
     return imageWidget;
   }
@@ -895,6 +907,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
             padding: EdgeInsets.all(13),
             child: Column(children: [
               TextField(
+                enabled: isEditCompleted == false  || widget.isEdit == false ? true : false,
                 autofocus: false,
                 style:
                     const TextStyle(fontSize: 23, fontWeight: FontWeight.bold),
@@ -1185,7 +1198,9 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                 topRight: Radius.circular(25),
                 bottomLeft: Radius.circular(0),
                 bottomRight: Radius.circular(0)),
-            child: BottomAppBar(
+            child:
+
+            BottomAppBar(
               height: (isEditCompleted == false) || widget.isEdit == false
                   ? 70.0
                   : 0.0,
@@ -1202,17 +1217,6 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                       onPressed: () {
                         getImage();
                       }
-                      // final SnackBar snackBar = SnackBar(
-                      //   content: const Text('Yay! A SnackBar!'),
-                      //   action: SnackBarAction(
-                      //     label: 'Undo',
-                      //     onPressed: () {},
-                      //   ),
-                      // );
-
-                      // Find the ScaffoldMessenger in the widget tree
-                      // and use it to show a SnackBar.
-                      //ScaffoldMessenger.of(context).showSnackBar(snackBar);
 
                       ),
                   IconButton(
@@ -1334,7 +1338,10 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                                         ),
                                         Expanded(
                                           flex: 5,
-                                          child: ListView.builder(
+                                          child: 
+                                          lsttags.isNotEmpty || lsttagslocal.isNotEmpty
+                                          ?
+                                          ListView.builder(
                                               itemBuilder: (context, index) {
                                                 return Container(
                                                   padding: EdgeInsets.fromLTRB(
@@ -1363,7 +1370,29 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                                                   ),
                                                 );
                                               },
-                                              itemCount: lsttags.length),
+                                              itemCount: lsttags.length
+                                          )
+                                        
+                                          :
+
+                                          Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            children: [
+                                              const Image(
+                                                image: AssetImage('images/tag.png'),
+                                                width: 140,
+                                                height: 140,
+                                                fit: BoxFit.cover,
+                                                
+                                              ),
+                                              const SizedBox(height: 20,),
+                                              Container(
+                                                margin: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                                                child: const Text("Không có nhãn nào, hãy tạo nhãn mới nào!")
+                                              ),
+                                            ],
+                                          )
                                         ),
                                         Expanded(
                                           flex: 0,

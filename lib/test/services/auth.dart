@@ -35,7 +35,7 @@ class Auth {
 
   DatabaseReference? userstable;
 
-  Future registerWithEmailPassword(
+  Future<String> registerWithEmailPassword(
       context, String email, String password) async {
     try {
       final credential =
@@ -46,12 +46,17 @@ class Auth {
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
         ToastComponent().showToast('Mật khẩu không an toàn. Thử lại');
+        return e.code;
+
       } else if (e.code == 'email-already-in-use') {
         ToastComponent().showToast('Tài khoản này đã được đăng ký trước đó.');
+        return e.code;
       }
     } catch (e) {
       ToastComponent().showToast(e.toString());
     }
+
+    return "success";
   }
 
   Future signInWithEmailPassword(context, String email, String password) async {

@@ -857,7 +857,8 @@ class HomeScreenState extends State<HomeScreen> {
                                               ?.toInt()
                                               .toString() ??
                                           0.toString()),
-                                  isEdit: true),
+                                  isEdit: true,
+                                  ),
                             ),
                           );
                           if (loginState) {

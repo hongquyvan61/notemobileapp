@@ -197,22 +197,20 @@ class _SignUpPageState extends State<SignUpPage> {
     });
 
     if (password.endsWith(retypePassword)) {
-      // String returnstr =
-      await Auth()
-          .registerWithEmailPassword(context, email, password)
-          .then((value) {
+       String returnstr = await Auth().registerWithEmailPassword(context, email, password);
+
+      if (returnstr == "success") {
         ToastComponent()
             .showToast('Đăng ký thành công. Vui lòng xác nhận email');
         Navigator.of(context).pushNamedAndRemoveUntil(
             RoutePaths.verifyEmail, (Route<dynamic> route) => false);
-      });
-      ;
-      // if (returnstr == "Successful") {
-      //   Navigator.of(context).pushReplacement(
-      //       MaterialPageRoute(builder: (context) => const AuthPage()));
-      // }
-      // showToast(alert);
-      // backToLogin(alert);
+      }
+      else{
+        _loading = false;
+        setState(() {
+            
+        });
+      }
     } else {
       showToast("passwords do not match");
     }

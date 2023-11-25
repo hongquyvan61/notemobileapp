@@ -121,18 +121,18 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
                       debugPrint("$index  ${dropDownValue[index]}");
                     },
                     value: dropDownValue[index],
-                    dropdownStyleData: DropdownStyleData(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(14),
-                        color: Colors.red,
-                      ),
-                      offset: const Offset(-20, 0),
-                      scrollbarTheme: ScrollbarThemeData(
-                        radius: const Radius.circular(40),
-                        thickness: MaterialStateProperty.all<double>(6),
-                        thumbVisibility: MaterialStateProperty.all<bool>(true),
-                      ),
-                    ),
+                    // dropdownStyleData: DropdownStyleData(
+                    //   decoration: BoxDecoration(
+                    //     borderRadius: BorderRadius.circular(14),
+                    //     color: Colors.red,
+                    //   ),
+                    //   offset: const Offset(-20, 0),
+                    //   scrollbarTheme: ScrollbarThemeData(
+                    //     radius: const Radius.circular(40),
+                    //     thickness: MaterialStateProperty.all<double>(6),
+                    //     thumbVisibility: MaterialStateProperty.all<bool>(true),
+                    //   ),
+                    // ),
                   ),
                   IconButton(
                       onPressed: () async {
