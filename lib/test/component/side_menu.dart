@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:notemobileapp/home/home.dart';
 import 'package:notemobileapp/test/page/tag_page.dart';
 import 'package:provider/provider.dart';
 
@@ -16,7 +17,9 @@ import '../services/auth.dart';
 import '../services/count_down_state.dart';
 
 class NavBar extends StatefulWidget {
-  const NavBar({super.key});
+  const NavBar({
+      super.key,
+      });
 
   @override
   State<NavBar> createState() => _NavBarState();
@@ -111,7 +114,7 @@ class _NavBarState extends State<NavBar> {
     };
   }
 
-  action() {
+  action() async {
     switch (selected) {
       case 0:
         Navigator.pop(context);
@@ -121,7 +124,7 @@ class _NavBarState extends State<NavBar> {
         Navigator.pushNamed(context, RoutePaths.shareNotePage);
       case 2:
         Navigator.pop(context);
-        Navigator.push(context,
+        final temp = await Navigator.push(context,
           MaterialPageRoute(
                           builder: (context) => TagScreen(email: FirebaseAuth.instance.currentUser?.email == null ? "" : FirebaseAuth.instance.currentUser?.email),
                         )

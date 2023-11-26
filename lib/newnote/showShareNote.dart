@@ -8,7 +8,10 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 //import 'package:flutter_quill/flutter_quill.dart' hide Text;
@@ -42,7 +45,9 @@ import '../model/SqliteModel/TagModel.dart';
 import '../model/SqliteModel/initializeDB.dart';
 import '../router.dart';
 import '../test/model/tag.dart';
+import '../test/notifi_service.dart';
 import '../test/services/internet_connection.dart';
+import '../test/ttspeech_config.dart';
 
 class ShowShareNote extends StatefulWidget {
   const ShowShareNote(
@@ -143,6 +148,10 @@ class ShowShareNoteState extends State<ShowShareNote> {
 
   Map _source = {ConnectivityResult.none: false};
   final NetworkConnectivity _networkConnectivity = NetworkConnectivity.instance;
+
+  DateTime scheduleTime = DateTime.now();
+  Duration durationTime = const Duration();
+  FlutterTts flutterTts = FlutterTts();
 
   void _listen() {
     final ScrollDirection direction = _controller.position.userScrollDirection;
@@ -869,7 +878,41 @@ class ShowShareNoteState extends State<ShowShareNote> {
                       tooltip: 'Hẹn giờ thông báo',
                       color: Colors.white,
                       icon: const Icon(Icons.notifications_none_outlined),
-                      onPressed: () {},
+                      onPressed: () {
+
+                        DatePicker.showDateTimePicker(
+                          context,
+                          showTitleActions: true,
+                          onChanged: (date) => {scheduleTime = date},
+                          onConfirm: (date) {
+                            String hour = timeSchedule().inHours.toString();
+                            String minute = timeSchedule().inMinutes.toString();
+                            String second = timeSchedule().inSeconds.toString();
+                            Fluttertoast.showToast(
+                                msg: "Đã đặt thông báo nhắc nhở sau $hour giờ $minute phút $second giây",
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.CENTER,
+                                timeInSecForIosWeb: 1,
+                                backgroundColor: Colors.red,
+                                textColor: Colors.white,
+                                fontSize: 16.0);
+
+                            NotificationService().scheduleNotification(
+                                title: 'Scheduled Notification',
+                                body: '$scheduleTime',
+                                scheduledNotificationDateTime: scheduleTime);
+
+                            Future.delayed(
+                                scheduleTime.difference(DateTime.now().add(const Duration(seconds: -1))),
+                                    () async => {
+                                  configTextToSpeech(flutterTts),
+                                  flutterTts.speak('Bạn có ghi chú ${_noteTitleController.text} cần xem lại!'),
+                                });
+
+                          },
+                        );
+
+                      },
                     ),
 
                   ],
@@ -1025,38 +1068,7 @@ class ShowShareNoteState extends State<ShowShareNote> {
     });
   }
 
-  void _listenVoice() async {
-    if (!_isListening) {
-      bool available = await _speech.initialize(
-        onStatus: (value) => print('onStatus: $value'),
-        onError: (value) => print('onError: $value'),
-      );
-
-      if (available) {
-        setState(() => _isListening = true);
-        _speech.listen(
-            onResult: (value) => setState(() {
-                  int vitri = 0;
-                  for (var i = 0; i < lstFocusNode.length; i++) {
-                    if (lstFocusNode[i].hasFocus) {
-                      vitri = i;
-                      break;
-                    }
-                  }
-
-                  lstTxtController[vitri].text = value.recognizedWords;
-                  if (vitri == 0) {
-                    firsttxtfieldcont = value.recognizedWords;
-                  }
-
-                  if (value.hasConfidenceRating && value.confidence > 0) {
-                    _confidence = value.confidence;
-                  }
-                }));
-      }
-    } else {
-      setState(() => _isListening = false);
-      _speech.stop();
-    }
+  Duration timeSchedule(){
+    return durationTime =  scheduleTime.difference(DateTime.now());
   }
 }

@@ -119,7 +119,7 @@ class _AuthPageState extends State<AuthPage> {
                       child: const Text("Forgot Password?")),
                 ],
               ),
-              const Spacer(),
+              //const Spacer(),
               SizedBox(
                 width: Size.infinite.width,
                 height: 50,
@@ -145,48 +145,48 @@ class _AuthPageState extends State<AuthPage> {
               SizedBox(
                 height: 20,
               ),
-              Text("Or"),
-              SizedBox(
-                height: 20,
-              ),
-              SizedBox(
-                width: Size.infinite.width,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Auth().signInWithGoogle(context).then((value) {
-                      ToastComponent().showToast("Đăng nhập thành công");
-                      Navigator.of(context).pushNamedAndRemoveUntil(
-                          RoutePaths.start, (Route<dynamic> route) => false);
-                    });;
-                  },
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      maximumSize: Size.infinite),
-                  child: _loading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Image.asset(
-                              "images/google.png",
-                              height: 30,
-                            ),
-                            SizedBox(
-                              width: 5,
-                            ),
-                            Text("Sign Up with Google")
-                          ],
-                        ),
-                ),
-              ),
+              // Text("Or"),
+              // SizedBox(
+              //   height: 20,
+              // ),
+              // SizedBox(
+              //   width: Size.infinite.width,
+              //   height: 50,
+              //   child: ElevatedButton(
+              //     onPressed: () {
+              //       Auth().signInWithGoogle(context).then((value) {
+              //         ToastComponent().showToast("Đăng nhập thành công");
+              //         Navigator.of(context).pushNamedAndRemoveUntil(
+              //             RoutePaths.start, (Route<dynamic> route) => false);
+              //       });;
+              //     },
+              //     style: ElevatedButton.styleFrom(
+              //         backgroundColor: Colors.black,
+              //         maximumSize: Size.infinite),
+              //     child: _loading
+              //         ? const SizedBox(
+              //             width: 20,
+              //             height: 20,
+              //             child: CircularProgressIndicator(
+              //               color: Colors.white,
+              //               strokeWidth: 2,
+              //             ),
+              //           )
+              //         : Row(
+              //             mainAxisAlignment: MainAxisAlignment.center,
+              //             children: [
+              //               Image.asset(
+              //                 "images/google.png",
+              //                 height: 30,
+              //               ),
+              //               SizedBox(
+              //                 width: 5,
+              //               ),
+              //               Text("Sign Up with Google")
+              //             ],
+              //           ),
+              //   ),
+              // ),
               SizedBox(
                 height: 20,
               ),

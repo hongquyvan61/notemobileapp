@@ -756,8 +756,12 @@ class HomeScreenState extends State<HomeScreen> {
                       );
                       if (loginState) {
                         await refreshNoteListFromCloud();
+
+                        await InitiateListOfTag();
                       } else {
                         await reloadNoteListAtLocal(resultFromNewNote);
+
+                        await InitiateListOfTagAtLocal();
                       }
                     },
                     leading: buildNoteLeadingIcon(index),
@@ -863,8 +867,12 @@ class HomeScreenState extends State<HomeScreen> {
                           );
                           if (loginState) {
                             await refreshNoteListFromCloud();
+
+                            await InitiateListOfTag();
                           } else {
                             await reloadNoteListAtLocal(resultfromNewNote);
+
+                            await InitiateListOfTagAtLocal();
                           }
                         },
                         title: Column(
@@ -948,7 +956,7 @@ class HomeScreenState extends State<HomeScreen> {
         child: Scaffold(
             //backgroundColor: const Color.fromARGB(63, 249, 253, 255),
             backgroundColor: Color.fromARGB(255, 255, 255, 255),
-            drawer: const NavBar(),
+            drawer: NavBar(),
             appBar: AppBar(
               backgroundColor: const Color.fromARGB(0, 0, 0, 0),
               iconTheme: const IconThemeData(color: Colors.black),
@@ -1108,9 +1116,13 @@ class HomeScreenState extends State<HomeScreen> {
                                   onRefresh: () async {
                                     if (loginState) {
                                       await refreshNoteListFromCloud();
+
+                                      await InitiateListOfTag();
                                     } else {
                                       await reloadNoteListAtLocal(
                                           "RELOAD_LIST");
+
+                                      await InitiateListOfTagAtLocal();
                                     }
                                   },
                                   child: buildListView())
@@ -1148,8 +1160,13 @@ class HomeScreenState extends State<HomeScreen> {
                             );
                             if (loginState) {
                               await refreshNoteListFromCloud();
+
+                              await InitiateListOfTag();
+
                             } else {
                               await reloadNoteListAtLocal(resultFromNewNote);
+
+                              await InitiateListOfTagAtLocal();
                             }
                           },
                           style: ElevatedButton.styleFrom(

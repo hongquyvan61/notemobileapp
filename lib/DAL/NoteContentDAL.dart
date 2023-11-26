@@ -69,8 +69,7 @@ class NoteContentDAL {
            File imgfile = File(result[i]["imagecontent"]);
            String imageurl = await StorageService().uploadImage(imgfile);
 
-           contents.add({"image" : imageurl});
-           contents.add({"local_image" : result[i]["imagecontent"].toString()});
+           contents.add({"image" : imageurl, "local_image" : result[i]["imagecontent"].toString()});
         }
         else{
           String noiDungGhiChu = result[i]["textcontent"];

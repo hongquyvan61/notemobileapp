@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:notemobileapp/test/component/side_menu.dart';
 
 import '../../DAL/TagDAL.dart';
 import '../../model/SqliteModel/TagModel.dart';
@@ -60,7 +61,6 @@ class TagScreenState extends State<TagScreen>{
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -68,6 +68,7 @@ class TagScreenState extends State<TagScreen>{
               elevation: 0.0,
               title: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           'Nhãn của bạn',
@@ -316,7 +317,7 @@ class TagScreenState extends State<TagScreen>{
                                                           bool deleteornot = await showAlertDialog(
                                                                   context,
                                                                   "Bạn có muốn xoá nhãn này không? Tất cả ghi chú được gán nhãn này sẽ được gỡ nhãn!",
-                                                                  "Xoá ghi chú");
+                                                                  "Xoá nhãn");
                                                           if(loginState){
                                                             if(deleteornot){
                                                               deleteTag(lsttags[index].tagid);
@@ -326,7 +327,7 @@ class TagScreenState extends State<TagScreen>{
                                                             if(deleteornot){
                                                               await EasyLoading.show(
                                                                 status: "Đang cập nhật thông tin...",
-                                                                maskType: EasyLoadingMaskType.none,
+                                                                maskType: EasyLoadingMaskType.black,
                                                               );
 
                                                               bool success = await tagDAL.deleteTagById(lsttagslocal[index].tag_id?.toInt() ?? -1, -1, InitDataBase.db);
@@ -511,7 +512,7 @@ class TagScreenState extends State<TagScreen>{
     if (_tagnamecontroller.text.isNotEmpty) {
       await EasyLoading.show(
         status: "Đang tạo nhãn mới...",
-        maskType: EasyLoadingMaskType.none,
+        maskType: EasyLoadingMaskType.black,
       );
 
       Tag t = Tag();
@@ -559,7 +560,7 @@ class TagScreenState extends State<TagScreen>{
   Future<void> updateTag(String tagid, String newname) async{
      await EasyLoading.show(
       status: "Đang cập nhật thông tin...",
-      maskType: EasyLoadingMaskType.none,
+      maskType: EasyLoadingMaskType.black,
      );
 
     Tag t = Tag();
@@ -579,7 +580,7 @@ class TagScreenState extends State<TagScreen>{
   Future<void> deleteTag(String tagid) async {
     await EasyLoading.show(
       status: "Đang cập nhật thông tin...",
-      maskType: EasyLoadingMaskType.none,
+      maskType: EasyLoadingMaskType.black,
      );
 
     await FireStorageService().deleteTagById(tagid);
