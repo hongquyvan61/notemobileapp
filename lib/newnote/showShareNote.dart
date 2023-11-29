@@ -133,9 +133,7 @@ class ShowShareNoteState extends State<ShowShareNote> {
   late String currentDateTimeShow;
   late String firsttxtfieldcont;
 
-  FloatingActionButtonLocation get _fabLocation => _isVisible
-      ? FloatingActionButtonLocation.centerDocked
-      : FloatingActionButtonLocation.centerFloat;
+  FloatingActionButtonLocation get _fabLocation => FloatingActionButtonLocation.centerFloat;
 
   NoteReceive note = NoteReceive();
   TagReceive? tag;
@@ -650,6 +648,8 @@ class ShowShareNoteState extends State<ShowShareNote> {
                     ),
                     onPressed: () {
                       isEditCompleted = false;
+                      getNoteById(widget.noteId);
+                      
                       setState(() {});
                       return;
 
@@ -782,7 +782,6 @@ class ShowShareNoteState extends State<ShowShareNote> {
                     widget.isEdit == false
                 ? AvatarGlow(
                     animate: MicroIsListening,
-                    duration: const Duration(milliseconds: 2000),
                     glowColor: Colors.deepOrange,
                     repeat: true,
                     // child: FloatingActionButton(
@@ -973,7 +972,7 @@ class ShowShareNoteState extends State<ShowShareNote> {
           controller.text = temp['text'];
           noteContentList.add(widget.rule == rules[0]
               ? textFieldWidgetViewOnly(controller, fcnode)
-              : textFieldWidget(controller, fcnode));
+              : textFieldWidgetForEdit(controller, fcnode, isEditCompleted, widget.isEdit));
         }
       }
     }

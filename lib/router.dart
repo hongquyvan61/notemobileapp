@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:notemobileapp/home/home.dart';
 import 'package:notemobileapp/newnote/newnote.dart';
@@ -50,7 +51,7 @@ class RouterCustom {
         return MaterialPageRoute(builder: (_) => const NotificationPage());
       case RoutePaths.tagPage:
         return MaterialPageRoute(
-            builder: (_) => const TagScreen(email: "")
+            builder: (_) => TagScreen(email: FirebaseAuth.instance.currentUser?.email == null ? "" : FirebaseAuth.instance.currentUser?.email)
             );
 
       case RoutePaths.shareNotePage:

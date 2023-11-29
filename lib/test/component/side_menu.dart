@@ -129,6 +129,7 @@ class _NavBarState extends State<NavBar> {
                           builder: (context) => TagScreen(email: FirebaseAuth.instance.currentUser?.email == null ? "" : FirebaseAuth.instance.currentUser?.email),
                         )
         );
+
         
       case 3:
         dialogResetPassWord();

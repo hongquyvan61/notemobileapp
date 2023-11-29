@@ -79,6 +79,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
   bool _isListening = false;
   double _confidence = 1.0;
   bool loading = false;
+  bool isEditCompleted = true;
 
   SpeechToText speechToText = SpeechToText();
 
@@ -86,17 +87,9 @@ class NewNoteScreenState extends State<NewNoteScreen> {
   static TextEditingController firstTxtFieldController =
       TextEditingController();
 
+    
   List<dynamic> noteContentList = <dynamic>[
-    TextField(
-      keyboardType: TextInputType.multiline,
-      focusNode: fcnFirstTxtField,
-      controller: firstTxtFieldController,
-      showCursor: true,
-      autofocus: true,
-      maxLines: null,
-      style: const TextStyle(fontSize: 14),
-      decoration: const InputDecoration(border: InputBorder.none),
-    )
+    
   ];
 
   List<FocusNode> lstFocusNode = <FocusNode>[fcnFirstTxtField];
@@ -121,7 +114,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
   bool _isBottomAppBarVisible = false;
   bool MicroIsListening = false;
 
-  bool isEditCompleted = true;
+
   bool isConnected = false;
   bool isCreatedNewTag = false;
 
@@ -142,9 +135,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
   FB_Note fb_note = FB_Note();
   FB_NoteContent fb_notect = FB_NoteContent();
 
-  FloatingActionButtonLocation get _fabLocation => _isVisible
-      ? FloatingActionButtonLocation.centerDocked
-      : FloatingActionButtonLocation.centerFloat;
+  FloatingActionButtonLocation get _fabLocation => FloatingActionButtonLocation.centerFloat;
 
   NoteReceive note = NoteReceive();
   TagReceive? tag;
@@ -230,6 +221,20 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     
     checkLogin();
     CheckInternetConnection();
+
+    noteContentList.add(
+      TextField(
+        keyboardType: TextInputType.multiline,
+        focusNode: fcnFirstTxtField,
+        controller: firstTxtFieldController,
+        enabled: isEditCompleted == false  || widget.isEdit == false ? true : false,
+        showCursor: true,
+        autofocus: true,
+        maxLines: null,
+        style: const TextStyle(fontSize: 14),
+        decoration: const InputDecoration(border: InputBorder.none),
+      )
+    );
 
     if (widget.isEdit && widget.email == "") {
       loadingNoteWithIDAtLocal(-1, widget.noteId, widget.isEdit);
@@ -369,8 +374,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     return result ?? false;
   }
 
-  Future loadingNoteWithIDAtLocal(
-      int userid, String noteID, bool isEdit) async {
+  Future loadingNoteWithIDAtLocal(int userid, String noteID, bool isEdit) async {
     List<NoteModel> tmp =
         await nDAL.getNoteByID(userid, int.parse(noteID), InitDataBase.db);
     if (tmp.isNotEmpty && isEdit) {
@@ -380,8 +384,8 @@ class NewNoteScreenState extends State<NewNoteScreen> {
       taglocal!.tag_id = tmp[0].tag_id?.toInt() ?? null;
       taglocal!.tag_name = tmp[0].tag_name?.toString() ?? "";
 
-      List<NoteContentModel> contents = await ncontentDAL
-          .getAllNoteContentsById(InitDataBase.db, int.parse(noteID));
+      List<NoteContentModel> contents = await ncontentDAL.getAllNoteContentsById(InitDataBase.db, int.parse(noteID));
+
       if (contents.isNotEmpty) {
         firstTxtFieldController.text = contents[0].textcontent.toString();
 
@@ -402,6 +406,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                 keyboardType: TextInputType.multiline,
                 focusNode: fcnTxtField,
                 controller: txtFieldController,
+                enabled: isEditCompleted == false  || isEdit == false ? true : false,
                 showCursor: true,
                 //autofocus: true,
                 maxLines: null,
@@ -837,6 +842,38 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                   ),
                   onPressed: () {
                     isEditCompleted = false;
+                    if(loginState){
+                      getNoteById(widget.noteId);
+                    }
+                    else{
+                      noteContentList.clear();
+
+                      noteContentList.add(
+                        TextField(
+                          keyboardType: TextInputType.multiline,
+                          focusNode: fcnFirstTxtField,
+                          controller: firstTxtFieldController,
+                          enabled: isEditCompleted == false  || widget.isEdit == false ? true : false,
+                          showCursor: true,
+                          autofocus: true,
+                          maxLines: null,
+                          style: const TextStyle(fontSize: 14),
+                          decoration: const InputDecoration(border: InputBorder.none),
+                        )
+                      );
+
+                      lstupdatecontents.clear();
+                      lstFocusNode.clear();
+                      lstTxtController.clear();
+                      UpdateNoteContentList.clear();
+
+                      lstFocusNode.add(fcnFirstTxtField);
+                      lstTxtController.add(firstTxtFieldController);
+                      UpdateNoteContentList.add(firstTxtFieldController);
+
+                      loadingNoteWithIDAtLocal(-1, widget.noteId, widget.isEdit);
+                    }
+
                     setState(() {});
                     return;
 
@@ -1072,7 +1109,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                                               "Xoá ghi chú");
                                           if (deleteornot) {
                                             await deleteNoteAtLocal();
-                                            Navigator.pop(context, true);
+                                            Navigator.of(context).pop('RELOAD_LIST');
                                           }
                                         }
                                       },
@@ -1123,7 +1160,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                   ? AvatarGlow(
                       animate: MicroIsListening,
                       glowColor: Colors.deepOrange,
-                      duration: const Duration(microseconds: 2000),
+                      repeat: true,
                       // child: FloatingActionButton(
                       //   onPressed: () {
                       //     _listenVoice();
@@ -1135,16 +1172,15 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                           var available = await speechToText.initialize();
                           var vitri;
                           if (available) {
+                            MicroIsListening = true;
                             setState(() {
-                              MicroIsListening = true;
                               speechToText.listen(onResult: (result) {
-                                setState(() {
-                                  for (var i = 0; i < lstFocusNode.length; i++) {
+                                for (var i = 0; i < lstFocusNode.length; i++) {
                                     if (lstFocusNode[i].hasFocus) {
                                       vitri = i;
                                       break;
                                     }
-                                  }
+                                }
 
                                   lstTxtController[vitri].text = result.recognizedWords;
                                   if (vitri == 0) {
@@ -1155,7 +1191,8 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                                     _confidence = result.confidence;
                                   }
 
-                                  MicroIsListening = false;
+                                MicroIsListening = false;
+                                setState(() {
                                   // if (result.finalResult) {
                                   //   String doanvannoi = result.recognizedWords;
                                   //   lstTxtController[vitri].text += doanvannoi;
@@ -1176,17 +1213,11 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                           });
                           speechToText.stop();
                         },
-                      //   // child: FloatingActionButton(
-                      //   //   onPressed: (){},
-                      //   //   tooltip: 'Nhận diện giọng nói',
-                      //   //   elevation: _isVisible ? 0.0 : null,
-                      //   //   child: const Icon(Icons.mic),
-                      //   // ),
-                         child: const CircleAvatar(
+                        child: const CircleAvatar(
                                               backgroundColor: Colors.brown,
                                               radius: 30,
                                               child: const Icon(Icons.mic, color: Colors.white),
-                          ),
+                        ),
                       ),
                     )
                   : null,
@@ -1259,12 +1290,12 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                       );
                     },
                   ),
-                  IconButton(
-                    tooltip: 'Định dạng chữ',
-                    color: Colors.white,
-                    icon: const Icon(Icons.abc),
-                    onPressed: () {},
-                  ),
+                  // IconButton(
+                  //   tooltip: 'Định dạng chữ',
+                  //   color: Colors.white,
+                  //   icon: const Icon(Icons.abc),
+                  //   onPressed: () {},
+                  // ),
                   IconButton(
                     tooltip: 'Gắn thẻ',
                     color: Colors.white,
@@ -1883,7 +1914,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
           FocusNode fcnode = FocusNode();
 
           controller.text = temp['text'];
-          noteContentList.add(textFieldWidget(controller, fcnode));
+          noteContentList.add(textFieldWidgetForEdit(controller, fcnode, isEditCompleted, widget.isEdit));
         }
       }
       // if(temp.containsKey('image')){
