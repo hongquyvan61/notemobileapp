@@ -226,6 +226,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
                 builder: (context) => NewNoteScreen(
                     noteId: note.noteId,
                     isEdit: true,
+                    isNewNote: false,
                     email: currentUser!.isNotEmpty ? currentUser : '')));
       },
       child: Card(

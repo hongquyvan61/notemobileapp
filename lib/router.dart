@@ -38,6 +38,7 @@ class RouterCustom {
             builder: (_) => const NewNoteScreen(
                   noteId: '',
                   isEdit: false,
+                  isNewNote: true,
                   email: "",
                 ));
 

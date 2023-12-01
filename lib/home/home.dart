@@ -26,6 +26,7 @@ import 'package:path_provider/path_provider.dart';
 //import 'package:notemobileapp/test/services/firebase_store_service.dart';
 import 'package:provider/provider.dart';
 
+import '../model/SqliteModel/NoteContentModel.dart';
 import '../model/SqliteModel/NoteModel.dart';
 import '../model/SqliteModel/TagModel.dart';
 import '../test/component/side_menu.dart';
@@ -215,25 +216,27 @@ class HomeScreenState extends State<HomeScreen> {
     late List<File> lstimage = <File>[];
 
     // List<NoteContentModel> temp1 = await noteContentDAL.getAllNoteContentsById(InitDataBase.db, 1);
+    // List<NoteContentModel> temp2 = await noteContentDAL.getAllNoteContentsById(InitDataBase.db, 2);
     // bool checkdel1 = await nDAL.deleteNote(6, InitDataBase.db);
     // bool checkdel2 = await nDAL.deleteNote(7, InitDataBase.db);
     // List<NoteModel> temp3 = await nDAL.getAllNotes(InitDataBase.db);
 
     listofBriefContent.clear();
     for (int i = 0; i < lst.length; i++) {
-      int? noteid = lst[i].note_id;
-      String imagestr = await noteContentDAL.getTitleImageofNote(
+      List<String> hinhvanoidung = await noteContentDAL.getTitleImageofNote(
           lst[i].note_id, InitDataBase.db);
-      if (imagestr != '') {
-        File imagetemp = File(imagestr);
-        lstimage.add(imagetemp);
-      } else {
-        File emptyfile = File('');
-        lstimage.add(emptyfile);
+      if(hinhvanoidung.isNotEmpty){
+        if (hinhvanoidung[0] != '') {
+          File imagetemp = File(hinhvanoidung[0]);
+          lstimage.add(imagetemp);
+        } else {
+          File emptyfile = File('');
+          lstimage.add(emptyfile);
+        }
+        // String briefcontent = await noteContentDAL.getBriefContentofNote(
+        //     lst[i].note_id, InitDataBase.db);
+        listofBriefContent.add(hinhvanoidung[1]);
       }
-      String briefcontent = await noteContentDAL.getBriefContentofNote(
-          lst[i].note_id, InitDataBase.db);
-      listofBriefContent.add(briefcontent);
     }
     return lstimage;
   }
@@ -750,6 +753,7 @@ class HomeScreenState extends State<HomeScreen> {
                                         .toString() ??
                                     0.toString()),
                             isEdit: true,
+                            isNewNote: false,
                             email: email == null ? "" : email?.toString(),
                           ),
                         ),
@@ -862,6 +866,7 @@ class HomeScreenState extends State<HomeScreen> {
                                               .toString() ??
                                           0.toString()),
                                   isEdit: true,
+                                  isNewNote: false,
                                   ),
                             ),
                           );
@@ -1154,6 +1159,7 @@ class HomeScreenState extends State<HomeScreen> {
                                 builder: (context) => NewNoteScreen(
                                   noteId: '',
                                   isEdit: false,
+                                  isNewNote: true,
                                   email: email == null ? "" : email?.toString(),
                                 ),
                               ),

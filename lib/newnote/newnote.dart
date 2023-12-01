@@ -55,13 +55,14 @@ class NewNoteScreen extends StatefulWidget {
       Key? key,
       required this.noteId,
       required this.isEdit,
+      required this.isNewNote,
       required this.email,
       })
       : super(key: key);
 
   final String noteId;
   final bool isEdit;
-
+  final bool isNewNote;
 
   final String? email;
 
@@ -723,7 +724,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
               ),
             ),
       
-      widget.isEdit == true && isEditCompleted == false ?
+      widget.isNewNote == true || (widget.isEdit == true && isEditCompleted == false) ?
 
       Positioned(
           bottom: 0,

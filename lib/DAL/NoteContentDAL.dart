@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:io';
 
 import 'package:notemobileapp/model/SqliteModel/initializeDB.dart';
@@ -87,13 +88,21 @@ class NoteContentDAL {
       return latestid;
     }
 
-    Future<String> getTitleImageofNote(int? noteid, Database db) async{
-      List<Map> result = await db.rawQuery("select imagecontent from notecontent where note_id=? and imagecontent is not null limit 1",[noteid]);
-      late String imagepath = '';
+    Future<List<String>> getTitleImageofNote(int? noteid, Database db) async{
+      List<Map> result = await db.rawQuery("select textcontent as chu from (select textcontent from notecontent where note_id=? and textcontent is not null limit 1) union select imagecontent as hinh from (select imagecontent from notecontent where note_id=? and imagecontent is not null limit 1)",[noteid, noteid]);
+      List<String> hinhvanoidung = [];
+
       if(!result.isEmpty){
-        imagepath = result[0]['imagecontent'];
+        if(result.length > 1){
+          hinhvanoidung.add(result[0]['chu']);   //HINH
+          hinhvanoidung.add(result[1]['chu']);
+        }
+        else{
+          hinhvanoidung.add('');
+          hinhvanoidung.add(result[0]['chu']);
+        }
       }
-      return imagepath;
+      return hinhvanoidung;
     }
 
     Future<String> getBriefContentofNote(int? noteid, Database db) async{
