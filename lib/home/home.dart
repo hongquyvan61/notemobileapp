@@ -88,6 +88,8 @@ class HomeScreenState extends State<HomeScreen> {
   bool listState = true;
   late StreamSubscription subscription;
 
+  List<dynamic> finalreturn = [];
+
   Map _source = {ConnectivityResult.none: false};
   final NetworkConnectivity _networkConnectivity = NetworkConnectivity.instance;
 
@@ -144,7 +146,10 @@ class HomeScreenState extends State<HomeScreen> {
           isConnected = false;
       }
 
-      InitiateListOfNote();
+      
+    });
+
+    await InitiateListOfNote();
 
       if (loginState) {
         FireStorageService().addToken(token);
@@ -152,7 +157,6 @@ class HomeScreenState extends State<HomeScreen> {
       } else {
         InitiateListOfTagAtLocal();
       }
-    });
   }
 
   Future<void> InitiateListOfNote() async {
@@ -175,7 +179,15 @@ class HomeScreenState extends State<HomeScreen> {
         },
       );
       foundedNote = listofnote;
-      listofTitleImage = await generateListTitleImage(listofnote);
+      
+      finalreturn.clear();
+
+      finalreturn = await generateListTitleImage(listofnote);
+
+      listofTitleImage = finalreturn[0];
+      listofBriefContent = finalreturn[1];
+
+      finalreturn.clear();
 
       if (mounted) {
         setState(() {});
@@ -185,6 +197,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   Future<void> reloadNoteListAtLocal(Object? result) async {
     if (result.toString() == 'RELOAD_LIST') {
+
       await EasyLoading.show(
         status: "Đang load danh sách ghi chú...",
         maskType: EasyLoadingMaskType.none,
@@ -201,7 +214,15 @@ class HomeScreenState extends State<HomeScreen> {
 
       foundedNote = listofnote;
 
-      listofTitleImage = await generateListTitleImage(listofnote);
+      finalreturn.clear();
+
+      finalreturn = await generateListTitleImage(listofnote);
+
+      listofTitleImage = finalreturn[0];
+      listofBriefContent = finalreturn[1];
+
+      finalreturn.clear();
+
 
       InitiateListOfTagAtLocal();
 
@@ -212,9 +233,11 @@ class HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<List<File>> generateListTitleImage(List<NoteModel> lst) async {
+  Future<List<dynamic>> generateListTitleImage(List<NoteModel> lst) async {
     late List<File> lstimage = <File>[];
-
+    late List<String> briefs = [];
+    late List<dynamic> ketqua = [];
+    
     // List<NoteContentModel> temp1 = await noteContentDAL.getAllNoteContentsById(InitDataBase.db, 1);
     // List<NoteContentModel> temp2 = await noteContentDAL.getAllNoteContentsById(InitDataBase.db, 2);
     // bool checkdel1 = await nDAL.deleteNote(6, InitDataBase.db);
@@ -222,6 +245,7 @@ class HomeScreenState extends State<HomeScreen> {
     // List<NoteModel> temp3 = await nDAL.getAllNotes(InitDataBase.db);
 
     listofBriefContent.clear();
+
     for (int i = 0; i < lst.length; i++) {
       List<String> hinhvanoidung = await noteContentDAL.getTitleImageofNote(
           lst[i].note_id, InitDataBase.db);
@@ -235,10 +259,13 @@ class HomeScreenState extends State<HomeScreen> {
         }
         // String briefcontent = await noteContentDAL.getBriefContentofNote(
         //     lst[i].note_id, InitDataBase.db);
-        listofBriefContent.add(hinhvanoidung[1]);
+        briefs.add(hinhvanoidung[1]);
       }
     }
-    return lstimage;
+    ketqua.add(lstimage);
+    ketqua.add(briefs);
+
+    return ketqua;
   }
 
   void filterlist(String inputWord) async {
@@ -269,9 +296,20 @@ class HomeScreenState extends State<HomeScreen> {
       // we use the toLowerCase() method to make it case-insensitive
     }
     if (loginState) {
+
     } else {
+
       foundedNote = results;
-      listofTitleImage = await generateListTitleImage(foundedNote);
+
+      finalreturn.clear();
+      
+      finalreturn = await generateListTitleImage(listofnote);
+
+      listofTitleImage = finalreturn[0];
+      listofBriefContent = finalreturn[1];
+
+      finalreturn.clear();
+
     }
     // Refresh the UI
     setState(() {});
@@ -310,9 +348,16 @@ class HomeScreenState extends State<HomeScreen> {
     if (selected!.tag_id == -4 || selected!.tag_id == -3) {
       //CHUA TAO NHAN HOAC TAT CA
 
+
       foundedNote = await nDAL.getAllNotes(InitDataBase.db);
 
-      listofTitleImage = await generateListTitleImage(foundedNote);
+      finalreturn = await generateListTitleImage(listofnote);
+
+      listofTitleImage = finalreturn[0];
+      listofBriefContent = finalreturn[1];
+
+      finalreturn.clear();
+
       setState(() {});
       return;
     }
@@ -322,17 +367,30 @@ class HomeScreenState extends State<HomeScreen> {
 
       foundedNote = await nDAL.getNotesWithoutTag(-1, InitDataBase.db);
 
-      listofTitleImage = await generateListTitleImage(foundedNote);
+
+      finalreturn = await generateListTitleImage(listofnote);
+
+      listofTitleImage = finalreturn[0];
+      listofBriefContent = finalreturn[1];
+
+      finalreturn.clear();
+      
       setState(() {});
       return;
     }
 
     foundedNote.clear();
 
-    foundedNote =
-        await nDAL.getNotesWithTagname(-1, selected.tag_name, InitDataBase.db);
+    foundedNote = await nDAL.getNotesWithTagname(-1, selected.tag_name, InitDataBase.db);
 
-    listofTitleImage = await generateListTitleImage(foundedNote);
+
+    finalreturn = await generateListTitleImage(listofnote);
+
+      listofTitleImage = finalreturn[0];
+      listofBriefContent = finalreturn[1];
+
+      finalreturn.clear();
+      
     setState(() {});
     return;
   }

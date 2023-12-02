@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:notemobileapp/home/home.dart';
 import 'package:notemobileapp/test/page/tag_page.dart';
+import 'package:notemobileapp/test/services/firebase_firestore_service.dart';
 import 'package:provider/provider.dart';
 
 
@@ -32,12 +33,16 @@ class _NavBarState extends State<NavBar> {
   String? _avatar = '';
   String? _userName = '';
   String? _email = '';
+  int numofnoti = 0;
 
   @override
   void initState() {
     getUserInfo();
+    NumOfNotiHadNotSeen();
     super.initState();
   }
+
+  
 
   @override
   Widget build(BuildContext context) {
@@ -56,11 +61,11 @@ class _NavBarState extends State<NavBar> {
                     ),
                   ),
                 ),
-                AppDrawerTile(index: 0, onTap: updateSelected(0)),
-                AppDrawerTile(index: 1, onTap: updateSelected(1)),
-                AppDrawerTile(index: 2, onTap: updateSelected(2)),
+                AppDrawerTile(index: 0, onTap: updateSelected(0), notinumber: numofnoti),
+                AppDrawerTile(index: 1, onTap: updateSelected(1), notinumber: numofnoti),
+                AppDrawerTile(index: 2, onTap: updateSelected(2), notinumber: numofnoti),
                 canReset
-                    ? AppDrawerTile(index: 3, onTap: updateSelected(3))
+                    ? AppDrawerTile(index: 3, onTap: updateSelected(3), notinumber: numofnoti)
                     : Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
                         child: ListTile(
@@ -84,7 +89,7 @@ class _NavBarState extends State<NavBar> {
                           ),
                         ),
                       ),
-                AppDrawerTile(index: 4, onTap: updateSelected(4)),
+                AppDrawerTile(index: 4, onTap: updateSelected(4), notinumber: numofnoti),
               ],
             )
           : ListView(
@@ -98,8 +103,8 @@ class _NavBarState extends State<NavBar> {
                     ),
                   ),
                 ),
-                AppDrawerTile(index: 2, onTap: updateSelected(2)),
-                AppDrawerTile(index: 5, onTap: updateSelected(5))
+                AppDrawerTile(index: 2, onTap: updateSelected(2), notinumber: numofnoti),
+                AppDrawerTile(index: 5, onTap: updateSelected(5), notinumber: numofnoti)
               ],
             ),
     );
@@ -259,6 +264,13 @@ class _NavBarState extends State<NavBar> {
     _userName = _auth.currentUser?.displayName;
     _avatar = _auth.currentUser?.photoURL;
   }
+
+  Future<void> NumOfNotiHadNotSeen() async {
+    numofnoti = await FireStorageService().getNumberOfNotiHadNotSeen();
+    setState(() {
+      
+    });
+  }
 }
 
 class AppDrawerTile extends StatelessWidget {
@@ -266,10 +278,15 @@ class AppDrawerTile extends StatelessWidget {
     super.key,
     required this.index,
     required this.onTap,
+    required this.notinumber
   });
 
   final int index;
+
   final onTap;
+
+  final int notinumber;
+
 
   @override
   Widget build(BuildContext context) {
@@ -292,6 +309,29 @@ class AppDrawerTile extends StatelessWidget {
             color: Colors.black,
           ),
         ),
+        trailing: index == 0 && notinumber != 0 ?
+        Container(
+          width: 20.0,
+          height: 20.0,
+          decoration: BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+               
+          ),
+          child: Center(
+            child: Text(
+              notinumber.toString(),
+
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 15.0,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        )
+        :
+        SizedBox()
       ),
     );
   }

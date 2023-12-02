@@ -495,4 +495,10 @@ class FireStorageService {
 
     return result;
   }
+
+  Future<int> getNumberOfNotiHadNotSeen() async {
+    int num = await notesCollection.doc(currentUser).collection('receive')
+                                .where('hadseen',isEqualTo: false).count().get().then((res) => res.count);
+    return num;
+  }
 }
