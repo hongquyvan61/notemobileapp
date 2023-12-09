@@ -344,38 +344,39 @@ class HomeScreenState extends State<HomeScreen> {
     setState(() {});
   }
 
-  void filtertagAtLocal(TagModel? selected) async {
+  Future<void> filtertagAtLocal(TagModel? selected) async {
     if (selected!.tag_id == -4 || selected!.tag_id == -3) {
       //CHUA TAO NHAN HOAC TAT CA
 
+      finalreturn.clear();
 
       foundedNote = await nDAL.getAllNotes(InitDataBase.db);
 
-      finalreturn = await generateListTitleImage(listofnote);
+      finalreturn = await generateListTitleImage(foundedNote);
 
       listofTitleImage = finalreturn[0];
       listofBriefContent = finalreturn[1];
 
       finalreturn.clear();
 
-      setState(() {});
       return;
     }
 
     if (selected.tag_id == -2) {
+      
       foundedNote.clear();
 
       foundedNote = await nDAL.getNotesWithoutTag(-1, InitDataBase.db);
 
+      finalreturn.clear();
 
-      finalreturn = await generateListTitleImage(listofnote);
+      finalreturn = await generateListTitleImage(foundedNote);
 
       listofTitleImage = finalreturn[0];
       listofBriefContent = finalreturn[1];
 
       finalreturn.clear();
       
-      setState(() {});
       return;
     }
 
@@ -383,15 +384,16 @@ class HomeScreenState extends State<HomeScreen> {
 
     foundedNote = await nDAL.getNotesWithTagname(-1, selected.tag_name, InitDataBase.db);
 
+    finalreturn.clear();  
 
-    finalreturn = await generateListTitleImage(listofnote);
+    finalreturn = await generateListTitleImage(foundedNote);
 
       listofTitleImage = finalreturn[0];
       listofBriefContent = finalreturn[1];
 
       finalreturn.clear();
       
-    setState(() {});
+    
     return;
   }
 
@@ -1062,7 +1064,7 @@ class HomeScreenState extends State<HomeScreen> {
                                   fontSize: 15,
                                 ),
                                 decoration: const InputDecoration(
-                                    hintText: "Tìm kiếm nè...",
+                                    hintText: "Tìm kiếm...",
                                     prefixIcon: Icon(Icons.search),
                                     filled: true,
                                     fillColor:
@@ -1131,11 +1133,21 @@ class HomeScreenState extends State<HomeScreen> {
                                                   ),
                                                 ))
                                             .toList(),
-                                        onChanged: (value) {
-                                          filtertagAtLocal(value);
+                                        onChanged: (value) async {
+                                          await EasyLoading.show(
+                                            status: "Đang lọc các ghi chú...",
+                                            maskType: EasyLoadingMaskType.none,
+                                          );
+
+                                          await filtertagAtLocal(value);
                                     
+                                          await EasyLoading.dismiss();
+
+                                          setState(() {
+                                            
+                                          });
+                                          
                                           selectedtagLocal = value;
-                                          setState(() {});
                                         },
                                         value: selectedtagLocal,
                                       ),

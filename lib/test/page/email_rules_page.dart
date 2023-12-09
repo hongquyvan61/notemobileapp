@@ -455,7 +455,14 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
                                                     borderSide: BorderSide(
                                                       width: 0.5,
                                                 ))
-                                              )
+                                              ),
+                                              onTap: () {
+                                                isInvalidMail = false;
+                                                ErrorTextController.text = "";
+                                                setState(() {
+                                                              
+                                                });
+                                              },
                                             ),
 
                                             const SizedBox(height: 10,),

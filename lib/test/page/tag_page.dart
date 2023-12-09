@@ -416,6 +416,9 @@ class TagScreenState extends State<TagScreen>{
                               ),
                               onPressed: () {
                                 isCreatedNewTag = false;
+
+                                _tagnamecontroller.text = "";
+
                                 setState(() {});
                               },
                     ),

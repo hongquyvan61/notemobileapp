@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:notemobileapp/router.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -197,6 +198,10 @@ class Auth {
     if(isAnonymuos){
       bool isSynchronize = await showAlertDialog(context, "Bạn có muốn đồng bộ dữ liệu của những ghi chú đã tạo trước đây vào tài khoản này không?", "Xác nhận đồng bộ");
       
+      await EasyLoading.show(status: "Đang tải danh sách nhãn của bạn...",
+                            maskType:EasyLoadingMaskType.black,
+                            );
+
       if(isSynchronize){
         await uploadNoteToCloud().whenComplete(() {
 
@@ -214,6 +219,8 @@ class Auth {
             });
         });
       });
+
+      await EasyLoading.dismiss();
 
     }
 
