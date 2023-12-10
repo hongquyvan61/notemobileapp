@@ -114,7 +114,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
               ),
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
-                
+
                 child: Text(
                   contentString,
                   maxLines: 5,
@@ -378,6 +378,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
                       padding: EdgeInsetsDirectional.fromSTEB(8, 0, 8, 0),
                       child: GestureDetector(
                         onTap: () => setState(() {
+                          checkConnect();
                           isShare = false;
                         }),
                         child: Container(
@@ -460,46 +461,50 @@ class _ShareNotePageState extends State<ShareNotePage> {
                       builder: (context, snapshot) {
                         if(!connectInternet){
                           ToastComponent().showToast('Không có kết nối internet. Vui lòng kiểm tra lại mạng');
-                        }
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          // Nếu đang tải dữ liệu, hiển thị màn hình xoay
-                          return OrientationBuilder(
-                            builder: (context, orientation) {
-                              return Center(child: CircularProgressIndicator());
-                            },
-                          );
-                        } else if (snapshot.hasError) {
-                          // Nếu có lỗi, hiển thị thông báo lỗi
-                          return Text('Đã xảy ra lỗi: ${snapshot.error}');
                         } else {
-                          // Nếu dữ liệu đã tải xong, hiển thị nội dung
-                          return Expanded(
-                            child: Padding(
-                              padding:
-                                  EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
-                              child: RefreshIndicator(
-                                onRefresh: () => refresh(),
-                                child: InkWell(
-                                  splashColor: Colors.transparent,
-                                  focusColor: Colors.transparent,
-                                  hoverColor: Colors.transparent,
-                                  highlightColor: Colors.transparent,
-                                  onTap: () async {},
-                                  child: MasonryGridView.count(
-                                    crossAxisCount: 2,
-                                    crossAxisSpacing: 10,
-                                    mainAxisSpacing: 10,
-                                    itemCount: snapshot.data?.length,
-                                    itemBuilder: (context, index) {
-                                      return cardWidget(snapshot.data![index]);
-                                    },
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            // Nếu đang tải dữ liệu, hiển thị màn hình xoay
+                            return OrientationBuilder(
+                              builder: (context, orientation) {
+                                return Center(
+                                    child: CircularProgressIndicator());
+                              },
+                            );
+                          } else if (snapshot.hasError) {
+                            // Nếu có lỗi, hiển thị thông báo lỗi
+                            return Text('Đã xảy ra lỗi: ${snapshot.error}');
+                          } else {
+                            // Nếu dữ liệu đã tải xong, hiển thị nội dung
+                            return Expanded(
+                              child: Padding(
+                                padding:
+                                EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
+                                child: RefreshIndicator(
+                                  onRefresh: () => refresh(),
+                                  child: InkWell(
+                                    splashColor: Colors.transparent,
+                                    focusColor: Colors.transparent,
+                                    hoverColor: Colors.transparent,
+                                    highlightColor: Colors.transparent,
+                                    onTap: () async {},
+                                    child: MasonryGridView.count(
+                                      crossAxisCount: 2,
+                                      crossAxisSpacing: 10,
+                                      mainAxisSpacing: 10,
+                                      itemCount: snapshot.data?.length,
+                                      itemBuilder: (context, index) {
+                                        return cardWidget(
+                                            snapshot.data![index]);
+                                      },
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          );
+                            );
+                          }
                         }
+                        return Center(child: Text('Không có kết nối Internet !'),);
                       },
                     ),
             ],

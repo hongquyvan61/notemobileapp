@@ -42,8 +42,9 @@ class _SignUpPageState extends State<SignUpPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              const Spacer(),
               const Text(
-                'Sign Up',
+                'Đăng ký',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
               ),
               const SizedBox(
@@ -53,7 +54,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 controller: _emailController,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return "Please enter your Email";
+                    return "Vui lòng nhập địa chỉ Email của bạn";
                   }
                   return null;
                 },
@@ -75,12 +76,12 @@ class _SignUpPageState extends State<SignUpPage> {
                 obscureText: _isObscure,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return "Please enter your Password";
+                    return "Vui lòng nhập mật khẩu của bạn";
                   }
                   return null;
                 },
                 decoration: InputDecoration(
-                    hintText: 'Password',
+                    hintText: 'Mật khẩu',
                     focusColor: Colors.black,
                     focusedBorder: const UnderlineInputBorder(
                         borderSide: BorderSide(
@@ -108,12 +109,12 @@ class _SignUpPageState extends State<SignUpPage> {
                 obscureText: _isObscure,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return "Please enter your Password";
+                    return "Mật khẩu không trùng khớp";
                   }
                   return null;
                 },
                 decoration: InputDecoration(
-                    hintText: 'Re-type Password',
+                    hintText: 'Nhập lại mật khẩu',
                     focusColor: Colors.black,
                     focusedBorder: const UnderlineInputBorder(
                         borderSide: BorderSide(
@@ -155,7 +156,7 @@ class _SignUpPageState extends State<SignUpPage> {
                             strokeWidth: 2,
                           ),
                         )
-                      : Text('Register'),
+                      : Text('Đăng ký'),
                 ),
               ),
               SizedBox(
@@ -164,10 +165,13 @@ class _SignUpPageState extends State<SignUpPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("Already have an account ?"),
-                  TextButton(onPressed: () {}, child: Text("Login"))
+                  Text("Bạn đã có tài khoản?"),
+                  TextButton(onPressed: () {
+                    Navigator.of(context).popAndPushNamed(RoutePaths.login);
+                  }, child: Text("Đăng nhập"))
                 ],
               ),
+              const Spacer()
             ],
           ),
         ),
@@ -212,7 +216,11 @@ class _SignUpPageState extends State<SignUpPage> {
         });
       }
     } else {
-      showToast("passwords do not match");
+      _loading = false;
+      setState(() {
+
+      });
+      showToast("Mật khẩu không trùng khớp ! Thử lại");
     }
 
   }

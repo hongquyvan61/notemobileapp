@@ -103,8 +103,16 @@ class Auth {
   }
 
   changePassword() async {
-    final user = _auth.currentUser;
-    await user?.sendEmailVerification();
+    String? email = _auth.currentUser?.email;
+    try {
+      await FirebaseAuth.instance
+          .sendPasswordResetEmail(email: email!);
+
+      ToastComponent().showToast("Email đã được gửi !");
+    } on FirebaseAuthException catch (e) {
+      ToastComponent().showToast("Có lỗi xảy ra, vui lòng thử lại");
+    }
+
   }
 
   Future<bool> showAlertDialog(BuildContext context, String message, String alerttitle) async {

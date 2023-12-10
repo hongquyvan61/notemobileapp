@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -110,6 +111,9 @@ class HomeScreenState extends State<HomeScreen> {
     FireBaseMessageService().requestNotificationPermission();
     FireBaseMessageService().getToken().then((value) => print(value));
 
+
+
+
     checkLogin();
     CheckInternetConnection();
 
@@ -124,6 +128,9 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> CheckInternetConnection() async {
+
+
+
     dynamic token;
     await FireBaseMessageService().getToken().then((value) async {
       token = value.toString();
@@ -1271,7 +1278,10 @@ class HomeScreenState extends State<HomeScreen> {
         InitiateListOfNote();
       }
     });
+
   }
+
+
 
   Future<void> refreshNoteListFromCloud() async {
     // listofimglink_cloud.clear();

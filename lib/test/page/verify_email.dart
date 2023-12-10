@@ -78,7 +78,9 @@ class _VerifyEmailPageState extends State<VerifyEmailPage> {
                 onPressed: () {
                   if (canResendEmail) {
                     sendVerificationEmail();
+                    ToastComponent().showToast('Đã gửi lại email xác thực');
                   }
+
                 },
                 icon: const Icon(Icons.email),
                 label: const Text('Gửi lại email xác thực')),

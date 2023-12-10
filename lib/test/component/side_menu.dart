@@ -235,7 +235,7 @@ class _NavBarState extends State<NavBar> {
         ),
         ElevatedButton(
           onPressed: () async {
-            // Auth().changePassword();
+            Auth().changePassword();
             Provider.of<CountdownState>(context, listen: false).startCountdown();
             setState(() {
             });

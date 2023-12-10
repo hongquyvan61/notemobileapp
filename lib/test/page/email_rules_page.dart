@@ -737,7 +737,7 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
           context: context,
           builder: (context) {
             return AlertDialog(
-              title: Text('Email không đúng dịnh dạng, thử lại'),
+              title: Text('Email không đúng định dạng, thử lại'),
               actions: [
                 ElevatedButton(
                     onPressed: () {

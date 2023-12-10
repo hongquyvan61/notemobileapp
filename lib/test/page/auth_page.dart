@@ -52,7 +52,7 @@ class _AuthPageState extends State<AuthPage> {
             children: [
               const Spacer(),
               const Text(
-                'Login',
+                'Đăng Nhập',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
               ),
               const SizedBox(
@@ -62,7 +62,7 @@ class _AuthPageState extends State<AuthPage> {
                 controller: _emailController,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return "Please enter your Email";
+                    return "Vui lòng nhập địa chỉ Email của bạn !";
                   }
                   return null;
                 },
@@ -84,12 +84,12 @@ class _AuthPageState extends State<AuthPage> {
                 obscureText: _isObscure,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return "Please enter your Password";
+                    return "Vui lòng nhập mật khẩu của bạn";
                   }
                   return null;
                 },
                 decoration: InputDecoration(
-                    hintText: 'Password',
+                    hintText: 'Mật khẩu',
                     focusColor: Colors.black,
                     focusedBorder: const UnderlineInputBorder(
                         borderSide: BorderSide(
@@ -116,7 +116,7 @@ class _AuthPageState extends State<AuthPage> {
                       onPressed: () {
                         DialogPage().openDialog(context);
                       },
-                      child: const Text("Forgot Password?")),
+                      child: const Text("Quên mật khẩu?")),
                 ],
               ),
               //const Spacer(),
@@ -139,7 +139,7 @@ class _AuthPageState extends State<AuthPage> {
                             strokeWidth: 2,
                           ),
                         )
-                      : const Text('Login'),
+                      : const Text('Đăng nhập'),
                 ),
               ),
               SizedBox(
@@ -193,12 +193,12 @@ class _AuthPageState extends State<AuthPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("Don't have an account ?"),
+                  Text("Bạn chưa có tài khoản?"),
                   TextButton(
                       onPressed: () {
                         Navigator.of(context).pushNamed(RoutePaths.signup);
                       },
-                      child: Text("Sign Up"))
+                      child: Text("Đăng ký"))
                 ],
               ),
               const Spacer()

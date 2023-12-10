@@ -7,10 +7,10 @@ class DialogPage {
   Future openDialog(context) => showDialog(
       context: context,
       builder: (context) => AlertDialog(
-            title: const Text("Reset Password"),
+            title: const Text("Đặt lại mật khẩu"),
             content: TextField(
               autofocus: true,
-              decoration: const InputDecoration(hintText: 'Enter Your Email'),
+              decoration: const InputDecoration(hintText: 'Nhập Email của bạn'),
               controller: controller,
             ),
             actions: [
@@ -18,7 +18,7 @@ class DialogPage {
                   onPressed: () {
                     submit(context);
                   },
-                  child: const Text('Send')),
+                  child: const Text('Gửi')),
             ],
           ));
 
@@ -33,18 +33,19 @@ class DialogPage {
           context: context,
           builder: (context) => AlertDialog(
                 content: const Text(
-                    "The password reset link has been sent to your email !"),
+                    "Đường dẫn đặt lại mật khẩu đã được gửi đến Email của bạn !"),
                 actions: [
                   TextButton(onPressed: () {
                       Navigator.pop(context);
-                  }, child: const Text("OK")),
+                  }, child: const Text("Xong")),
                 ],
               ));
     } on Exception catch (e) {
       showDialog(
           context: context,
           builder: (context) => AlertDialog(
-                content: Text(e.toString()),
+            actions: [TextButton(onPressed: (){Navigator.of(context).pop();}, child: Text("Xong"))],
+                content: const Text("Có lỗi xảy ra ! Vui lòng thử lại."),
               ));
     }
   }
