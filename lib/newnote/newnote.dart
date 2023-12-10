@@ -457,19 +457,23 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     NoteContent noteContent = NoteContent();
     List<dynamic> CloudContents = [];
 
-    firsttxtfieldcont = SaveNoteContentList[0].text;
     File file;
     String urlImageCloud;
 
-    for (int i = 0; i < SaveNoteContentList.length; i++) {
-      if (SaveNoteContentList[i] is File) {
+    for (int i = 0; i < noteContentList.length; i++) {
+      if (noteContentList[i] is File) {
         // String imageName = basename(SaveNoteContentList[i].path);
-        CloudContents.add({'local_image': SaveNoteContentList[i].path});
+        bool exists = await File(noteContentList[i].path).exists();
+
+        if (exists) {
+          CloudContents.add({'local_image': noteContentList[i].path});
+        }
       } else {
-        String noiDungGhiChu = SaveNoteContentList[i].text;
-        CloudContents.add({'text': noiDungGhiChu});
+        TextField textField = noteContentList[i];
+        CloudContents.add({'text': textField.controller?.text});
       }
     }
+
     noteContent.timeStamp = currentDateTime;
     noteContent.title = NoteTitle;
     noteContent.content = CloudContents;
@@ -484,9 +488,9 @@ class NewNoteScreenState extends State<NewNoteScreen> {
     String noteid = await FireStorageService().saveContentNotes(noteContent);
 
     if (isConnected) {
-      for (int i = 0; i < SaveNoteContentList.length; i++) {
-        if (SaveNoteContentList[i] is File) {
-          file = File(SaveNoteContentList[i].path);
+      for (int i = 0; i < noteContentList.length; i++) {
+        if (noteContentList[i] is File) {
+          file = File(noteContentList[i].path);
           urlImageCloud = await StorageService().uploadImage(file);
           // CloudContents.insert(i + 1, {'image': urlImageCloud});
           CloudContents[i].addAll({'image': urlImageCloud});
@@ -1183,9 +1187,13 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                                     }
                                 }
 
-                                  lstTxtController[vitri].text = result.recognizedWords;
-                                  if (vitri == 0) {
-                                    firsttxtfieldcont = result.recognizedWords;
+                                  if(result.finalResult){
+                                    lstTxtController[vitri].text += result.recognizedWords;
+                                    lstTxtController[vitri].selection = TextSelection.fromPosition(TextPosition(offset: lstTxtController[vitri].text.length));
+
+                                    if (vitri == 0) {
+                                      firsttxtfieldcont = lstTxtController[vitri].text;
+                                    }
                                   }
 
                                   if (result.hasConfidenceRating && result.confidence > 0) {
@@ -1901,6 +1909,11 @@ class NewNoteScreenState extends State<NewNoteScreen> {
       tag!.tagname = note.tagname;
 
       currentDateTime = note.timeStamp;
+
+      lstTxtController.clear();
+      lstFocusNode.clear();
+
+
       for (int i = 0; i < note.content.length; i++) {
         Map<String, dynamic> temp = note.content[i];
         if (temp.containsKey('local_image')) {
@@ -1913,6 +1926,9 @@ class NewNoteScreenState extends State<NewNoteScreen> {
         if (temp.containsKey('text')) {
           TextEditingController controller = TextEditingController();
           FocusNode fcnode = FocusNode();
+
+          lstTxtController.add(controller);
+          lstFocusNode.add(fcnode);
 
           controller.text = temp['text'];
           noteContentList.add(textFieldWidgetForEdit(controller, fcnode, isEditCompleted, widget.isEdit));

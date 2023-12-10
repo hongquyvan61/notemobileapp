@@ -349,58 +349,6 @@ class ShowShareNoteState extends State<ShowShareNote> {
     return result ?? false;
   }
 
-  Future<void> uploadNoteToCloud() async {
-    // showDialog(
-    //     context: appcontext,
-    //     builder: (context) {
-    //       return Center(
-    //         child: CircularProgressIndicator(),
-    //       );
-    //     });
-    NoteContent noteContent = NoteContent();
-    List<dynamic> CloudContents = [];
-
-    firsttxtfieldcont = SaveNoteContentList[0].text;
-    File file;
-    String urlImageCloud;
-
-    for (int i = 0; i < SaveNoteContentList.length; i++) {
-      if (SaveNoteContentList[i] is File) {
-        // String imageName = basename(SaveNoteContentList[i].path);
-        CloudContents.add({'local_image': SaveNoteContentList[i].path});
-      } else {
-        String noiDungGhiChu = SaveNoteContentList[i].text;
-        CloudContents.add({'text': noiDungGhiChu});
-      }
-    }
-    noteContent.timeStamp = currentDateTime;
-    noteContent.title = NoteTitle;
-    noteContent.content = CloudContents;
-    noteContent.tagname = tag!.tagname == "" || tag == null
-        ? ""
-        : tag!.tagname; //////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
-    //////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
-    /////////SỬA LẠI TAGNAME Ở ĐÂY KHI LÀM PHẦN TAG
-
-    //Navigator.pop(appcontext);
-
-    String noteid = await FireStorageService()
-        .saveContentNotesForShare(noteContent, widget.email);
-
-    if (isConnected) {
-      for (int i = 0; i < SaveNoteContentList.length; i++) {
-        if (SaveNoteContentList[i] is File) {
-          file = File(SaveNoteContentList[i].path);
-          urlImageCloud = await StorageService().uploadImage(file);
-          CloudContents.insert(i + 1, {'image': urlImageCloud});
-        }
-      }
-
-      await FireStorageService()
-          .updateCloudImageURLForShare(noteid, CloudContents, widget.email);
-    }
-  }
-
   Widget buildImageWidget(BuildContext context, int index) {
     Widget imageWidget = Stack(children: [
       noteContentList[index] is String
@@ -669,7 +617,15 @@ class ShowShareNoteState extends State<ShowShareNote> {
                     ),
                     onPressed: () async {
                       if (widget.email != "") {
+                        await EasyLoading.show(
+                          status: "Đang cập nhật ghi chú...",
+                          maskType: EasyLoadingMaskType.black,
+                        );
+
                         updateNote();
+
+                        await EasyLoading.dismiss();
+                        
                         Navigator.of(context).pop('RELOAD_LIST');
                       }
                       //updateNoteToLocal();
@@ -799,7 +755,7 @@ class ShowShareNoteState extends State<ShowShareNote> {
                           setState(() {
                             MicroIsListening = true;
                             speechToText.listen(onResult: (result) {
-                              setState(() {
+                              
                                 for (var i = 0; i < lstFocusNode.length; i++) {
                                   if (lstFocusNode[i].hasFocus) {
                                     vitri = i;
@@ -807,9 +763,13 @@ class ShowShareNoteState extends State<ShowShareNote> {
                                   }
                                 }
 
-                                 lstTxtController[vitri].text = result.recognizedWords;
-                                  if (vitri == 0) {
-                                    firsttxtfieldcont = result.recognizedWords;
+                                 if(result.finalResult){
+                                    lstTxtController[vitri].text += result.recognizedWords;
+                                    lstTxtController[vitri].selection = TextSelection.fromPosition(TextPosition(offset: lstTxtController[vitri].text.length));
+
+                                    if (vitri == 0) {
+                                      firsttxtfieldcont = lstTxtController[vitri].text;
+                                    }
                                   }
 
                                   if (result.hasConfidenceRating && result.confidence > 0) {
@@ -817,7 +777,9 @@ class ShowShareNoteState extends State<ShowShareNote> {
                                   }
 
                                   MicroIsListening = false;
-                                  
+                                  setState(() {
+                                    
+                                  });
                                 // if (result.finalResult) {
                                 //   String doanvannoi = result.recognizedWords;
                                 //   lstTxtController[vitri].text += doanvannoi;
@@ -826,7 +788,7 @@ class ShowShareNoteState extends State<ShowShareNote> {
                                 //   }
                                 //   MicroIsListening = false;
                                 // }
-                              });
+                              
                             });
                           });
                         }
@@ -940,6 +902,9 @@ class ShowShareNoteState extends State<ShowShareNote> {
       //Dowload hinh ve local
       List<dynamic> contentNote = note.content;
 
+      lstFocusNode.clear();
+      lstTxtController.clear();
+
       for(int i = 0; i < contentNote.length; i++){
         if(contentNote[i].containsKey('image')){
           if (contentNote[i].containsKey("local_image") &&
@@ -968,6 +933,9 @@ class ShowShareNoteState extends State<ShowShareNote> {
         if (temp.containsKey('text')) {
           TextEditingController controller = TextEditingController();
           FocusNode fcnode = FocusNode();
+
+          lstFocusNode.add(fcnode);
+          lstTxtController.add(controller);
 
           controller.text = temp['text'];
           noteContentList.add(widget.rule == rules[0]

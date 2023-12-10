@@ -92,7 +92,7 @@ class _NotificationPageState extends State<NotificationPage> {
 
               await updateHasSeen(receive);
 
-              Navigator.push(
+              final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) => ShowShareNote(
@@ -100,6 +100,8 @@ class _NotificationPageState extends State<NotificationPage> {
                           isEdit: true,
                           email: listNote[index].owner,
                           rule: listNote[index].rule)));
+
+              getAllReceive();
             },
             child: Row(
               mainAxisSize: MainAxisSize.max,
@@ -186,7 +188,7 @@ class _NotificationPageState extends State<NotificationPage> {
           padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
           child: TextButton(
             onPressed: () async {
-              await Navigator.push(
+              final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) => ShowShareNote(
@@ -194,6 +196,8 @@ class _NotificationPageState extends State<NotificationPage> {
                           isEdit: true,
                           email: listNote[index].owner,
                           rule: listNote[index].rule)));
+
+              getAllReceive();
             },
             child: Row(
               mainAxisSize: MainAxisSize.max,

@@ -81,8 +81,8 @@ class _ShareNotePageState extends State<ShareNotePage> {
     }
 
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
+      onTap: () async {
+        final result = await Navigator.push(
             context,
             MaterialPageRoute(
                 builder: (context) => ShowShareNote(
@@ -91,6 +91,8 @@ class _ShareNotePageState extends State<ShareNotePage> {
                       email: note.owner,
                       rule: rule,
                     )));
+        
+        refresh();
       },
       child: Card(
         clipBehavior: Clip.antiAliasWithSaveLayer,
@@ -207,7 +209,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
     for (var element in note.content) {
       content = element;
       if (content.containsKey('text')) {
-        contentString += content['text'];
+        contentString += content['text'] + "\n";
       } else if (content.containsKey('image')) {
         urlImage = content['image'];
         if(File(content['local_image']).existsSync()){
@@ -219,8 +221,8 @@ class _ShareNotePageState extends State<ShareNotePage> {
       }
     }
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
+      onTap: () async {
+        final result = await Navigator.push(
             context,
             MaterialPageRoute(
                 builder: (context) => NewNoteScreen(
@@ -228,6 +230,8 @@ class _ShareNotePageState extends State<ShareNotePage> {
                     isEdit: true,
                     isNewNote: false,
                     email: currentUser!.isNotEmpty ? currentUser : '')));
+
+        refresh();
       },
       child: Card(
         clipBehavior: Clip.antiAliasWithSaveLayer,
@@ -352,6 +356,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
                       padding: EdgeInsetsDirectional.fromSTEB(8, 0, 8, 0),
                       child: GestureDetector(
                         onTap: () => setState(() {
+                          checkConnect();
                           isShare = true;
                         }),
                         child: Container(
