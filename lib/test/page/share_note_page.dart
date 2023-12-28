@@ -99,7 +99,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
                       )));
         }
         else {
-          ToastComponent().showToast("Có lỗi xảy ra thử lại!");
+          ToastComponent().showToast("Ghi chú không còn được chia sẻ với bạn");
         }
 
         refresh();
