@@ -496,6 +496,15 @@ class FireStorageService {
     return result;
   }
 
+  Future<String> deleteToken() async {
+    String result = '';
+    DocumentReference documentReference = notesCollection.doc(currentUser);
+
+    await documentReference.update({'token': FieldValue.delete()});
+
+    return result;
+  }
+
   Future<int> getNumberOfNotiHadNotSeen() async {
     int num = await notesCollection.doc(currentUser).collection('receive')
                                 .where('hadseen',isEqualTo: false).count().get().then((res) => res.count);

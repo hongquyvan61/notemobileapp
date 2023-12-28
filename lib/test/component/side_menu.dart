@@ -168,6 +168,7 @@ class _NavBarState extends State<NavBar> {
         TextButton(
           child: Text("Đăng xuất"),
           onPressed: () {
+            FireStorageService().deleteToken();
             deleteAllImageAtLocal();
             googleSignIn.signOut();
             FirebaseAuth.instance.signOut();
