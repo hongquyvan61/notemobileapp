@@ -123,10 +123,10 @@ class TagScreenState extends State<TagScreen>{
                                           );
 
                                     if(loginState){
-                                      lsttags = lsttags.where((element) => element.tagname.toLowerCase().contains(value)).toList();
+                                      lsttags = lsttags.where((element) => element.tagname.toLowerCase().contains(value.toLowerCase())).toList();
                                     }
                                     else{
-                                      lsttagslocal = lsttagslocal.where((element) => element.tag_name.toLowerCase().contains(value)).toList();
+                                      lsttagslocal = lsttagslocal.where((element) => element.tag_name.toLowerCase().contains(value.toLowerCase())).toList();
                                     }
 
                                     await EasyLoading.dismiss();

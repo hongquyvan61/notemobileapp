@@ -206,7 +206,7 @@ class Auth {
     if(isAnonymuos){
       bool isSynchronize = await showAlertDialog(context, "Bạn có muốn đồng bộ dữ liệu của những ghi chú đã tạo trước đây vào tài khoản này không?", "Xác nhận đồng bộ");
       
-      await EasyLoading.show(status: "Đang tải danh sách nhãn của bạn...",
+      await EasyLoading.show(status: "Đang tải ghi chú của bạn, đừng thoát app nhé!...",
                             maskType:EasyLoadingMaskType.black,
                             );
 

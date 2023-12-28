@@ -768,6 +768,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                   if (SaveNoteContentList[index].text == "") {
                     //XOA TEXT FIELD NGAY SAU HINH NEU TEXT FIELD TRONG KHI TAO GHI CHU
                     noteContentList.removeAt(index);
+                    SaveNoteContentList.removeAt(index);
                   }
                 } else {
                   if (loginState) {
@@ -1367,7 +1368,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                                                     .where((element) => element
                                                         .tagname
                                                         .toLowerCase()
-                                                        .contains(value))
+                                                        .contains(value.toLowerCase()))
                                                     .toList();
                                                 await EasyLoading.dismiss();
                                               }
