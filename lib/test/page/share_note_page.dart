@@ -1,6 +1,5 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
-
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -57,8 +56,6 @@ class _ShareNotePageState extends State<ShareNotePage> {
   }
 
   Widget cardWidget(NoteReceive note) {
-
-
     String contentString = '';
     String urlImage = '';
     String localImage = '';
@@ -71,7 +68,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
         contentString += content['text'];
       } else if (content.containsKey('image')) {
         urlImage = content['image'];
-        if(File(content['local_image']).existsSync()){
+        if (File(content['local_image']).existsSync()) {
           localImage = content['local_image'];
         }
       }
@@ -79,19 +76,32 @@ class _ShareNotePageState extends State<ShareNotePage> {
         break;
       }
     }
+    bool check = false;
 
     return GestureDetector(
       onTap: () async {
-        final result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => ShowShareNote(
-                      noteId: note.noteId,
-                      isEdit: true,
-                      email: note.owner,
-                      rule: rule,
-                    )));
-        
+        await getAllReceive();
+        for (var element in listReceive) {
+          if (element.noteId == note.noteId) {
+            check = true;
+            break;
+          }
+        }
+        if (check == true) {
+          final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => ShowShareNote(
+                        noteId: note.noteId,
+                        isEdit: true,
+                        email: note.owner,
+                        rule: rule,
+                      )));
+        }
+        else {
+          ToastComponent().showToast("Có lỗi xảy ra thử lại!");
+        }
+
         refresh();
       },
       child: Card(
@@ -116,7 +126,6 @@ class _ShareNotePageState extends State<ShareNotePage> {
               ),
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
-
                 child: Text(
                   contentString,
                   maxLines: 5,
@@ -126,25 +135,24 @@ class _ShareNotePageState extends State<ShareNotePage> {
               urlImage != ''
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: localImage.isNotEmpty ?
-                      Image.file(
-                        File(localImage),
-                        width: 300,
-                        height: 100,
-                        fit: BoxFit.cover,
-                      ) :
-
-                      connectInternet
-                          ? Image.network(
-                              urlImage,
+                      child: localImage.isNotEmpty
+                          ? Image.file(
+                              File(localImage),
                               width: 300,
                               height: 100,
                               fit: BoxFit.cover,
                             )
-                          : SizedBox(
-                              height: 0,
-                              width: 0,
-                            ),
+                          : connectInternet
+                              ? Image.network(
+                                  urlImage,
+                                  width: 300,
+                                  height: 100,
+                                  fit: BoxFit.cover,
+                                )
+                              : SizedBox(
+                                  height: 0,
+                                  width: 0,
+                                ),
                     )
                   : SizedBox(
                       height: 0,
@@ -212,7 +220,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
         contentString += content['text'] + "\n";
       } else if (content.containsKey('image')) {
         urlImage = content['image'];
-        if(File(content['local_image']).existsSync()){
+        if (File(content['local_image']).existsSync()) {
           localImage = content['local_image'];
         }
       }
@@ -263,26 +271,25 @@ class _ShareNotePageState extends State<ShareNotePage> {
               ),
               urlImage != ''
                   ? ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: localImage.isNotEmpty ?
-                Image.file(
-                  File(localImage),
-                  width: 300,
-                  height: 100,
-                  fit: BoxFit.cover,
-                ) :
-
-                connectInternet
-                    ? Image.network(
-                  urlImage,
-                  width: 300,
-                  height: 100,
-                  fit: BoxFit.cover,
-                )
-                    : SizedBox(
-                  height: 0,
-                  width: 0,
-                ),
+                      borderRadius: BorderRadius.circular(8),
+                      child: localImage.isNotEmpty
+                          ? Image.file(
+                              File(localImage),
+                              width: 300,
+                              height: 100,
+                              fit: BoxFit.cover,
+                            )
+                          : connectInternet
+                              ? Image.network(
+                                  urlImage,
+                                  width: 300,
+                                  height: 100,
+                                  fit: BoxFit.cover,
+                                )
+                              : SizedBox(
+                                  height: 0,
+                                  width: 0,
+                                ),
                     )
                   : SizedBox(
                       width: 0,
@@ -464,8 +471,9 @@ class _ShareNotePageState extends State<ShareNotePage> {
                   : FutureBuilder(
                       future: getAllReceive(),
                       builder: (context, snapshot) {
-                        if(!connectInternet){
-                          ToastComponent().showToast('Không có kết nối internet. Vui lòng kiểm tra lại mạng');
+                        if (!connectInternet) {
+                          ToastComponent().showToast(
+                              'Không có kết nối internet. Vui lòng kiểm tra lại mạng');
                         } else {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
@@ -484,7 +492,7 @@ class _ShareNotePageState extends State<ShareNotePage> {
                             return Expanded(
                               child: Padding(
                                 padding:
-                                EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
+                                    EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
                                 child: RefreshIndicator(
                                   onRefresh: () => refresh(),
                                   child: InkWell(
@@ -509,7 +517,9 @@ class _ShareNotePageState extends State<ShareNotePage> {
                             );
                           }
                         }
-                        return Center(child: Text('Không có kết nối Internet !'),);
+                        return Center(
+                          child: Text('Không có kết nối Internet !'),
+                        );
                       },
                     ),
             ],
