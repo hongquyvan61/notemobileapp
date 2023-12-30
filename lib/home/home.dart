@@ -354,7 +354,11 @@ class HomeScreenState extends State<HomeScreen> {
   Future<void> filtertagAtLocal(TagModel? selected) async {
     if (selected!.tag_id == -4 || selected!.tag_id == -3) {
       //CHUA TAO NHAN HOAC TAT CA
-
+      listofnote = await nDAL.getAllNotes(InitDataBase.db).catchError(
+            (Object e, StackTrace stackTrace) {
+          debugPrint(e.toString());
+        },
+      );
       finalreturn.clear();
 
       foundedNote = await nDAL.getAllNotes(InitDataBase.db);
@@ -373,6 +377,12 @@ class HomeScreenState extends State<HomeScreen> {
       
       foundedNote.clear();
 
+      listofnote = await nDAL.getAllNotes(InitDataBase.db).catchError(
+            (Object e, StackTrace stackTrace) {
+          debugPrint(e.toString());
+        },
+      );
+
       foundedNote = await nDAL.getNotesWithoutTag(-1, InitDataBase.db);
 
       finalreturn.clear();
@@ -388,6 +398,12 @@ class HomeScreenState extends State<HomeScreen> {
     }
 
     foundedNote.clear();
+
+    listofnote = await nDAL.getAllNotes(InitDataBase.db).catchError(
+          (Object e, StackTrace stackTrace) {
+        debugPrint(e.toString());
+      },
+    );
 
     foundedNote = await nDAL.getNotesWithTagname(-1, selected.tag_name, InitDataBase.db);
 

@@ -239,7 +239,7 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
             title: Center(child: Text('Chia sẻ')),
             actions: [
               IconButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (updated) {
                       updateInviteToCloud();
                       updateInviteToUserFilter();
@@ -250,11 +250,12 @@ class _ShareNoteUserState extends State<ShareNoteUser> {
                     if(updated == false){
                       Navigator.of(context).pop();
                     }
-                    
+                    await getAllEmailInvite();
                     setState(() {
                       updated = false;
                     });
-                    
+
+
                     
                   },
                   icon: !updated ? Icon(Icons.check) : Icon(Icons.save))

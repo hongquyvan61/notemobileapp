@@ -12,6 +12,7 @@ import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:notemobileapp/test/component/toast.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 //import 'package:flutter_quill/flutter_quill.dart' hide Text;
@@ -616,16 +617,22 @@ class ShowShareNoteState extends State<ShowShareNote> {
                       Icons.update,
                     ),
                     onPressed: () async {
-                      if (widget.email != "") {
-                        await EasyLoading.show(
-                          status: "Đang cập nhật ghi chú...",
-                          maskType: EasyLoadingMaskType.black,
-                        );
+                      bool check = await checkRule();
+                      if(check) {
+                        if (widget.email != "") {
+                          await EasyLoading.show(
+                            status: "Đang cập nhật ghi chú...",
+                            maskType: EasyLoadingMaskType.black,
+                          );
 
-                        updateNote();
+                          updateNote();
 
-                        await EasyLoading.dismiss();
-                        
+                          await EasyLoading.dismiss();
+
+                          Navigator.of(context).pop('RELOAD_LIST');
+                        }
+                      } else {
+                        ToastComponent().showToast("Quyền truy cập đã được cập nhật, thử lại !");
                         Navigator.of(context).pop('RELOAD_LIST');
                       }
                       //updateNoteToLocal();
@@ -884,6 +891,15 @@ class ShowShareNoteState extends State<ShowShareNote> {
 
   Future<void> getTagsByID() async {
     lsttags = await FireStorageService().getAllTagsForShare(widget.email);
+  }
+
+  Future<bool> checkRule() async {
+    String check = await FireStorageService().getReceiveById(widget.noteId);
+    if(check == "Chỉnh sửa"){
+      return true;
+    }
+
+    return false;
   }
 
   void getNoteById(String id) async {

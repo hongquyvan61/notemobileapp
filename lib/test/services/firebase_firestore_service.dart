@@ -510,4 +510,21 @@ class FireStorageService {
                                 .where('hadseen',isEqualTo: false).count().get().then((res) => res.count);
     return num;
   }
+
+  Future<String> getReceiveById(String id) async {
+    Receive receive = Receive();
+    final receiveDoc = notesCollection
+        .doc(currentUser)
+        .collection("receive").doc(id);
+
+
+    DocumentSnapshot doc = await receiveDoc.get();
+    Map<String, dynamic>? docData = doc.data() as Map<String, dynamic>?;
+
+    if (doc.exists && docData!.containsKey('rule')) {
+      receive.rule = doc.get('rule');
+    }
+
+    return receive.rule;
+  }
 }
