@@ -28,6 +28,7 @@ class NavBar extends StatefulWidget {
 
 int selected = 0;
 bool canReset = true;
+bool loginState = false;
 
 class _NavBarState extends State<NavBar> {
   String? _avatar = '';
@@ -37,8 +38,11 @@ class _NavBarState extends State<NavBar> {
 
   @override
   void initState() {
+    checkLogin();
     getUserInfo();
-    NumOfNotiHadNotSeen();
+    if(loginState){
+      NumOfNotiHadNotSeen();
+    }
     super.initState();
   }
 
@@ -257,7 +261,15 @@ class _NavBarState extends State<NavBar> {
         });
   }
 
-
+  void checkLogin() {
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      if (user != null) {
+        loginState = true;
+      } else {
+        loginState = false;
+      }
+    });
+  }
 
   void getUserInfo(){
     FirebaseAuth _auth = FirebaseAuth.instance;
