@@ -263,9 +263,15 @@ class ShowShareNoteState extends State<ShowShareNote> {
     });
   }
 
-  Future getImage() async {
-    final imageFromCache =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
+  Future getImage(String source) async {
+    final imageFromCache;
+
+    if(source == "gallery"){
+      imageFromCache = await ImagePicker().pickImage(source: ImageSource.gallery);
+    }
+    else{
+      imageFromCache = await ImagePicker().pickImage(source: ImageSource.camera);
+    }
 
     if (imageFromCache != null) {
       final File fileCache = File(imageFromCache.path);
@@ -840,8 +846,18 @@ class ShowShareNoteState extends State<ShowShareNote> {
                         icon: const Icon(Icons.image_outlined),
                         color: Colors.white,
                         onPressed: () {
-                          getImage();
-                        }),
+                          getImage("gallery");
+                    }),
+
+                    IconButton(
+                    tooltip: 'Chụp hình',
+                      icon: const Icon(Icons.camera_alt_outlined),
+                      color: Colors.white,
+                      onPressed: () {
+                        getImage("camera");
+                      }
+                    ),
+
                     IconButton(
                       tooltip: 'Hẹn giờ thông báo',
                       color: Colors.white,
