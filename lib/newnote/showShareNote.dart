@@ -152,6 +152,26 @@ class ShowShareNoteState extends State<ShowShareNote> {
   Duration durationTime = const Duration();
   FlutterTts flutterTts = FlutterTts();
 
+  String ngay = "";
+  String thang = "";
+  String nam = "";
+  String gio = "";
+  String phut = "";
+  int counternam = 0;
+
+  Map<String, String> convertnumbers = {
+    'một': "1",
+    'hai': "2",
+    'ba': "3",
+    'bốn': "4",
+    'năm': "5",
+    'sáu': "6",
+    'bảy': "7",
+    'tám': "8",
+    'chín': "9",
+    'mười': "10",
+  };
+
   void _listen() {
     final ScrollDirection direction = _controller.position.userScrollDirection;
     if (direction == ScrollDirection.forward) {
@@ -777,11 +797,284 @@ class ShowShareNoteState extends State<ShowShareNote> {
                                 }
 
                                  if(result.finalResult){
-                                    lstTxtController[vitri].text += result.recognizedWords;
-                                    lstTxtController[vitri].selection = TextSelection.fromPosition(TextPosition(offset: lstTxtController[vitri].text.length));
+                                    if(result.recognizedWords.toLowerCase().startsWith("đặt lịch cho ghi chú")){
+                                      if(result.recognizedWords.toLowerCase().contains("sau")){
+                                        String noidung = result.recognizedWords.toLowerCase();
 
-                                    if (vitri == 0) {
-                                      firsttxtfieldcont = lstTxtController[vitri].text;
+                                        if(noidung.contains("ngày") 
+                                        || noidung.contains("giờ") 
+                                        || noidung.contains("phút")){
+
+                                          convertnumbers.forEach((key, value) {
+                                            noidung = noidung.replaceAll(key, value);
+                                          });
+
+                                          RegExp pattern1 = RegExp(r'(\d+) (ngày|giờ|phút)');
+                                          RegExp pattern2 = RegExp(r'(\d+) ngày\s+(\d+):(\d+\d+)');
+
+                                          //var matches = pattern1.allMatches("10 ngày 10 giờ 15 phút");
+                                          var matches = pattern1.allMatches(noidung);
+                                          if(matches.isEmpty){
+                                            //matches = pattern2.allMatches("3 ngày 4:05");
+                                            matches = pattern2.allMatches(noidung);
+                                          }
+
+                                          for (var match in matches) {
+                                            if(match.groupCount == 2){
+                                               //debugPrint('${match.group(1)}');
+                                               if('${match.group(2)}' == "ngày"){
+                                                  ngay = '${match.group(1)}';
+                                               }
+                                               if('${match.group(2)}' == "giờ"){
+                                                  gio = '${match.group(1)}';
+                                               }
+                                               if('${match.group(2)}' == "phút"){
+                                                  phut = '${match.group(1)}';
+                                               }
+                                            }
+                                            else{
+                                              //debugPrint('${match.group(1)} ${match.group(2)} ${match.group(3)}');
+                                              ngay = '${match.group(1)}';
+                                              gio = '${match.group(2)}';
+                                              phut = '${match.group(3)}';
+                                            }
+                                            
+                                          }
+                                          // List<int> numbers = matches
+                                          //       .map((match) => match.group(0))
+                                          //       .map((number) => int.parse(number?.toString() ?? ""))
+                                          //       .toList();
+                                          
+                                          // ngay = numbers[0].toString();     
+                                          // gio = numbers[1].toString();
+                                          // phut = numbers[2].toString();
+
+                                          final now = DateTime.now();
+                                          final scheduleDateTime = DateTime(now.year,now.month, 
+                                          ngay != "" ? now.day + int.parse(ngay) : now.day, 
+                                          gio != "" ? now.hour + int.parse(gio) : now.hour,
+                                          phut != "" ? now.minute + int.parse(phut) : now.minute);
+
+                                          debugPrint(scheduleDateTime.toString() + "");
+                                          
+                                          if(scheduleDateTime.isBefore(now) || scheduleDateTime.isAtSameMomentAs(now)){
+                                                  Fluttertoast.showToast(
+                                                    msg: "Ngày giờ đặt lịch không hợp lệ, nên đặt sau ít nhất 1 phút!",
+                                                    toastLength: Toast.LENGTH_LONG,
+                                                    gravity: ToastGravity.CENTER,
+                                                    timeInSecForIosWeb: 1,
+                                                    backgroundColor: Colors.red,
+                                                    textColor: Colors.white,
+                                                    fontSize: 16.0);
+                                                  
+                                                  MicroIsListening = false;
+                                                  setState(() {
+                                                    
+                                                  });
+
+                                                  return;
+                                          }
+
+                                          Fluttertoast.showToast(
+                                            msg: "Đã đặt thông báo nhắc nhở sau ${ngay != "" ? ngay : 0} ngày ${gio != "" ? gio : 0} giờ ${phut != "" ? phut : 0} phút",
+                                            toastLength: Toast.LENGTH_LONG,
+                                            gravity: ToastGravity.CENTER,
+                                            timeInSecForIosWeb: 1,
+                                            backgroundColor: Colors.red,
+                                            textColor: Colors.white,
+                                            fontSize: 16.0);
+
+                                          NotificationService().scheduleNotification(
+                                            title: 'Scheduled Notification',
+                                            body: '$scheduleDateTime',
+                                            scheduledNotificationDateTime: scheduleDateTime);
+
+                                          Future.delayed(
+                                            scheduleDateTime.difference(DateTime.now().add(const Duration(seconds: -1))),
+                                                () async => {
+                                              configTextToSpeech(flutterTts),
+                                              flutterTts.speak('Bạn có ghi chú ${_noteTitleController.text} cần xem lại!'),
+                                            });
+
+                                          ngay = "";
+                                          gio = "";
+                                          phut = "";
+
+                                          MicroIsListening = false;
+                                          setState(() {
+                                            
+                                          });
+                                          return;
+                                      }
+                                    }
+                                      
+                                      if(result.recognizedWords.toLowerCase().contains("đặt lịch cho ghi chú vào ngày")
+                                      || result.recognizedWords.toLowerCase().contains("đặt lịch cho ghi chú vào")){
+                                        //String noidung = "đặt lịch cho ghi chú này vào 15 giờ";
+
+                                        String noidung = result.recognizedWords.toLowerCase();
+
+                                          if(noidung.contains("ngày") || noidung.contains("tháng") || noidung.contains("năm") 
+                                          || noidung.contains("giờ")
+                                          || noidung.contains("phút")
+                                          || noidung.contains(":")){
+
+                                              convertnumbers.forEach((key, value) {
+                                                noidung = noidung.replaceAll(key, value);
+                                              });
+
+                                              RegExp patternloinam = RegExp(r'5 (\d{4})');
+
+                                              //List<RegExpMatch> matches = patternloinam.allMatches("đặt lịch cho ghi chú này vào ngày 05 tháng 05 5 2024").toList();
+                                              
+                                              List<RegExpMatch> matches = patternloinam.allMatches(noidung).toList();
+                                              List<int> matchPositions = matches.map((match) => match.start).toList();
+
+                                              //debugPrint(noidung);
+
+                                              if(matchPositions.length == 1){
+                                                noidung = noidung.replaceRange(matchPositions[0], matchPositions[0] + 1, "năm");
+                                              }
+
+                                              //debugPrint(noidung);
+
+                                              RegExp patterndate = RegExp(r'(ngày|tháng|năm) (\d+)');
+                                              RegExp patterntime = RegExp(r'(\d+) (giờ|phút)');
+                                              RegExp patternphut = RegExp(r'(giờ) (\d+)');
+                                              RegExp patterntime2 = RegExp(r'(\d+):(\d+\d+)');
+
+
+                                              var matchesdate = patterndate.allMatches(noidung);
+                                              var matchestime = patterntime.allMatches(noidung);
+                                              var matchesphut = patternphut.allMatches(noidung);
+                                              var matchestime2;
+                                              if(matchestime.isEmpty){
+                                                //matches = pattern2.allMatches("3 ngày 4:05");
+                                                matchestime2 = patterntime2.allMatches(noidung);
+                                              }
+
+                                              for (var match in matchesdate) {
+                                                if(match.groupCount == 2){
+                                                  //debugPrint('${match.group(1)}');
+                                                  if('${match.group(1)}' == "ngày"){
+                                                      ngay = '${match.group(2)}';
+                                                  }
+                                                  if('${match.group(1)}' == "tháng"){
+                                                      thang = '${match.group(2)}';
+                                                  }
+                                                  if('${match.group(1)}' == "năm"){
+                                                      nam = '${match.group(2)}';
+                                                  }
+                                                }
+                                                else{
+                                                  //debugPrint('${match.group(1)} ${match.group(2)} ${match.group(3)}');
+                                                  ngay = '${match.group(1)}';
+                                                  gio = '${match.group(2)}';
+                                                  phut = '${match.group(3)}';
+                                                }
+                                                
+                                              }
+
+                                              for(var match in matchestime){
+                                                  if(match.groupCount == 2){
+                                                    if('${match.group(2)}' == "giờ"){
+                                                        gio = '${match.group(1)}';
+                                                    }
+                                                    if('${match.group(2)}' == "phút"){
+                                                        phut = '${match.group(1)}';
+                                                    }
+                                                  }
+                                              }
+
+                                              if(phut == "" && matchesphut.isNotEmpty){
+                                                for(var match in matchesphut){
+                                                  phut = '${match.group(2)}';
+                                                }
+                                              }
+
+                                              if(matchestime2 != null){
+                                                for(var match in matchestime2){
+                                                  
+                                                  //debugPrint('${match.group(1)} ${match.group(2)} ${match.group(3)}');
+                                                  gio = '${match.group(1)}';
+                                                  phut = '${match.group(2)}';
+                                                }
+                                              }
+
+                                              final now = DateTime.now();
+                                              final scheduleDateTime = DateTime(
+                                              nam != "" ? int.parse(nam) : now.year,
+                                              thang != "" ? int.parse(thang) : now.month, 
+                                              ngay != "" ? int.parse(ngay) : now.day, 
+                                              gio != "" ? int.parse(gio) : 0,
+                                              phut != "" ? int.parse(phut) : 0);
+
+                                              
+                                              
+                                              
+                                              if(scheduleDateTime.isBefore(now) || scheduleDateTime.isAtSameMomentAs(now)){
+                                                  Fluttertoast.showToast(
+                                                    msg: "Ngày giờ đặt lịch không hợp lệ, nên đặt sau ít nhất 1 phút!",
+                                                    toastLength: Toast.LENGTH_LONG,
+                                                    gravity: ToastGravity.CENTER,
+                                                    timeInSecForIosWeb: 1,
+                                                    backgroundColor: Colors.red,
+                                                    textColor: Colors.white,
+                                                    fontSize: 16.0);
+                                                  
+                                                  MicroIsListening = false;
+                                                  setState(() {
+                                                    
+                                                  });
+
+                                                  return;
+                                              }
+
+                                              debugPrint(scheduleDateTime.toString() + "");
+
+                                              Fluttertoast.showToast(
+                                                msg: "Đã đặt thông báo nhắc nhở vào ngày ${ngay != "" ? ngay : now.day} tháng ${thang != "" ? thang : now.month} năm ${nam != "" ? nam : now.year} lúc ${gio != "" ? gio : 0} giờ ${phut != "" ? phut : 0} phút",
+                                                toastLength: Toast.LENGTH_LONG,
+                                                gravity: ToastGravity.CENTER,
+                                                timeInSecForIosWeb: 1,
+                                                backgroundColor: Colors.red,
+                                                textColor: Colors.white,
+                                                fontSize: 16.0);
+
+                                              ngay = "";
+                                              thang = "";
+                                              nam = "";
+                                              gio = "";
+                                              phut = "";
+
+                                              NotificationService().scheduleNotification(
+                                                title: 'Scheduled Notification',
+                                                body: '$scheduleDateTime',
+                                                scheduledNotificationDateTime: scheduleDateTime);
+
+                                              Future.delayed(
+                                              scheduleDateTime.difference(DateTime.now().add(const Duration(seconds: -1))),
+                                                  () async => {
+                                                configTextToSpeech(flutterTts),
+                                                flutterTts.speak('Bạn có ghi chú ${_noteTitleController.text} cần xem lại!'),
+                                              });
+
+                                              MicroIsListening = false;
+                                              setState(() {
+                                                
+                                              });
+
+                                              return;
+                                          }
+                                      }
+                                    }
+                                    else{
+                                      lstTxtController[vitri].text += result.recognizedWords;
+                                      lstTxtController[vitri].selection = TextSelection.fromPosition(TextPosition(offset: lstTxtController[vitri].text.length));
+
+                                      if (vitri == 0) {
+                                        firsttxtfieldcont = lstTxtController[vitri].text;
+                                      }
                                     }
                                   }
 

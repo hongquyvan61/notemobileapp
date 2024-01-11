@@ -1302,17 +1302,17 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                                             textColor: Colors.white,
                                             fontSize: 16.0);
 
-                                          // NotificationService().scheduleNotification(
-                                          //   title: 'Scheduled Notification',
-                                          //   body: '$scheduleDateTime',
-                                          //   scheduledNotificationDateTime: scheduleDateTime);
+                                          NotificationService().scheduleNotification(
+                                            title: 'Scheduled Notification',
+                                            body: '$scheduleDateTime',
+                                            scheduledNotificationDateTime: scheduleDateTime);
 
-                                          // Future.delayed(
-                                          //   scheduleTime.difference(DateTime.now().add(const Duration(seconds: -1))),
-                                          //       () async => {
-                                          //     configTextToSpeech(flutterTts),
-                                          //     flutterTts.speak('Bạn có ghi chú ${_noteTitleController.text} cần xem lại!'),
-                                          //   });
+                                          Future.delayed(
+                                            scheduleDateTime.difference(DateTime.now().add(const Duration(seconds: -1))),
+                                                () async => {
+                                              configTextToSpeech(flutterTts),
+                                              flutterTts.speak('Bạn có ghi chú ${_noteTitleController.text} cần xem lại!'),
+                                            });
 
                                           ngay = "";
                                           gio = "";
@@ -1465,17 +1465,17 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                                               gio = "";
                                               phut = "";
 
-                                              // NotificationService().scheduleNotification(
-                                              //   title: 'Scheduled Notification',
-                                              //   body: '$scheduleDateTime',
-                                              //   scheduledNotificationDateTime: scheduleDateTime);
+                                              NotificationService().scheduleNotification(
+                                                title: 'Scheduled Notification',
+                                                body: '$scheduleDateTime',
+                                                scheduledNotificationDateTime: scheduleDateTime);
 
-                                              // Future.delayed(
-                                              // scheduleTime.difference(DateTime.now().add(const Duration(seconds: -1))),
-                                              //     () async => {
-                                              //   configTextToSpeech(flutterTts),
-                                              //   flutterTts.speak('Bạn có ghi chú ${_noteTitleController.text} cần xem lại!'),
-                                              // });
+                                              Future.delayed(
+                                              scheduleDateTime.difference(DateTime.now().add(const Duration(seconds: -1))),
+                                                  () async => {
+                                                configTextToSpeech(flutterTts),
+                                                flutterTts.speak('Bạn có ghi chú ${_noteTitleController.text} cần xem lại!'),
+                                              });
 
                                               MicroIsListening = false;
                                               setState(() {
