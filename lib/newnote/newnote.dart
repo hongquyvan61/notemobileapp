@@ -1232,7 +1232,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
 
                                           //var matches = pattern1.allMatches("10 ngày 10 giờ 15 phút");
                                           var matches = pattern1.allMatches(noidung);
-                                          if(matches.isEmpty || matches.length == 1){
+                                          if(matches.isEmpty){
                                             //matches = pattern2.allMatches("3 ngày 4:05");
                                             matches = pattern2.allMatches(noidung);
                                           }
@@ -1302,17 +1302,17 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                                             textColor: Colors.white,
                                             fontSize: 16.0);
 
-                                          NotificationService().scheduleNotification(
-                                            title: 'Scheduled Notification',
-                                            body: '$scheduleDateTime',
-                                            scheduledNotificationDateTime: scheduleDateTime);
+                                          // NotificationService().scheduleNotification(
+                                          //   title: 'Scheduled Notification',
+                                          //   body: '$scheduleDateTime',
+                                          //   scheduledNotificationDateTime: scheduleDateTime);
 
-                                          Future.delayed(
-                                            scheduleTime.difference(DateTime.now().add(const Duration(seconds: -1))),
-                                                () async => {
-                                              configTextToSpeech(flutterTts),
-                                              flutterTts.speak('Bạn có ghi chú ${_noteTitleController.text} cần xem lại!'),
-                                            });
+                                          // Future.delayed(
+                                          //   scheduleTime.difference(DateTime.now().add(const Duration(seconds: -1))),
+                                          //       () async => {
+                                          //     configTextToSpeech(flutterTts),
+                                          //     flutterTts.speak('Bạn có ghi chú ${_noteTitleController.text} cần xem lại!'),
+                                          //   });
 
                                           ngay = "";
                                           gio = "";
@@ -1323,22 +1323,25 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                                             
                                           });
                                           return;
-                                        }
                                       }
+                                    }
                                       
                                       if(result.recognizedWords.toLowerCase().contains("đặt lịch cho ghi chú này vào ngày")
                                       || result.recognizedWords.toLowerCase().contains("đặt lịch cho ghi chú này vào")){
+                                        //String noidung = "đặt lịch cho ghi chú này vào 13 giờ 56 phút";
+
                                         String noidung = result.recognizedWords.toLowerCase();
 
                                           if(noidung.contains("ngày") || noidung.contains("tháng") || noidung.contains("năm") 
                                           || noidung.contains("giờ")
-                                          || noidung.contains("phút")){
+                                          || noidung.contains("phút")
+                                          || noidung.contains(":")){
 
                                               convertnumbers.forEach((key, value) {
                                                 noidung = noidung.replaceAll(key, value);
                                               });
 
-                                              RegExp patternloinam = RegExp(r'\b5(?!\d{4})\b');
+                                              RegExp patternloinam = RegExp(r'5 (\d{4})');
 
                                               //List<RegExpMatch> matches = patternloinam.allMatches("đặt lịch cho ghi chú này vào ngày 05 tháng 05 5 2024").toList();
                                               
@@ -1361,7 +1364,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                                               var matchesdate = patterndate.allMatches(noidung);
                                               var matchestime = patterntime.allMatches(noidung);
                                               var matchestime2;
-                                              if(matchestime.isEmpty || matchestime.length == 1){
+                                              if(matchestime.isEmpty){
                                                 //matches = pattern2.allMatches("3 ngày 4:05");
                                                 matchestime2 = patterntime2.allMatches(noidung);
                                               }
@@ -1389,21 +1392,23 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                                               }
 
                                               for(var match in matchestime){
-                                                if(match.groupCount == 2){
-                                                  if('${match.group(2)}' == "giờ"){
-                                                      gio = '${match.group(1)}';
+                                                  if(match.groupCount == 2){
+                                                    if('${match.group(2)}' == "giờ"){
+                                                        gio = '${match.group(1)}';
+                                                    }
+                                                    if('${match.group(2)}' == "phút"){
+                                                        phut = '${match.group(1)}';
+                                                    }
                                                   }
-                                                  if('${match.group(2)}' == "phút"){
-                                                      phut = '${match.group(1)}';
-                                                  }
-                                                }
                                               }
 
-                                              for(var match in matchestime2){
+                                              if(matchestime2 != null){
+                                                for(var match in matchestime2){
                                                   
                                                   //debugPrint('${match.group(1)} ${match.group(2)} ${match.group(3)}');
                                                   gio = '${match.group(1)}';
                                                   phut = '${match.group(2)}';
+                                                }
                                               }
 
                                               final now = DateTime.now();
@@ -1411,10 +1416,10 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                                               nam != "" ? int.parse(nam) : now.year,
                                               thang != "" ? int.parse(thang) : now.month, 
                                               ngay != "" ? int.parse(ngay) : now.day, 
-                                              gio != "" ? int.parse(gio) : now.hour,
-                                              phut != "" ? int.parse(phut) : now.minute);
+                                              gio != "" ? int.parse(gio) : 0,
+                                              phut != "" ? int.parse(phut) : 0);
 
-                                              debugPrint(scheduleDateTime.toString() + "");
+                                              
                                               
                                               
                                               if(scheduleDateTime.isBefore(now) || scheduleDateTime.isAtSameMomentAs(now)){
@@ -1435,8 +1440,10 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                                                   return;
                                               }
 
+                                              debugPrint(scheduleDateTime.toString() + "");
+
                                               Fluttertoast.showToast(
-                                                msg: "Đã đặt thông báo nhắc nhở sau ${ngay != "" ? ngay : 0} ngày ${gio != "" ? gio : 0} giờ ${phut != "" ? phut : 0} phút",
+                                                msg: "Đã đặt thông báo nhắc nhở vào ngày ${ngay != "" ? ngay : now.day} tháng ${thang != "" ? thang : now.month} năm ${nam != "" ? nam : now.year} lúc ${gio != "" ? gio : 0} giờ ${phut != "" ? phut : 0} phút",
                                                 toastLength: Toast.LENGTH_LONG,
                                                 gravity: ToastGravity.CENTER,
                                                 timeInSecForIosWeb: 1,
@@ -1450,17 +1457,17 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                                               gio = "";
                                               phut = "";
 
-                                              NotificationService().scheduleNotification(
-                                                title: 'Scheduled Notification',
-                                                body: '$scheduleDateTime',
-                                                scheduledNotificationDateTime: scheduleDateTime);
+                                              // NotificationService().scheduleNotification(
+                                              //   title: 'Scheduled Notification',
+                                              //   body: '$scheduleDateTime',
+                                              //   scheduledNotificationDateTime: scheduleDateTime);
 
-                                              Future.delayed(
-                                              scheduleTime.difference(DateTime.now().add(const Duration(seconds: -1))),
-                                                  () async => {
-                                                configTextToSpeech(flutterTts),
-                                                flutterTts.speak('Bạn có ghi chú ${_noteTitleController.text} cần xem lại!'),
-                                              });
+                                              // Future.delayed(
+                                              // scheduleTime.difference(DateTime.now().add(const Duration(seconds: -1))),
+                                              //     () async => {
+                                              //   configTextToSpeech(flutterTts),
+                                              //   flutterTts.speak('Bạn có ghi chú ${_noteTitleController.text} cần xem lại!'),
+                                              // });
 
                                               MicroIsListening = false;
                                               setState(() {
