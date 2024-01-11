@@ -1215,7 +1215,7 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                                 }
 
                                   if(result.finalResult){
-                                    if(result.recognizedWords.toLowerCase().startsWith("đặt lịch cho ghi chú này")){
+                                    if(result.recognizedWords.toLowerCase().startsWith("đặt lịch cho ghi chú")){
                                       if(result.recognizedWords.toLowerCase().contains("sau")){
                                         String noidung = result.recognizedWords.toLowerCase();
 
@@ -1326,9 +1326,9 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                                       }
                                     }
                                       
-                                      if(result.recognizedWords.toLowerCase().contains("đặt lịch cho ghi chú này vào ngày")
-                                      || result.recognizedWords.toLowerCase().contains("đặt lịch cho ghi chú này vào")){
-                                        //String noidung = "đặt lịch cho ghi chú này vào 13 giờ 56 phút";
+                                      if(result.recognizedWords.toLowerCase().contains("đặt lịch cho ghi chú vào ngày")
+                                      || result.recognizedWords.toLowerCase().contains("đặt lịch cho ghi chú vào")){
+                                        //String noidung = "đặt lịch cho ghi chú này vào 15 giờ";
 
                                         String noidung = result.recognizedWords.toLowerCase();
 
@@ -1358,11 +1358,13 @@ class NewNoteScreenState extends State<NewNoteScreen> {
 
                                               RegExp patterndate = RegExp(r'(ngày|tháng|năm) (\d+)');
                                               RegExp patterntime = RegExp(r'(\d+) (giờ|phút)');
+                                              RegExp patternphut = RegExp(r'(giờ) (\d+)');
                                               RegExp patterntime2 = RegExp(r'(\d+):(\d+\d+)');
 
 
                                               var matchesdate = patterndate.allMatches(noidung);
                                               var matchestime = patterntime.allMatches(noidung);
+                                              var matchesphut = patternphut.allMatches(noidung);
                                               var matchestime2;
                                               if(matchestime.isEmpty){
                                                 //matches = pattern2.allMatches("3 ngày 4:05");
@@ -1400,6 +1402,12 @@ class NewNoteScreenState extends State<NewNoteScreen> {
                                                         phut = '${match.group(1)}';
                                                     }
                                                   }
+                                              }
+
+                                              if(phut == "" && matchesphut.isNotEmpty){
+                                                for(var match in matchesphut){
+                                                  phut = '${match.group(2)}';
+                                                }
                                               }
 
                                               if(matchestime2 != null){
