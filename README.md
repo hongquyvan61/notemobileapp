@@ -24,38 +24,38 @@ Personal note application with voice recognition feature
 <ul list-style-type="circle">
   <li>Home Screen</li>
 </ul>
-<img src="../ITDauPh/images/screenshot/home.jpg" style="max-width: 30%; max-height: 30%;">
+<img src="../ITDauPh/images/screenshot/home.jpg" width="30%" height="30%">
 
 <ul list-style-type="circle">
   <li>New Note Screen</li>
 </ul>
-<img src="../ITDauPh/images/screenshot/new_note.jpg" style="max-width: 30%; max-height: 30%;">
+<img src="../ITDauPh/images/screenshot/new_note.jpg" width="30%" height="30%">
 
 <ul list-style-type="circle">
   <li>Edit Note Screen</li>
 </ul>
-<img src="../ITDauPh/images/screenshot/edit_note.jpg" style="max-width: 30%; max-height: 30%;">
+<img src="../ITDauPh/images/screenshot/edit_note.jpg" width="30%" height="30%">
 
 <ul list-style-type="circle">
   <li>Tag Manage Screen</li>
 </ul>
-<img src="../ITDauPh/images/screenshot/tag_mng.jpg" style="max-width: 30%; max-height: 30%;">
+<img src="../ITDauPh/images/screenshot/tag_mng.jpg" width="30%" height="30%">
 
 <ul list-style-type="circle">
   <li>Schedule Notification</li>
 </ul>
-<img src="../ITDauPh/images/screenshot/schedule.jpg" style="max-width: 30%; max-height: 30%;">
-<img src="../ITDauPh/images/screenshot/schedule_noti.jpg" style="max-width: 30%; max-height: 30%;">
+<img src="../ITDauPh/images/screenshot/schedule.jpg" width="30%" height="30%">
+<img src="../ITDauPh/images/screenshot/schedule_noti.jpg" width="30%" height="30%">
 
 <ul list-style-type="circle">
   <li>Share Note Screen</li>
 </ul>
-<img src="../ITDauPh/images/screenshot/share_note.jpg" style="max-width: 30%; max-height: 30%;">
+<img src="../ITDauPh/images/screenshot/share_note.jpg" width="30%" height="30%">
 
 <ul list-style-type="circle">
   <li>Share Note Through Email Screen</li>
 </ul>
-<img src="../ITDauPh/images/screenshot/share_note_email.jpg" style="max-width: 30%; max-height: 30%;">
+<img src="../ITDauPh/images/screenshot/share_note_email.jpg" width="30%" height="30%">
 
 <h2>Installation</h2>
 <h3>1.Install Visual Studio Code and Flutter</h3>
