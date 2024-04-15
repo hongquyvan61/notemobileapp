@@ -1,16 +1,78 @@
 # notemobileapp
 
-A new Flutter project.
+Personal note application with voice recognition feature
 
-## Getting Started
+<h2>Component</h2>
+<h3>1. Database</h3>
+<ul list-style-type="circle">
+  <li>Firebase (No SQL)</li>
+  <li>SQLite (local)</li>
+</ul>
 
-This project is a starting point for a Flutter application.
+<h3>2. Framework</h3>
+<ul list-style-type="circle">
+  <li>Flutter (3.10.6)</li>
+</ul>
 
-A few resources to get you started if this is your first Flutter project:
+<h3>3. Programming language</h3>
+<ul list-style-type="circle">
+  <li>Dart (3.0.6)</li>
+</ul>
+<br>
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+<h2>Demo</h2>
+<ul list-style-type="circle">
+  <li>Home Screen</li>
+</ul>
+<img src="../ITDauPh/images/screenshot/home.jpg" style="max-width: 30%; max-height: 30%;">
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+<ul list-style-type="circle">
+  <li>New Note Screen</li>
+</ul>
+<img src="../ITDauPh/images/screenshot/new_note.jpg" style="max-width: 30%; max-height: 30%;">
+
+<ul list-style-type="circle">
+  <li>Edit Note Screen</li>
+</ul>
+<img src="../ITDauPh/images/screenshot/edit_note.jpg" style="max-width: 30%; max-height: 30%;">
+
+<ul list-style-type="circle">
+  <li>Tag Manage Screen</li>
+</ul>
+<img src="../ITDauPh/images/screenshot/tag_mng.jpg" style="max-width: 30%; max-height: 30%;">
+
+<ul list-style-type="circle">
+  <li>Schedule Notification</li>
+</ul>
+<img src="../ITDauPh/images/screenshot/schedule.jpg" style="max-width: 30%; max-height: 30%;">
+<img src="../ITDauPh/images/screenshot/schedule_noti.jpg" style="max-width: 30%; max-height: 30%;">
+
+<ul list-style-type="circle">
+  <li>Share Note Screen</li>
+</ul>
+<img src="../ITDauPh/images/screenshot/share_note.jpg" style="max-width: 30%; max-height: 30%;">
+
+<ul list-style-type="circle">
+  <li>Share Note Through Email Screen</li>
+</ul>
+<img src="../ITDauPh/images/screenshot/share_note_email.jpg" style="max-width: 30%; max-height: 30%;">
+
+<h2>Installation</h2>
+<h3>1.Install Visual Studio Code and Flutter</h3>
+<ul list-style-type="circle">
+  <li>Flutter (3.10.6)</li>
+</ul>
+<p>Install Visual Studio Code. Download and install through this link:</p>
+<p>https://code.visualstudio.com/download</p>
+
+<p>Install Flutter. Download and install through this link:</p>
+<p>https://flutter-ko.dev/get-started/install/windows</p>
+
+<h3>2. Run project</h3>
+<p>Open project with Visual Studio Code, then open file main.dart in "lib/main.dart". Press F5 to run</p>
+
+<h2>Contributors</h2>
+<ul list-style-type="circle">
+  <li><a href="https://github.com/hongquyvan61">Hong Quy Van</a></li>
+  <li><a href="https://github.com/ITDauPh">Phan Van Dau</a></li>
+</ul>
